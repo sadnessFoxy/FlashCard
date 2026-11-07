@@ -1,0 +1,27 @@
+{
+  "common": {
+    "appName": "FlashCard",
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "retry": "Retry",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "delete": "Delete",
+    "back": "Back"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "forgotPassword": "Forgot password?"
+  },
+  "errors": {
+    "networkError": "Network connection error",
+    "unauthorized": "Session expired, please login again",
+    "quotaExceeded": "You have used all your queries for today",
+    "aiUnavailable": "AI features are temporarily unavailable"
+  }
+}

@@ -1,0 +1,23 @@
+# FlashCard - Phiên bản công nghệ đã chọn
+# Cập nhật file này khi nâng cấp phiên bản
+
+Python: 3.11.x
+Node.js: 20.x LTS
+Expo SDK: 52.x
+PostgreSQL: 16.x
+pgvector: 0.7.x
+Redis: 7.x
+
+# Frontend dependencies (xem frontend/package.json để biết phiên bản cụ thể)
+React Native: 0.76.x
+Expo Router: 4.x
+TanStack Query: 5.x
+Zustand: 5.x
+i18next: 23.x
+
+# Backend dependencies (xem backend/pyproject.toml để biết phiên bản cụ thể)
+FastAPI: 0.115.x
+SQLAlchemy: 2.x
+Alembic: 1.13.x
+Pydantic: 2.x
+ARQ: 0.26.x

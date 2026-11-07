@@ -1,0 +1,29 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Cài đặt system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq-dev \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy dependency file trước (cache layer)
+COPY pyproject.toml ./
+
+# Cài đặt dependencies (không cài dev deps)
+RUN pip install --no-cache-dir -e "."
+
+# Copy source code
+COPY app/ ./app/
+
+# Chạy với non-root user
+RUN useradd --no-create-home --shell /bin/false appuser
+USER appuser
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD python scripts/healthcheck.py || exit 1
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]

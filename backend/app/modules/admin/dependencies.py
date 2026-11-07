@@ -1,0 +1,4 @@
+"""FastAPI dependencies cho module admin."""
+from __future__ import annotations
+
+# TODO (giai đoạn F): implement dependencies cho module admin

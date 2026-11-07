@@ -1,0 +1,27 @@
+{
+  "common": {
+    "appName": "FlashCard",
+    "loading": "Đang tải...",
+    "error": "Đã xảy ra lỗi",
+    "retry": "Thử lại",
+    "cancel": "Hủy",
+    "confirm": "Xác nhận",
+    "save": "Lưu",
+    "delete": "Xóa",
+    "back": "Quay lại"
+  },
+  "auth": {
+    "login": "Đăng nhập",
+    "register": "Đăng ký",
+    "logout": "Đăng xuất",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "forgotPassword": "Quên mật khẩu?"
+  },
+  "errors": {
+    "networkError": "Lỗi kết nối mạng",
+    "unauthorized": "Phiên đăng nhập hết hạn",
+    "quotaExceeded": "Bạn đã dùng hết lượt hỏi hôm nay",
+    "aiUnavailable": "Tính năng AI tạm thời không khả dụng"
+  }
+}
