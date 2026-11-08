@@ -1,52 +1,59 @@
-.PHONY: setup dev dev-backend dev-frontend test lint typecheck migrate gen-api infra-up infra-down
+.PHONY: setup dev dev-backend dev-frontend test test-backend test-frontend lint lint-fix typecheck migrate migrate-create gen-api infra-up infra-down infra-logs
 
 # ==========================================
 # FlashCard Makefile
+# Backend chạy trong môi trường ảo backend/.venv
 # ==========================================
 
+ifeq ($(OS),Windows_NT)
+VENV_BIN := .venv/Scripts
+else
+VENV_BIN := .venv/bin
+endif
+PY := $(VENV_BIN)/python
+COMPOSE := docker compose -f infra/docker/docker-compose.yml
+
 setup:
-	cp .env.example backend/.env
+	@test -f backend/.env || cp .env.example backend/.env
 	cd frontend && npm install
-	cd backend && pip install -e ".[dev]"
-	docker compose -f infra/docker/docker-compose.yml up -d
+	cd backend && (test -d .venv || python -m venv .venv) && $(PY) -m pip install -e ".[dev]"
+	$(COMPOSE) up -d
 
 dev:
-	docker compose -f infra/docker/docker-compose.yml up -d
+	$(COMPOSE) up -d
 	$(MAKE) -j2 dev-backend dev-frontend
 
 dev-backend:
-	cd backend && uvicorn app.main:app --reload --port 8000
+	cd backend && $(PY) -m uvicorn app.main:app --reload --port 8000
 
 dev-frontend:
 	cd frontend && npx expo start
 
-test:
-	cd backend && pytest
-	cd frontend && npx jest --watchAll=false
+test: test-backend test-frontend
 
 test-backend:
-	cd backend && pytest
+	cd backend && $(PY) -m pytest
 
 test-frontend:
-	cd frontend && npx jest --watchAll=false
+	cd frontend && npx jest --watchAll=false --passWithNoTests
 
 lint:
-	cd backend && ruff check .
+	cd backend && $(PY) -m ruff check .
 	cd frontend && npx eslint src --ext .ts,.tsx
 
 lint-fix:
-	cd backend && ruff check . --fix
+	cd backend && $(PY) -m ruff check . --fix
 	cd frontend && npx eslint src --ext .ts,.tsx --fix
 
 typecheck:
-	cd backend && mypy app
+	cd backend && $(PY) -m mypy app
 	cd frontend && npx tsc --noEmit
 
 migrate:
-	cd backend && alembic upgrade head
+	cd backend && $(PY) -m alembic upgrade head
 
 migrate-create:
-	cd backend && alembic revision --autogenerate -m "$(name)"
+	cd backend && $(PY) -m alembic revision --autogenerate -m "$(name)"
 
 gen-api:
 	npx @openapitools/openapi-generator-cli generate \
@@ -55,10 +62,10 @@ gen-api:
 		-o frontend/src/api/generated
 
 infra-up:
-	docker compose -f infra/docker/docker-compose.yml up -d
+	$(COMPOSE) up -d
 
 infra-down:
-	docker compose -f infra/docker/docker-compose.yml down
+	$(COMPOSE) down
 
 infra-logs:
-	docker compose -f infra/docker/docker-compose.yml logs -f
+	$(COMPOSE) logs -f

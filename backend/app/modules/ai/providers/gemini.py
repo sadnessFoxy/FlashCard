@@ -92,13 +92,16 @@ class GeminiProvider(LLMProvider):
 
     async def embed(self, texts: list[str]) -> list[list[float]]:
         """Tạo embeddings dùng Gemini embedding model."""
-        url = f"/{GEMINI_API_VERSION}/{self._embedding_model}:batchEmbedContents"
+        model_path = f"models/{self._embedding_model}"
+        url = f"/{GEMINI_API_VERSION}/{model_path}:batchEmbedContents"
 
         requests = [
             {
-                "model": self._embedding_model,
+                "model": model_path,
                 "content": {"parts": [{"text": text}]},
                 "taskType": "RETRIEVAL_DOCUMENT",
+                # Bắt buộc gửi số chiều, nếu không Gemini trả mặc định 3072 (R5: đọc từ cấu hình)
+                "outputDimensionality": self._embedding_dims,
             }
             for text in texts
         ]

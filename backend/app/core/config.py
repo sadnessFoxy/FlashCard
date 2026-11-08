@@ -48,12 +48,12 @@ class Settings(BaseSettings):
         description="Google Gemini API key (from Google AI Studio). Never commit."
     )
     GEMINI_CHAT_MODEL: str = Field(
-        default="gemini-1.5-flash",
+        default="gemini-3.5-flash-lite",
         description="Gemini model for chat/generation",
     )
     GEMINI_EMBEDDING_MODEL: str = Field(
-        default="models/text-embedding-004",
-        description="Gemini model for text embeddings",
+        default="gemini-embedding-2",
+        description="Gemini embedding model id (without 'models/' prefix). Changing it requires re-embedding.",
     )
     EMBEDDING_DIMENSIONS: int = Field(
         default=768,

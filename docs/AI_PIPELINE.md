@@ -52,6 +52,8 @@
 - Mỗi môi trường (dev, staging, production) dùng khóa riêng.
 - Không commit khóa lên Git, không dán vào chat hay tài liệu; nghi ngờ bị lộ thì thu hồi và tạo khóa mới ngay.
 
+> **Cập nhật 2026-11-08:** đã chốt dùng `gemini-embedding-2` (768 chiều, nhận tới 8192 token) và mô hình chat `gemini-3.5-flash-lite`; xem docs/DECISIONS.md. Phần dưới về `gemini-embedding-001` giữ làm phương án dự phòng.
+
 **Embedding (`gemini-embedding-001`)**
 - Hỗ trợ hơn 100 ngôn ngữ và nhận tối đa khoảng 2048 token đầu vào, nên mỗi đoạn (chunk) phải nằm trong giới hạn này. Vẫn thử trên tài liệu tiếng Việt thật như đã nêu ở docs/AI_PIPELINE.md.
 - Số chiều: 3072 (mặc định), có thể giảm xuống 1536 hoặc 768. **Phải chốt trước khi nạp dữ liệu**, vì đổi chiều nghĩa là tạo lại toàn bộ vector.

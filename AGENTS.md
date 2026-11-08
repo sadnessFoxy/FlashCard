@@ -13,7 +13,7 @@ Trợ lý học tập từ tài liệu: người dùng tải giáo trình (PDF, 
 - **Dữ liệu:** PostgreSQL + pgvector (embedding 768 chiều), Redis, kho file tương thích S3.
 - **AI:** Gemini API (gói miễn phí), qua `providers/gemini.py`; thiết kế để chuyển gói trả phí chỉ bằng đổi khóa và cấu hình.
 - **Hợp đồng FE/BE:** `contract/openapi.yaml`, viết trước (contract-first).
-- **Hạ tầng:** chạy local bằng Docker Compose (PostgreSQL có pgvector, Redis, Mailpit, MinIO). Railway chỉ khi sau này muốn đưa lên mạng. **Chỉ bản thử nghiệm: không phát hành lên App Store, Google Play** (bỏ EAS Submit, hồ sơ store).
+- **Hạ tầng:** chạy local bằng Docker Compose (PostgreSQL có pgvector, Redis, Mailpit, SeaweedFS làm kho file S3). Railway chỉ khi sau này muốn đưa lên mạng. **Chỉ bản thử nghiệm: không phát hành lên App Store, Google Play** (bỏ EAS Submit, hồ sơ store).
 - **Cấu trúc:** có Không gian (docs/BUSINESS_FLOWS.md, U16). **Tên ứng dụng:** FlashCard, bundle ID tạm `com.example.flashcard`.
 - **Đăng nhập:** tự xây, email và mật khẩu, Google (không có Apple). **Giao diện:** tiếng Việt và tiếng Anh (i18n). **Quản trị:** có giao diện quản trị web.
 - Quyết định đã chốt và mục còn hoãn: xem docs/DECISIONS.md. Phiên bản công nghệ: dùng bản ổn định (stable hoặc LTS), không cần mới nhất.
@@ -88,7 +88,8 @@ Tất cả lệnh được định nghĩa trong `Makefile` tại gốc repo.
 - API Docs (dev): http://localhost:8000/docs
 - Frontend (Expo web): http://localhost:8081 hoặc http://localhost:19006
 - Mailpit UI: http://localhost:8025
-- MinIO Console: http://localhost:9001 (admin: minioadmin / minioadmin)
+- Kho file S3 (SeaweedFS, thay MinIO): http://localhost:9000, local chấp nhận mọi khóa
+- Backend chạy trong môi trường ảo `backend/.venv` (Windows: `backend/.venv/Scripts/python`)
 
 ## Quy ước (đề xuất, người dùng có thể sửa)
 

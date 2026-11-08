@@ -1,6 +1,5 @@
 import { Stack } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useEffect } from "react";
 import "../src/i18n";
 
 const queryClient = new QueryClient({

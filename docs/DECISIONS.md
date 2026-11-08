@@ -23,7 +23,9 @@
 | ORM | SQLAlchemy | Người dùng đồng ý đề xuất | 2026-10-29 | Đã chốt |
 | Nơi triển khai | Railway (API, worker, PostgreSQL có pgvector, Redis, kho file) | Dễ dùng cho dự án nhỏ; có template PostgreSQL kèm pgvector | 2026-10-29 | Đã chốt |
 | Ngân sách hosting hằng tháng | Chưa cần | Chỉ chạy trên máy cá nhân; chỉ cần quyết khi muốn đưa lên mạng (Railway không có gói miễn phí vĩnh viễn) | 2026-11-07 | Hoãn |
-| Kho lưu file gốc | MinIO (giao diện S3) khi chạy local | Chỉ chạy local, không deploy | 2026-11-07 | Đã chốt (mặc định) |
+| Kho lưu file gốc | SeaweedFS (giao diện S3) khi chạy local, cổng 9000 | Thay MinIO vì image `minio/minio` không còn tải được từ Docker Hub và quay.io; cùng giao diện S3 nên code không đổi | 2026-11-08 | Đã chốt |
+| Mô hình chat Gemini | `gemini-3.5-flash-lite` | Bản ổn định, miễn phí, rẻ (0,30/2,50 USD mỗi 1M token vào/ra nếu trả phí); là mô hình Google chọn thay cho `gemini-2.5-flash`. Nếu chất lượng không đủ cho hỏi đáp thì nâng lên `gemini-3.6-flash` chỉ bằng đổi cấu hình | 2026-11-08 | Đã chốt (người dùng nhờ chọn) |
+| Mô hình embedding Gemini | `gemini-embedding-2`, 768 chiều (`outputDimensionality`) | Bản ổn định, miễn phí, nhận tới 8192 token, mới hơn nên ít rủi ro bị ngừng (đổi mô hình phải tạo lại toàn bộ vector). Phương án dự phòng: `gemini-embedding-001` (rẻ hơn, chỉ văn bản, 2048 token). Thử trên tài liệu tiếng Việt thật ở lát F5 | 2026-11-08 | Đã chốt (người dùng nhờ chọn), chờ thử nghiệm |
 | Dịch vụ gửi email (xác minh email, quên mật khẩu, cảnh báo) | Mailpit khi chạy local | Không cần dịch vụ thật khi chạy thử | 2026-11-07 | Đã chốt (mặc định) |
 | Xác thực | Tự xây: email và mật khẩu, Google (không có Apple) | Không phát hành lên App Store/Google Play nên không bị ràng buộc Sign in with Apple | 2026-11-07 | Đã chốt |
 | Rủi ro App Store 4.8 | Không áp dụng | Dự án chỉ là bản thử nghiệm, không phát hành lên store (xem dòng Phạm vi phát hành) | 2026-11-07 | Đã chốt |
