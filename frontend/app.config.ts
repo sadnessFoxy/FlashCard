@@ -6,21 +6,21 @@ const envConfig = {
   development: {
     name: "FlashCard (Dev)",
     slug: "flashcard-dev",
-    apiUrl: "http://localhost:8000/v1",
+    apiUrl: "http://localhost:8000",
     bundleIdentifier: "com.example.flashcard.dev",
     androidPackage: "com.example.flashcard.dev",
   },
   staging: {
     name: "FlashCard (Staging)",
     slug: "flashcard-staging",
-    apiUrl: "https://api-staging.example.com/v1",
+    apiUrl: "https://api-staging.example.com",
     bundleIdentifier: "com.example.flashcard.staging",
     androidPackage: "com.example.flashcard.staging",
   },
   production: {
     name: "FlashCard",
     slug: "flashcard",
-    apiUrl: "https://api.example.com/v1",
+    apiUrl: "https://api.example.com",
     bundleIdentifier: "com.example.flashcard",
     androidPackage: "com.example.flashcard",
   },
@@ -28,19 +28,17 @@ const envConfig = {
 
 const env = envConfig[APP_ENV as keyof typeof envConfig] ?? envConfig.development;
 
+// Gốc API, KHÔNG kèm /v1 (đường dẫn trong contract đã có /v1).
+// Thử trên điện thoại thật: đặt API_URL=http://<IP-máy-tính>:8000 vì "localhost" là chính điện thoại.
+const apiUrl = process.env.API_URL ?? env.apiUrl;
+
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: env.name,
   slug: env.slug,
   version: "1.0.0",
   orientation: "portrait",
-  icon: "./assets/icon.png",
   userInterfaceStyle: "automatic",
-  splash: {
-    image: "./assets/splash.png",
-    resizeMode: "contain",
-    backgroundColor: "#ffffff",
-  },
   assetBundlePatterns: ["**/*"],
   ios: {
     supportsTablet: true,
@@ -48,20 +46,16 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     // NOTE: Chỉ bản thử nghiệm, không submit lên App Store
   },
   android: {
-    adaptiveIcon: {
-      foregroundImage: "./assets/adaptive-icon.png",
-      backgroundColor: "#ffffff",
-    },
     package: env.androidPackage,
     // NOTE: Chỉ bản thử nghiệm, không submit lên Google Play
   },
   web: {
-    favicon: "./assets/favicon.png",
     bundler: "metro",
   },
   plugins: [
     "expo-router",
     "expo-secure-store",
+    "expo-localization",
     [
       "expo-dev-client",
       {
@@ -71,7 +65,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ],
   scheme: "flashcard",
   extra: {
-    apiUrl: env.apiUrl,
+    apiUrl,
     appEnv: APP_ENV,
     eas: {
       projectId: "your-eas-project-id",

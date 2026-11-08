@@ -1,17 +1,18 @@
 """
 Router gốc - gom tất cả module routers.
 """
+
 from __future__ import annotations
 
 from fastapi import APIRouter
 
+from app.modules.admin.router import router as admin_router
 from app.modules.auth.router import router as auth_router
-from app.modules.users.router import router as users_router
-from app.modules.documents.router import router as documents_router
 from app.modules.chat.router import router as chat_router
+from app.modules.documents.router import router as documents_router
 from app.modules.study.router import router as study_router
 from app.modules.usage.router import router as usage_router
-from app.modules.admin.router import router as admin_router
+from app.modules.users.router import router as users_router
 
 api_router = APIRouter(prefix="/v1")
 

@@ -3,6 +3,7 @@
 Script kiểm tra sức khỏe các dịch vụ.
 Dùng trong Docker healthcheck và runbook.
 """
+
 from __future__ import annotations
 
 import asyncio

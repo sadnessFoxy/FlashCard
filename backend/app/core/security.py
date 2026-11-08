@@ -3,6 +3,7 @@ JWT token và password hashing.
 Tuân thủ R3: SECRET_KEY từ env, không hardcode.
 Tuân thủ R12: access token ngắn (15 phút), refresh token có rotation.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -10,7 +11,7 @@ import secrets
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from jose import JWTError, jwt
+from jose import jwt
 from passlib.context import CryptContext
 
 from app.core.config import settings
@@ -51,7 +52,7 @@ def create_access_token(
     }
     if extra_claims:
         payload.update(extra_claims)
-    return jwt.encode(payload, settings.SECRET_KEY, algorithm=ALGORITHM)
+    return str(jwt.encode(payload, settings.SECRET_KEY, algorithm=ALGORITHM))
 
 
 def create_refresh_token(subject: str) -> str:
@@ -65,7 +66,7 @@ def create_refresh_token(subject: str) -> str:
         # Jti (JWT ID) để hỗ trợ thu hồi token
         "jti": secrets.token_hex(16),
     }
-    return jwt.encode(payload, settings.SECRET_KEY, algorithm=ALGORITHM)
+    return str(jwt.encode(payload, settings.SECRET_KEY, algorithm=ALGORITHM))
 
 
 def decode_token(token: str) -> dict[str, Any]:

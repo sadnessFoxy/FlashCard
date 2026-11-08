@@ -2,6 +2,7 @@
 Circuit breaker cho LLM Gateway.
 Ngăn gọi liên tục khi AI provider gặp sự cố.
 """
+
 from __future__ import annotations
 
 import time
@@ -13,8 +14,8 @@ logger = get_logger(__name__)
 
 
 class CircuitState(Enum):
-    CLOSED = "closed"      # Hoạt động bình thường
-    OPEN = "open"          # Đang ngăn tất cả requests
+    CLOSED = "closed"  # Hoạt động bình thường
+    OPEN = "open"  # Đang ngăn tất cả requests
     HALF_OPEN = "half_open"  # Đang thử phục hồi
 
 

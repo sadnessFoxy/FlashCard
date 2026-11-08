@@ -3,10 +3,8 @@ Ghi nhận mỗi lần gọi AI (token usage, model, latency).
 Dùng bởi llm_gateway sau mỗi lần gọi thành công.
 Tuân thủ R10: không ghi nội dung prompt hay document.
 """
-from __future__ import annotations
 
-from datetime import UTC, datetime
-from typing import Any
+from __future__ import annotations
 
 from app.core.logging import get_logger
 

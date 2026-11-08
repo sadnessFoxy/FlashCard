@@ -55,11 +55,9 @@ migrate:
 migrate-create:
 	cd backend && $(PY) -m alembic revision --autogenerate -m "$(name)"
 
+# Sinh kiểu TypeScript từ contract (commit kết quả; CI kiểm tra không lệch contract)
 gen-api:
-	npx @openapitools/openapi-generator-cli generate \
-		-i contract/openapi.yaml \
-		-g typescript-fetch \
-		-o frontend/src/api/generated
+	cd frontend && npm run gen-api
 
 infra-up:
 	$(COMPOSE) up -d

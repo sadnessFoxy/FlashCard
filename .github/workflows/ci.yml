@@ -6,43 +6,39 @@ on:
   pull_request:
     branches: [main, develop]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   backend-lint:
-    name: Backend Lint & Typecheck
+    name: Backend lint & typecheck
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: backend
-
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: "pip"
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
 
-      - name: Install dependencies
-        run: pip install -e ".[dev]"
-
-      - name: Run ruff check
-        run: ruff check .
-
-      - name: Run ruff format check
-        run: ruff format --check .
-
-      - name: Run mypy
-        run: mypy app
+      - run: pip install -e ".[dev]"
+      - run: ruff check .
+      - run: ruff format --check .
+      - run: mypy app
 
   backend-test:
-    name: Backend Tests
+    name: Backend tests
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: backend
 
-    # Tuân thủ R11: dùng Postgres test riêng, không dùng production DB
+    # R11: database test riêng, không dùng database phát triển hay production
     services:
       postgres:
         image: pgvector/pgvector:pg16
@@ -57,7 +53,6 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
-
       redis:
         image: redis:7-alpine
         ports:
@@ -68,79 +63,70 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
+    env:
+      TEST_DATABASE_URL: postgresql+asyncpg://flashcard_test:flashcard_test@localhost:5432/flashcard_test
+      TEST_REDIS_URL: redis://localhost:6379/15
+      SECRET_KEY: ci-test-secret-key-not-for-production
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-          cache: "pip"
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
 
-      - name: Install dependencies
-        run: pip install -e ".[dev]"
+      - run: pip install -e ".[dev]"
 
-      - name: Run pytest
+      - name: Enable pgvector in test database
         env:
-          DATABASE_URL: postgresql+asyncpg://flashcard_test:flashcard_test@localhost:5432/flashcard_test
-          REDIS_URL: redis://localhost:6379
-          SECRET_KEY: ci-test-secret-key-not-for-production
-          GEMINI_API_KEY: fake-key-for-ci
-          S3_SECRET_KEY: minioadmin
-          ENVIRONMENT: development
-        run: pytest --cov=app --cov-report=xml
+          PGPASSWORD: flashcard_test
+        run: psql -h localhost -U flashcard_test -d flashcard_test -c "CREATE EXTENSION IF NOT EXISTS vector"
 
-      - name: Upload coverage
-        uses: codecov/codecov-action@v4
-        with:
-          files: coverage.xml
-          fail_ci_if_error: false
+      - run: pytest
 
-  frontend-lint:
-    name: Frontend Lint & Typecheck
+  frontend:
+    name: Frontend lint, typecheck & tests
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: frontend
-
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Node.js 20
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "npm"
+          cache: npm
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Install dependencies
-        run: npm ci
+      - run: npm ci
 
-      - name: Run ESLint
-        run: npx eslint src --ext .ts,.tsx
+      - name: Generated API types match contract (R2)
+        run: |
+          npm run gen-api
+          git diff --exit-code -- src/api/generated \
+            || (echo "::error::src/api/generated lệch contract/openapi.yaml. Chạy 'make gen-api' rồi commit." && exit 1)
 
-      - name: Run TypeScript check
-        run: npx tsc --noEmit
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npx jest --watchAll=false
 
-  frontend-test:
-    name: Frontend Tests
+  contract-breaking-changes:
+    name: Contract breaking changes
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
-
     steps:
       - uses: actions/checkout@v4
-
-      - name: Set up Node.js 20
-        uses: actions/setup-node@v4
         with:
-          node-version: "20"
-          cache: "npm"
-          cache-dependency-path: frontend/package-lock.json
+          fetch-depth: 0
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Run Jest
-        run: npx jest --coverage --watchAll=false
+      - name: Compare contract with base branch
+        run: |
+          if ! git show "origin/${{ github.base_ref }}:contract/openapi.yaml" > /tmp/base-openapi.yaml 2>/dev/null; then
+            echo "Base branch has no contract yet; skipping."
+            exit 0
+          fi
+          docker run --rm -v /tmp:/base -v "$PWD/contract:/head" tufin/oasdiff \
+            breaking /base/base-openapi.yaml /head/openapi.yaml --fail-on ERR

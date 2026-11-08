@@ -4,6 +4,7 @@ Trích văn bản, chia đoạn, embedding, cập nhật trạng thái.
 Tuân thủ R6: trạng thái chỉ đổi theo máy trạng thái trong DATA_MODEL.md.
 Tuân thủ R8: lỗi hết hạn mức -> PAUSED_QUOTA, không FAILED.
 """
+
 from __future__ import annotations
 
 from app.core.logging import get_logger

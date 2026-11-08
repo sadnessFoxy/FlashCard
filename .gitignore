@@ -25,7 +25,6 @@ web-build/
 *.jsbundle
 
 # Generated code (sinh tự động từ contract)
-frontend/src/api/generated/
 
 # Testing
 coverage/

@@ -2,6 +2,7 @@
 Metrics placeholder cho Prometheus.
 Sẽ implement đầy đủ ở giai đoạn 5 (Hiệu năng).
 """
+
 from __future__ import annotations
 
 from app.core.logging import get_logger

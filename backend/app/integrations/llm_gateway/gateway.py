@@ -3,6 +3,7 @@ LLM Gateway: điểm vào duy nhất cho mọi lời gọi AI.
 Tuân thủ R5: mọi AI call qua gateway này.
 Tuân thủ R8: lỗi hết hạn mức không retry, chuyển PAUSED_QUOTA.
 """
+
 from __future__ import annotations
 
 import time
@@ -91,6 +92,7 @@ class LLMGateway:
 
                 if attempt < MAX_RETRIES - 1:
                     import asyncio
+
                     delay = RETRY_DELAYS[min(attempt, len(RETRY_DELAYS) - 1)]
                     logger.warning(
                         "Embed failed (attempt=%d/%d), retrying in %.1fs: %s",
@@ -215,6 +217,7 @@ class LLMGateway:
                 last_error = e
                 if attempt < MAX_RETRIES - 1:
                     import asyncio
+
                     delay = RETRY_DELAYS[min(attempt, len(RETRY_DELAYS) - 1)]
                     await asyncio.sleep(delay)
 

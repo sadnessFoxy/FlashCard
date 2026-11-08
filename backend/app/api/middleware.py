@@ -1,13 +1,14 @@
 """
 Middleware cho FastAPI application.
 """
+
 from __future__ import annotations
 
 import time
 import uuid
 
 from fastapi import Request, Response
-from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
 from app.core.logging import get_logger
 
@@ -17,7 +18,7 @@ logger = get_logger(__name__)
 class RequestIdMiddleware(BaseHTTPMiddleware):
     """Thêm X-Request-ID vào mỗi request/response."""
 
-    async def dispatch(self, request: Request, call_next: Any) -> Response:  # type: ignore[override]
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         request_id = request.headers.get("X-Request-ID", str(uuid.uuid4()))
         request.state.request_id = request_id
 
@@ -29,7 +30,7 @@ class RequestIdMiddleware(BaseHTTPMiddleware):
 class TimingMiddleware(BaseHTTPMiddleware):
     """Ghi log thời gian xử lý request."""
 
-    async def dispatch(self, request: Request, call_next: Any) -> Response:  # type: ignore[override]
+    async def dispatch(self, request: Request, call_next: RequestResponseEndpoint) -> Response:
         start_time = time.perf_counter()
         response = await call_next(request)
         process_time = (time.perf_counter() - start_time) * 1000

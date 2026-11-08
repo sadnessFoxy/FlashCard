@@ -3,9 +3,9 @@ Email service (Mailpit cho local dev, real SMTP cho production).
 Tuân thủ R3: SMTP credentials từ env vars.
 Tuân thủ R10: không log nội dung email nhạy cảm.
 """
+
 from __future__ import annotations
 
-from app.core.config import settings
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)

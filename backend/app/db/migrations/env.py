@@ -2,6 +2,7 @@
 Alembic migration environment.
 Đọc DATABASE_URL từ biến môi trường (không hardcode).
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -12,18 +13,18 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from app.core.config import settings
-from app.db.base import Base
+import app.modules.admin.models  # noqa: F401
 
 # Import tất cả models để Alembic nhận biết schema
 # (thêm import khi tạo model mới)
 import app.modules.auth.models  # noqa: F401
-import app.modules.users.models  # noqa: F401
-import app.modules.documents.models  # noqa: F401
 import app.modules.chat.models  # noqa: F401
+import app.modules.documents.models  # noqa: F401
 import app.modules.study.models  # noqa: F401
 import app.modules.usage.models  # noqa: F401
-import app.modules.admin.models  # noqa: F401
+import app.modules.users.models  # noqa: F401
+from app.core.config import settings
+from app.db.base import Base
 
 config = context.config
 

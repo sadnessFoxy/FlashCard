@@ -1,4 +1,5 @@
 """Router cho module usage."""
+
 from __future__ import annotations
 
 from fastapi import APIRouter

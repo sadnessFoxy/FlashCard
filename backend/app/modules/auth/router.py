@@ -1,4 +1,5 @@
 """Router cho module auth."""
+
 from __future__ import annotations
 
 from fastapi import APIRouter

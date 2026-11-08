@@ -2,6 +2,7 @@
 Exceptions tùy chỉnh cho toàn bộ ứng dụng.
 Các mã lỗi khớp với contract/openapi.yaml.
 """
+
 from __future__ import annotations
 
 from typing import Any

@@ -2,6 +2,7 @@
 Cấu hình logging.
 Tuân thủ R10: không ghi mật khẩu, token, khóa API, nội dung tài liệu nhạy cảm.
 """
+
 from __future__ import annotations
 
 import logging
@@ -20,7 +21,10 @@ def configure_logging() -> None:
         datefmt = "%H:%M:%S"
     else:
         # JSON format để dễ parse trong production log aggregator
-        fmt = '{"time":"%(asctime)s","level":"%(levelname)s","logger":"%(name)s","message":"%(message)s"}'
+        fmt = (
+            '{"time":"%(asctime)s","level":"%(levelname)s",'
+            '"logger":"%(name)s","message":"%(message)s"}'
+        )
         datefmt = "%Y-%m-%dT%H:%M:%SZ"
 
     logging.basicConfig(

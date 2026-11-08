@@ -23,5 +23,40 @@
     "unauthorized": "Session expired, please login again",
     "quotaExceeded": "You have used all your queries for today",
     "aiUnavailable": "AI features are temporarily unavailable"
+  },
+  "tabs": {
+    "library": "Library",
+    "chat": "Q&A",
+    "study": "Review",
+    "profile": "Profile"
+  },
+  "system": {
+    "title": "System status",
+    "subtitle": "Checks the connection from the app to the backend, database and Redis.",
+    "overall": {
+      "ok": "All systems operational",
+      "degraded": "Some services are having problems",
+      "unreachable": "Cannot reach the backend"
+    },
+    "unreachableHint": "Check that the backend is running at {{url}}.",
+    "components": {
+      "api": "Backend API",
+      "database": "Database (PostgreSQL)",
+      "redis": "Redis"
+    },
+    "state": {
+      "up": "Up",
+      "down": "Down"
+    },
+    "latency": "{{ms}} ms",
+    "pgvector": "pgvector {{version}}",
+    "version": "API version: {{version}}",
+    "errorCodes": {
+      "TIMEOUT": "Timed out",
+      "UNREACHABLE": "Unreachable",
+      "EXTENSION_MISSING": "pgvector extension missing"
+    },
+    "refresh": "Check again",
+    "checkedAt": "Checked at {{time}}"
   }
 }

@@ -2,6 +2,7 @@
 SQLAlchemy async session factory.
 Tuân thủ R9: mọi thay đổi schema qua Alembic migration.
 """
+
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator

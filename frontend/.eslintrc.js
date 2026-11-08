@@ -46,9 +46,13 @@ module.exports = {
     "react-native/no-inline-styles": "warn",
     "react-native/no-color-literals": "off",
     "react-native/no-raw-text": "error",
+    // Thứ tự thuộc tính style không ảnh hưởng chất lượng; chỉ gây nhiễu
+    "react-native/sort-styles": "off",
 
     // General
     "no-console": ["warn", { allow: ["warn", "error"] }],
+    // Cho phép vòng lặp đọc stream kiểu while (true) { ... break }
+    "no-constant-condition": ["error", { checkLoops: false }],
   },
   settings: {
     react: {

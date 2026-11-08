@@ -5,7 +5,7 @@ Python: 3.11.x
 Node.js: 20.x LTS
 Expo SDK: 52.x
 PostgreSQL: 16.x
-pgvector: 0.7.x
+pgvector: 0.8.x
 Redis: 7.x
 
 # Frontend dependencies (xem frontend/package.json để biết phiên bản cụ thể)

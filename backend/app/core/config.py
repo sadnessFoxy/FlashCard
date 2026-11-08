@@ -2,12 +2,12 @@
 Cấu hình ứng dụng từ biến môi trường.
 Tuân thủ R3: không hardcode secret hay API key.
 """
+
 from __future__ import annotations
 
 import json
-from typing import Annotated
 
-from pydantic import AnyHttpUrl, Field, field_validator
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -53,11 +53,16 @@ class Settings(BaseSettings):
     )
     GEMINI_EMBEDDING_MODEL: str = Field(
         default="gemini-embedding-2",
-        description="Gemini embedding model id (without 'models/' prefix). Changing it requires re-embedding.",
+        description=(
+            "Gemini embedding model id (without 'models/' prefix). "
+            "Changing it requires re-embedding."
+        ),
     )
     EMBEDDING_DIMENSIONS: int = Field(
         default=768,
-        description="Embedding vector dimensions. Changing this requires re-embedding all documents.",
+        description=(
+            "Embedding vector dimensions. Changing this requires re-embedding all documents."
+        ),
     )
 
     # ------- Object Storage (S3-compatible / MinIO) -------
@@ -73,9 +78,7 @@ class Settings(BaseSettings):
         default="minioadmin",
         description="S3 access key ID",
     )
-    S3_SECRET_KEY: str = Field(
-        description="S3 secret access key"
-    )
+    S3_SECRET_KEY: str = Field(description="S3 secret access key")
 
     # ------- Email (Mailpit for local dev) -------
     SMTP_HOST: str = Field(default="localhost")
@@ -116,16 +119,17 @@ class Settings(BaseSettings):
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def parse_cors_origins(cls, v: str | list[str]) -> list[str]:
-        if isinstance(v, str):
-            # Hỗ trợ JSON array string từ env var
-            try:
-                parsed = json.loads(v)
-                if isinstance(parsed, list):
-                    return [str(origin) for origin in parsed]
-            except json.JSONDecodeError:
-                # Hỗ trợ comma-separated string
-                return [origin.strip() for origin in v.split(",")]
-        return v
+        if isinstance(v, list):
+            return [str(origin) for origin in v]
+        # Hỗ trợ JSON array string từ env var
+        try:
+            parsed = json.loads(v)
+        except json.JSONDecodeError:
+            parsed = None
+        if isinstance(parsed, list):
+            return [str(origin) for origin in parsed]
+        # Còn lại: chuỗi phân tách bằng dấu phẩy
+        return [origin.strip() for origin in v.split(",") if origin.strip()]
 
     @field_validator("ENVIRONMENT")
     @classmethod

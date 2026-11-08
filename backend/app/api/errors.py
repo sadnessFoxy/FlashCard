@@ -3,6 +3,7 @@ Xử lý lỗi thống nhất cho toàn bộ API.
 Trả về đúng format theo contract/openapi.yaml.
 Tuân thủ R8: lỗi hết hạn mức trả mã lỗi trong contract, không trả 500.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -39,9 +40,7 @@ async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
     )
 
 
-async def validation_error_handler(
-    request: Request, exc: PydanticValidationError
-) -> JSONResponse:
+async def validation_error_handler(request: Request, exc: PydanticValidationError) -> JSONResponse:
     """Xử lý lỗi validation Pydantic."""
     return make_error_response(
         code="VALIDATION_ERROR",

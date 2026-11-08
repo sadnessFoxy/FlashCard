@@ -4,6 +4,7 @@ Tuân thủ R5: mọi config (API key, model name, dimensions) đọc từ setti
 Tuân thủ R3: GEMINI_API_KEY không được hardcode hay commit.
 Tuân thủ R10: không log nội dung tài liệu hay thông tin cá nhân.
 """
+
 from __future__ import annotations
 
 import json
@@ -43,7 +44,11 @@ class GeminiProvider(LLMProvider):
         self._client = httpx.AsyncClient(
             base_url=GEMINI_API_BASE,
             timeout=httpx.Timeout(60.0, connect=10.0),
-            headers={"Content-Type": "application/json"},
+            # Khóa đi trong header, không nằm trong URL, để không lọt vào log (R10)
+            headers={
+                "Content-Type": "application/json",
+                "x-goog-api-key": self._api_key,
+            },
         )
 
     @property
@@ -110,23 +115,19 @@ class GeminiProvider(LLMProvider):
             response = await self._client.post(
                 url,
                 json={"requests": requests},
-                params={"key": self._api_key},
             )
-        except httpx.TimeoutException:
+        except httpx.TimeoutException as e:
             logger.warning("Gemini embed request timed out")
-            raise AiTemporarilyUnavailableError()
+            raise AiTemporarilyUnavailableError() from e
         except httpx.NetworkError as e:
-            logger.warning("Gemini embed network error: %s", e)
-            raise AiTemporarilyUnavailableError()
+            logger.warning("Gemini embed network error: %s", type(e).__name__)
+            raise AiTemporarilyUnavailableError() from e
 
         if response.status_code != 200:
             self._handle_error_response(response.status_code, response.json())
 
         data = response.json()
-        embeddings = [
-            embedding["values"]
-            for embedding in data.get("embeddings", [])
-        ]
+        embeddings = [embedding["values"] for embedding in data.get("embeddings", [])]
 
         logger.debug(
             "Embedded %d texts (model=%s, dims=%d)",
@@ -151,10 +152,12 @@ class GeminiProvider(LLMProvider):
         contents = []
         for msg in messages:
             role = "user" if msg["role"] == "user" else "model"
-            contents.append({
-                "role": role,
-                "parts": [{"text": msg["content"]}],
-            })
+            contents.append(
+                {
+                    "role": role,
+                    "parts": [{"text": msg["content"]}],
+                }
+            )
 
         request_body: dict[str, Any] = {
             "contents": contents,
@@ -164,9 +167,7 @@ class GeminiProvider(LLMProvider):
         }
 
         if system_prompt:
-            request_body["systemInstruction"] = {
-                "parts": [{"text": system_prompt}]
-            }
+            request_body["systemInstruction"] = {"parts": [{"text": system_prompt}]}
 
         if max_tokens:
             request_body["generationConfig"]["maxOutputTokens"] = max_tokens
@@ -176,13 +177,11 @@ class GeminiProvider(LLMProvider):
                 "POST",
                 url,
                 json=request_body,
-                params={"key": self._api_key, "alt": "sse"},
+                params={"alt": "sse"},
             ) as response:
                 if response.status_code != 200:
                     body = await response.aread()
-                    self._handle_error_response(
-                        response.status_code, json.loads(body)
-                    )
+                    self._handle_error_response(response.status_code, json.loads(body))
 
                 async for line in response.aiter_lines():
                     if line.startswith("data: "):
@@ -201,12 +200,12 @@ class GeminiProvider(LLMProvider):
                         except json.JSONDecodeError:
                             continue
 
-        except httpx.TimeoutException:
+        except httpx.TimeoutException as e:
             logger.warning("Gemini stream timed out (model=%s)", self._chat_model)
-            raise AiTemporarilyUnavailableError()
+            raise AiTemporarilyUnavailableError() from e
         except httpx.NetworkError as e:
-            logger.warning("Gemini stream network error: %s", e)
-            raise AiTemporarilyUnavailableError()
+            logger.warning("Gemini stream network error: %s", type(e).__name__)
+            raise AiTemporarilyUnavailableError() from e
 
     async def generate(
         self,
@@ -225,9 +224,7 @@ class GeminiProvider(LLMProvider):
         }
 
         if system_prompt:
-            request_body["systemInstruction"] = {
-                "parts": [{"text": system_prompt}]
-            }
+            request_body["systemInstruction"] = {"parts": [{"text": system_prompt}]}
 
         if max_tokens:
             request_body["generationConfig"]["maxOutputTokens"] = max_tokens
@@ -239,14 +236,13 @@ class GeminiProvider(LLMProvider):
             response = await self._client.post(
                 url,
                 json=request_body,
-                params={"key": self._api_key},
             )
-        except httpx.TimeoutException:
+        except httpx.TimeoutException as e:
             logger.warning("Gemini generate timed out (model=%s)", self._chat_model)
-            raise AiTemporarilyUnavailableError()
+            raise AiTemporarilyUnavailableError() from e
         except httpx.NetworkError as e:
-            logger.warning("Gemini generate network error: %s", e)
-            raise AiTemporarilyUnavailableError()
+            logger.warning("Gemini generate network error: %s", type(e).__name__)
+            raise AiTemporarilyUnavailableError() from e
 
         if response.status_code != 200:
             self._handle_error_response(response.status_code, response.json())

@@ -2,6 +2,7 @@
 Fake AI provider cho unit test và development offline.
 Trả về dữ liệu giả định không gọi API thật.
 """
+
 from __future__ import annotations
 
 import asyncio

@@ -1,6 +1,7 @@
 """
 Định nghĩa các ARQ task functions.
 """
+
 from __future__ import annotations
 
 from app.core.logging import get_logger

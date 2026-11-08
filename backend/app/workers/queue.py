@@ -1,7 +1,11 @@
 """
 ARQ queue configuration.
 """
+
 from __future__ import annotations
+
+from collections.abc import Callable
+from typing import Any
 
 from arq.connections import RedisSettings
 
@@ -18,8 +22,9 @@ def get_redis_settings() -> RedisSettings:
 
 class WorkerSettings:
     """ARQ worker settings."""
+
     redis_settings = get_redis_settings()
     # Import các task functions
-    functions: list = []  # Điền vào khi thêm tasks
+    functions: list[Callable[..., Any]] = []  # Điền vào khi thêm tasks
     max_jobs = 10
     job_timeout = 300  # 5 phút timeout mỗi job

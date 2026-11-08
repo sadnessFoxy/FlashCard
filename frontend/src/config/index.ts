@@ -15,7 +15,7 @@ if (!extra?.apiUrl) {
 
 export const config: AppConfig = {
   apiUrl: extra.apiUrl,
-  appEnv: (extra.appEnv as AppConfig["appEnv"]) ?? "development",
+  appEnv: extra.appEnv ?? "development",
 };
 
 export const isDev = config.appEnv === "development";

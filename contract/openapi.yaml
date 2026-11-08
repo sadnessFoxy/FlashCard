@@ -1,25 +1,140 @@
 openapi: "3.1.0"
 info:
   title: FlashCard API
-  description: API for FlashCard learning assistant app
+  description: |
+    API for the FlashCard learning assistant app.
+    Contract-first: this file is the single source of truth (see contract/README.md).
   version: "1.0.0"
 servers:
-  - url: http://localhost:8000/v1
+  - url: http://localhost:8000
     description: Local development
-  - url: https://api.example.com/v1
-    description: Production (future)
-paths: {}
+tags:
+  - name: system
+    description: Liveness and dependency status
+paths:
+  /health:
+    get:
+      tags: [system]
+      operationId: getHealth
+      summary: Liveness probe
+      description: Returns 200 when the API process is up. Does not touch the database or Redis.
+      security: []
+      responses:
+        "200":
+          description: API process is alive
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthResponse"
+  /v1/system/status:
+    get:
+      tags: [system]
+      operationId: getSystemStatus
+      summary: Dependency status (database, Redis)
+      description: |
+        Checks each backing service the API needs. Always returns 200 with an overall
+        `status`; a failing dependency is reported as `down` instead of an HTTP error,
+        so clients can show which part is unavailable. Never exposes connection strings
+        or internal error messages.
+      security: []
+      responses:
+        "200":
+          description: Status report of the API and its dependencies
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SystemStatusResponse"
 components:
   securitySchemes:
     BearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
-  schemas: {}
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          description: Machine-readable error code; the client maps it to an i18n message.
+          examples: [VALIDATION_ERROR]
+        message:
+          type: string
+          description: Developer-facing message. Not shown to end users.
+    HealthResponse:
+      type: object
+      additionalProperties: false
+      required: [status, environment, version]
+      properties:
+        status:
+          type: string
+          const: ok
+        environment:
+          type: string
+          enum: [development, staging, production]
+        version:
+          type: string
+          examples: ["1.0.0"]
+    DependencyStatus:
+      type: string
+      enum: [up, down]
+    DependencyCheck:
+      type: object
+      additionalProperties: false
+      required: [status, latency_ms]
+      properties:
+        status:
+          $ref: "#/components/schemas/DependencyStatus"
+        latency_ms:
+          type: number
+          minimum: 0
+          description: Time the check took, in milliseconds.
+        error_code:
+          type: [string, "null"]
+          description: Set only when status is down. Stable code, no internal details.
+          enum: [TIMEOUT, UNREACHABLE, EXTENSION_MISSING, null]
+    DatabaseCheck:
+      type: object
+      additionalProperties: false
+      required: [status, latency_ms]
+      properties:
+        status:
+          $ref: "#/components/schemas/DependencyStatus"
+        latency_ms:
+          type: number
+          minimum: 0
+        error_code:
+          type: [string, "null"]
+          enum: [TIMEOUT, UNREACHABLE, EXTENSION_MISSING, null]
+        pgvector_version:
+          type: [string, "null"]
+          description: Installed pgvector version; null when the database is down or the extension is missing.
+          examples: ["0.8.7"]
+    SystemStatusResponse:
+      type: object
+      additionalProperties: false
+      required: [status, version, checks]
+      properties:
+        status:
+          type: string
+          enum: [ok, degraded]
+          description: "`ok` when every dependency is up, otherwise `degraded`."
+        version:
+          type: string
+        checks:
+          type: object
+          additionalProperties: false
+          required: [database, redis]
+          properties:
+            database:
+              $ref: "#/components/schemas/DatabaseCheck"
+            redis:
+              $ref: "#/components/schemas/DependencyCheck"
   responses:
     UnauthorizedError:
       description: Access token missing or invalid
       content:
         application/json:
           schema:
-            $ref: '#/components/schemas/ErrorResponse'
+            $ref: "#/components/schemas/ErrorResponse"

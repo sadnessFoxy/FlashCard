@@ -2,6 +2,7 @@
 Object storage interface (S3-compatible / MinIO).
 Tuân thủ R3: S3 credentials từ env vars.
 """
+
 from __future__ import annotations
 
 from app.core.config import settings

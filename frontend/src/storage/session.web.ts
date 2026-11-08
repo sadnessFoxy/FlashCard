@@ -13,19 +13,19 @@ export async function saveAccessToken(_token: string): Promise<void> {
   // Frontend không cần và không được lưu token trên web
 }
 
-export async function getAccessToken(): Promise<string | null> {
+export function getAccessToken(): Promise<string | null> {
   // Không thể đọc httpOnly cookie từ JS - đây là thiết kế bảo mật
   // API client trên web dùng credentials: "include" thay vì Bearer token
-  return null;
+  return Promise.resolve(null);
 }
 
 export async function saveRefreshToken(_token: string): Promise<void> {
   // No-op: refresh token được set bởi backend qua Set-Cookie httpOnly
 }
 
-export async function getRefreshToken(): Promise<string | null> {
+export function getRefreshToken(): Promise<string | null> {
   // Không đọc được - trình duyệt tự gửi cookie khi refresh
-  return null;
+  return Promise.resolve(null);
 }
 
 export async function clearTokens(): Promise<void> {

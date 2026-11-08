@@ -23,5 +23,40 @@
     "unauthorized": "Phiên đăng nhập hết hạn",
     "quotaExceeded": "Bạn đã dùng hết lượt hỏi hôm nay",
     "aiUnavailable": "Tính năng AI tạm thời không khả dụng"
+  },
+  "tabs": {
+    "library": "Thư viện",
+    "chat": "Hỏi đáp",
+    "study": "Ôn tập",
+    "profile": "Hồ sơ"
+  },
+  "system": {
+    "title": "Trạng thái hệ thống",
+    "subtitle": "Kiểm tra kết nối từ ứng dụng tới backend, database và Redis.",
+    "overall": {
+      "ok": "Mọi thứ hoạt động bình thường",
+      "degraded": "Một số dịch vụ đang gặp sự cố",
+      "unreachable": "Không kết nối được tới backend"
+    },
+    "unreachableHint": "Hãy kiểm tra backend đã chạy ở {{url}} chưa.",
+    "components": {
+      "api": "Backend API",
+      "database": "Database (PostgreSQL)",
+      "redis": "Redis"
+    },
+    "state": {
+      "up": "Hoạt động",
+      "down": "Không hoạt động"
+    },
+    "latency": "{{ms}} ms",
+    "pgvector": "pgvector {{version}}",
+    "version": "Phiên bản API: {{version}}",
+    "errorCodes": {
+      "TIMEOUT": "Quá thời gian chờ",
+      "UNREACHABLE": "Không kết nối được",
+      "EXTENSION_MISSING": "Thiếu extension pgvector"
+    },
+    "refresh": "Kiểm tra lại",
+    "checkedAt": "Kiểm tra lúc {{time}}"
   }
 }

@@ -50,6 +50,9 @@
 | Xác thực hai bước cho tài khoản quản trị | Có (làm ở lát quản trị, có thể hoãn nếu chỉ chạy thử) | Mặc định đề xuất | 2026-11-07 | Đã chốt (mặc định) |
 | Kênh nhận cảnh báo của quản trị viên | Email (Mailpit khi chạy local) | Mặc định đề xuất | 2026-11-07 | Đã chốt (mặc định) |
 | Thuật toán lập lịch ôn tập | SM-2 | | 2026-10-29 | Đã chốt |
+| Cách sinh code frontend từ contract | `openapi-typescript` sinh kiểu vào `frontend/src/api/generated/schema.ts`; gọi mạng vẫn qua `src/api/client.ts` duy nhất. File sinh ra được commit, CI chạy lại và báo lỗi nếu lệch contract | Không cần Java như openapi-generator; giữ một API client duy nhất (token, retry, refresh) | 2026-11-08 | Đã chốt |
+| Ngưỡng coverage bắt buộc | Bỏ ngưỡng cứng 80% trong pytest, vẫn in báo cáo coverage | Theo docs/TESTING.md: không đặt mục tiêu coverage máy móc; phần lớn code khung chưa có tính năng để test. Xem lại khi xong các lát lõi | 2026-11-08 | Đã chốt |
+| Endpoint kiểm tra hệ thống | `GET /health` (chỉ tiến trình, không chạm database) và `GET /v1/system/status` (database có pgvector, Redis; luôn trả 200 kèm `ok`/`degraded`, chỉ trả mã lỗi ổn định, không lộ chuỗi kết nối) | Màn hình trạng thái hiển thị được phần nào hỏng; dùng cho kiểm tra sức khỏe khi triển khai | 2026-11-08 | Đã chốt |
 | Tóm tắt theo chương: tạo tự động hay theo yêu cầu | Tạo theo yêu cầu | Tiết kiệm hạn mức AI | 2026-11-07 | Đã chốt (mặc định) |
 | Cách tính số trang cho file Word (giới hạn 200 trang) | Quy đổi sau khi chuyển đổi sang PDF | Mặc định | 2026-11-07 | Đã chốt (mặc định) |
 | Xử lý tài liệu scan | Gemini đọc trực tiếp làm mặc định; Tesseract (tiếng Việt và tiếng Anh) làm dự phòng khi hết hạn mức | Cả hai đều miễn phí trong điều kiện nhất định; chọn theo khuyến nghị, cần thử nghiệm trên tài liệu scan tiếng Việt thật. Xem docs/AI_PIPELINE.md | 2026-10-29 | Đã chốt, chờ thử nghiệm |

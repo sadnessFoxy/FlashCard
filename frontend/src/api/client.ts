@@ -60,7 +60,7 @@ async function refreshAccessToken(): Promise<string | null> {
     return null;
   }
 
-  const response = await fetch(`${config.apiUrl}/auth/refresh`, {
+  const response = await fetch(`${config.apiUrl}/v1/auth/refresh`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     // Native: gửi refresh token trong body; Web: cookie tự động gửi

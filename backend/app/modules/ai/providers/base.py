@@ -2,6 +2,7 @@
 Abstract base class cho AI providers.
 Tuân thủ R5: mọi AI call qua providers interface.
 """
+
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
@@ -58,7 +59,7 @@ class LLMProvider(ABC):
             ContextTooLongError: Context vượt quá giới hạn
         """
         ...
-        yield ""  # type: ignore[misc]  # Satisfy abstract generator typing
+        yield ""  # Để Python coi đây là async generator
 
     @abstractmethod
     async def generate(

@@ -3,10 +3,11 @@
 Script dọn dẹp jobs và dữ liệu cũ.
 Chạy định kỳ qua cron hoặc ARQ scheduled task.
 """
+
 from __future__ import annotations
 
 import asyncio
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 
 from app.core.logging import configure_logging, get_logger
 

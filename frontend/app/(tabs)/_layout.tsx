@@ -1,6 +1,8 @@
 import { Tabs } from "expo-router";
+import { useTranslation } from "react-i18next";
 
 export default function TabsLayout() {
+  const { t } = useTranslation();
   return (
     <Tabs
       screenOptions={{
@@ -11,25 +13,25 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "Thư viện",
+          title: t("tabs.library"),
         }}
       />
       <Tabs.Screen
         name="chat"
         options={{
-          title: "Hỏi đáp",
+          title: t("tabs.chat"),
         }}
       />
       <Tabs.Screen
         name="study"
         options={{
-          title: "Ôn tập",
+          title: t("tabs.study"),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Hồ sơ",
+          title: t("tabs.profile"),
         }}
       />
     </Tabs>
