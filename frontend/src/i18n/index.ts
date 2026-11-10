@@ -10,7 +10,7 @@ const resources = {
   en: { translation: en },
 } as const;
 
-// Lấy ngôn ngữ thiết bị, fallback về tiếng Việt
+// Device language, falling back to Vietnamese
 const deviceLanguage = getLocales()[0]?.languageCode ?? "vi";
 const supportedLanguages = Object.keys(resources);
 const initialLanguage = supportedLanguages.includes(deviceLanguage)
@@ -23,7 +23,7 @@ void i18n.use(initReactI18next).init({
   fallbackLng: "vi",
   defaultNS: "translation",
   interpolation: {
-    escapeValue: false, // React đã tự escape
+    escapeValue: false, // React escapes already
   },
   compatibilityJSON: "v4",
 });

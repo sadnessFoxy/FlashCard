@@ -1,8 +1,8 @@
 /**
  * Re-export session storage.
- * Metro sẽ tự động chọn:
- *   - session.native.ts cho iOS và Android
+ * Metro picks the platform file automatically:
+ *   - session.native.ts on iOS and Android
  *   - session.web.ts cho web
- * File này không được import trực tiếp - dùng "session" và Metro tự resolve.
+ * This file only serves tsc and Jest; import "storage/session" and let Metro resolve.
  */
 export * from "./session.native";

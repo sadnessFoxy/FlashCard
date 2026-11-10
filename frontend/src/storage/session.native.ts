@@ -1,6 +1,6 @@
 /**
- * Lưu trữ token trên native (iOS/Android) dùng expo-secure-store (Keychain/Keystore).
- * Tuân thủ R12: không dùng AsyncStorage cho token.
+ * Native token storage in expo-secure-store (Keychain / Keystore).
+ * R12: never AsyncStorage for tokens.
  */
 import * as SecureStore from "expo-secure-store";
 

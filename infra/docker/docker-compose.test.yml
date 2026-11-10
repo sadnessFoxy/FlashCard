@@ -1,8 +1,8 @@
 version: "3.9"
 
 # Docker Compose cho integration test
-# Dùng: docker compose -f infra/docker/docker-compose.test.yml up -d
-# Tuân thủ R11: database riêng cho test, không dùng production DB
+# Usage: docker compose -f infra/docker/docker-compose.test.yml up -d
+# R11: separate database for tests
 
 services:
   postgres-test:
@@ -13,10 +13,10 @@ services:
       POSTGRES_PASSWORD: flashcard_test
       POSTGRES_DB: flashcard_test
     ports:
-      - "5433:5432"   # Port khác để không xung đột với dev
+      - "5433:5432"   # different port from dev
     volumes:
       - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
-    # Dùng tmpfs để test nhanh hơn (không cần persistence)
+    # tmpfs: faster, no persistence needed
     tmpfs:
       - /var/lib/postgresql/data
     healthcheck:
@@ -29,6 +29,6 @@ services:
     image: redis:7-alpine
     container_name: flashcard-redis-test
     ports:
-      - "6380:6379"   # Port khác
+      - "6380:6379"   # different port from dev
     tmpfs:
       - /data

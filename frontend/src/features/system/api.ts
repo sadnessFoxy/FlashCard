@@ -1,5 +1,5 @@
 /**
- * Gọi API hệ thống. Kiểu dữ liệu lấy từ src/api/generated (sinh từ contract/openapi.yaml).
+ * System API calls. Types come from src/api/generated (built from the contract).
  */
 import { api } from "../../api/client";
 import type { components } from "../../api/generated/schema";

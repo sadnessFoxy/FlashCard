@@ -1,6 +1,6 @@
 """
-Cấu hình logging.
-Tuân thủ R10: không ghi mật khẩu, token, khóa API, nội dung tài liệu nhạy cảm.
+Logging setup.
+R10: never log passwords, tokens, API keys or document content.
 """
 
 from __future__ import annotations
@@ -12,15 +12,15 @@ from app.core.config import settings
 
 
 def configure_logging() -> None:
-    """Thiết lập logging cho ứng dụng."""
+    """Configure application logging."""
     log_level = logging.DEBUG if settings.is_development else logging.INFO
 
-    # Format đơn giản cho development; JSON cho production
+    # Plain text in development, JSON elsewhere
     if settings.is_development:
         fmt = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
         datefmt = "%H:%M:%S"
     else:
-        # JSON format để dễ parse trong production log aggregator
+        # JSON for log aggregators
         fmt = (
             '{"time":"%(asctime)s","level":"%(levelname)s",'
             '"logger":"%(name)s","message":"%(message)s"}'
@@ -41,5 +41,5 @@ def configure_logging() -> None:
 
 
 def get_logger(name: str) -> logging.Logger:
-    """Lấy logger theo tên module."""
+    """Return a logger for a module name."""
     return logging.getLogger(name)

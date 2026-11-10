@@ -1,4 +1,4 @@
-"""Đọc CORS_ORIGINS từ biến môi trường ở mọi dạng hợp lệ."""
+"""CORS_ORIGINS parsing for every accepted env format."""
 
 from __future__ import annotations
 

@@ -1,6 +1,6 @@
 """
-Endpoint hệ thống với các phụ thuộc giả lập (không cần Docker).
-Mọi response đều được kiểm tra theo schema trong contract.
+System endpoints with stubbed dependencies (no Docker needed).
+Every response is validated against the contract.
 """
 
 from __future__ import annotations

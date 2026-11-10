@@ -1,6 +1,6 @@
 """
 SQLAlchemy async session factory.
-Tuân thủ R9: mọi thay đổi schema qua Alembic migration.
+R9: schema changes go through Alembic only.
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ engine = create_async_engine(
     echo=settings.SQL_ECHO,  # off by default: echo logs bound params (emails, hashes), R10
     pool_size=10,
     max_overflow=20,
-    pool_pre_ping=True,  # Kiểm tra kết nối trước khi dùng
+    pool_pre_ping=True,  # drop dead connections before use
 )
 
 AsyncSessionLocal = async_sessionmaker(
@@ -33,7 +33,7 @@ AsyncSessionLocal = async_sessionmaker(
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    """FastAPI dependency: cung cấp async database session."""
+    """FastAPI dependency: one session per request, committed on success."""
     async with AsyncSessionLocal() as session:
         try:
             yield session

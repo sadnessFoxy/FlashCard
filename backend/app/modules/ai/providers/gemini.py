@@ -1,8 +1,8 @@
 """
 Google Gemini AI provider.
-Tuân thủ R5: mọi config (API key, model name, dimensions) đọc từ settings.
-Tuân thủ R3: GEMINI_API_KEY không được hardcode hay commit.
-Tuân thủ R10: không log nội dung tài liệu hay thông tin cá nhân.
+R5: API key, model names and dimensions come from settings.
+R3: GEMINI_API_KEY is never hard-coded or committed.
+R10: never log document content or personal data.
 """
 
 from __future__ import annotations
@@ -30,12 +30,12 @@ GEMINI_API_VERSION = "v1beta"
 
 class GeminiProvider(LLMProvider):
     """
-    Gemini API provider (gói miễn phí).
-    Thiết kế để chuyển gói trả phí chỉ bằng đổi GEMINI_API_KEY và cấu hình model.
+    Gemini API provider (free tier).
+    Moving to a paid tier only needs a new GEMINI_API_KEY and model config.
     """
 
     def __init__(self) -> None:
-        # API key và model name từ config - không hardcode
+        # Key and model names come from config
         self._api_key = settings.GEMINI_API_KEY
         self._chat_model = settings.GEMINI_CHAT_MODEL
         self._embedding_model = settings.GEMINI_EMBEDDING_MODEL
@@ -44,7 +44,7 @@ class GeminiProvider(LLMProvider):
         self._client = httpx.AsyncClient(
             base_url=GEMINI_API_BASE,
             timeout=httpx.Timeout(60.0, connect=10.0),
-            # Khóa đi trong header, không nằm trong URL, để không lọt vào log (R10)
+            # Key travels in a header, not the URL, so it never lands in logs (R10)
             headers={
                 "Content-Type": "application/json",
                 "x-goog-api-key": self._api_key,
@@ -60,12 +60,12 @@ class GeminiProvider(LLMProvider):
         return "gemini"
 
     def _handle_error_response(self, status_code: int, response_body: dict[str, Any]) -> None:
-        """Phân loại lỗi Gemini API và raise exception tương ứng."""
+        """Map a Gemini error response to our exceptions."""
         error = response_body.get("error", {})
         error_code = error.get("code", status_code)
         error_status = error.get("status", "")
 
-        # R8: hết hạn mức - không retry
+        # R8: quota exhausted, do not retry
         if error_code == 429 or error_status in ("RESOURCE_EXHAUSTED",):
             logger.warning(
                 "Gemini API rate limit exceeded (model=%s)",
@@ -73,11 +73,11 @@ class GeminiProvider(LLMProvider):
             )
             raise AiRateLimitedError()
 
-        # Context quá dài
+        # Context too long
         if error_status == "INVALID_ARGUMENT" and "too long" in str(error).lower():
             raise ContextTooLongError()
 
-        # Lỗi tạm thời (5xx) - có thể retry
+        # Transient (5xx): retryable
         if error_code >= 500:
             logger.warning(
                 "Gemini API server error (status=%d, model=%s)",
@@ -86,17 +86,17 @@ class GeminiProvider(LLMProvider):
             )
             raise AiTemporarilyUnavailableError()
 
-        # Lỗi không xác định
+        # Unknown error
         logger.error(
             "Gemini API unexpected error (status=%d, body=%s)",
             status_code,
-            # Không log nội dung prompt/document - R10
+            # Never log prompt or document content (R10)
             {k: v for k, v in error.items() if k in ("code", "status", "message")},
         )
         raise AiTemporarilyUnavailableError()
 
     async def embed(self, texts: list[str]) -> list[list[float]]:
-        """Tạo embeddings dùng Gemini embedding model."""
+        """Embed texts with the configured Gemini embedding model."""
         model_path = f"models/{self._embedding_model}"
         url = f"/{GEMINI_API_VERSION}/{model_path}:batchEmbedContents"
 
@@ -105,7 +105,7 @@ class GeminiProvider(LLMProvider):
                 "model": model_path,
                 "content": {"parts": [{"text": text}]},
                 "taskType": "RETRIEVAL_DOCUMENT",
-                # Bắt buộc gửi số chiều, nếu không Gemini trả mặc định 3072 (R5: đọc từ cấu hình)
+                # Required: Gemini defaults to 3072 dims otherwise (R5: from config)
                 "outputDimensionality": self._embedding_dims,
             }
             for text in texts
@@ -145,10 +145,10 @@ class GeminiProvider(LLMProvider):
         max_tokens: int | None = None,
         temperature: float = 0.7,
     ) -> AsyncGenerator[str, None]:
-        """Streaming chat dùng Gemini generateContent API."""
+        """Streaming chat via streamGenerateContent."""
         url = f"/{GEMINI_API_VERSION}/models/{self._chat_model}:streamGenerateContent"
 
-        # Chuyển đổi format messages sang Gemini format
+        # Convert messages to Gemini's format
         contents = []
         for msg in messages:
             role = "user" if msg["role"] == "user" else "model"
@@ -255,7 +255,7 @@ class GeminiProvider(LLMProvider):
         parts = candidates[0].get("content", {}).get("parts", [])
         text = "".join(part.get("text", "") for part in parts)
 
-        # Log usage (không log nội dung - R10)
+        # Log usage only, never content (R10)
         usage = data.get("usageMetadata", {})
         logger.debug(
             "Gemini generate usage (model=%s, input_tokens=%d, output_tokens=%d)",
@@ -267,5 +267,5 @@ class GeminiProvider(LLMProvider):
         return text
 
     async def close(self) -> None:
-        """Đóng HTTP client."""
+        """Close the HTTP client."""
         await self._client.aclose()

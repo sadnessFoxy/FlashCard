@@ -1,8 +1,8 @@
 """
-ARQ tasks cho xử lý tài liệu nền.
-Trích văn bản, chia đoạn, embedding, cập nhật trạng thái.
-Tuân thủ R6: trạng thái chỉ đổi theo máy trạng thái trong DATA_MODEL.md.
-Tuân thủ R8: lỗi hết hạn mức -> PAUSED_QUOTA, không FAILED.
+ARQ tasks for background document processing:
+extract text, chunk, embed, update status.
+R6: status changes follow the state machine in docs/DATA_MODEL.md.
+R8: quota errors -> PAUSED_QUOTA, never FAILED.
 """
 
 from __future__ import annotations
@@ -14,14 +14,14 @@ logger = get_logger(__name__)
 
 async def process_document(ctx: dict, document_id: str) -> None:  # type: ignore[type-arg]
     """
-    Xử lý tài liệu: trích văn bản, chia đoạn, embedding.
-    Trạng thái: PENDING -> PROCESSING -> READY (hoặc FAILED/PAUSED_QUOTA).
+    Process a document: extract text, chunk, embed.
+    Status: QUEUED -> PROCESSING -> READY (or FAILED / PAUSED_QUOTA).
     """
     logger.info("Processing document document_id=%s", document_id)
-    # TODO (giai đoạn F5): implement full pipeline
-    # 1. Tải file từ object storage
-    # 2. Trích văn bản (PDF/Word/scan)
-    # 3. Chia đoạn
-    # 4. Gọi gateway.embed() -> nếu AiRateLimitedError: set PAUSED_QUOTA (R8)
-    # 5. Lưu vectors vào pgvector
-    # 6. Cập nhật trạng thái -> READY
+    # TODO(F5): implement the pipeline
+    # 1. Fetch the file from object storage
+    # 2. Extract text (PDF / Word / scan)
+    # 3. Chunk
+    # 4. gateway.embed(); on quota errors set PAUSED_QUOTA (R8)
+    # 5. Store vectors in pgvector
+    # 6. Set status READY

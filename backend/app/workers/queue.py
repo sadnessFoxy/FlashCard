@@ -13,10 +13,9 @@ from app.core.config import settings
 
 
 def get_redis_settings() -> RedisSettings:
-    """Lấy Redis settings cho ARQ từ REDIS_URL."""
+    """ARQ Redis settings from REDIS_URL."""
     # Parse redis://host:port/db
     url = settings.REDIS_URL
-    # ARQ RedisSettings từ URL
     return RedisSettings.from_dsn(url)
 
 
@@ -24,7 +23,7 @@ class WorkerSettings:
     """ARQ worker settings."""
 
     redis_settings = get_redis_settings()
-    # Import các task functions
-    functions: list[Callable[..., Any]] = []  # Điền vào khi thêm tasks
+    # Task functions
+    functions: list[Callable[..., Any]] = []  # register tasks here
     max_jobs = 10
-    job_timeout = 300  # 5 phút timeout mỗi job
+    job_timeout = 300  # seconds per job

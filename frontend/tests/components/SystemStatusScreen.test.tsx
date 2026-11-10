@@ -15,7 +15,7 @@ import {
 } from "../../src/features/system/api";
 import { SystemStatusScreen } from "../../src/features/system/SystemStatusScreen";
 
-// Mock toàn bộ lớp gọi mạng: test không cần backend hay cấu hình app (apiUrl).
+// Mock the network layer: no backend or app config needed.
 jest.mock("../../src/features/system/api", () => ({
   getSystemStatus: jest.fn(),
 }));
@@ -55,7 +55,7 @@ beforeEach(async () => {
   await i18n.changeLanguage("vi");
 });
 
-it("hiện mọi dịch vụ hoạt động khi backend trả ok", async () => {
+it("shows every service up when the backend reports ok", async () => {
   mockedGetSystemStatus.mockResolvedValue(ALL_UP);
 
   renderScreen();
@@ -65,7 +65,7 @@ it("hiện mọi dịch vụ hoạt động khi backend trả ok", async () => {
   expect(screen.getAllByText("Hoạt động")).toHaveLength(3);
 });
 
-it("chỉ ra dịch vụ hỏng khi trạng thái degraded", async () => {
+it("points out the failing service when degraded", async () => {
   mockedGetSystemStatus.mockResolvedValue({
     ...ALL_UP,
     status: "degraded",
@@ -82,7 +82,7 @@ it("chỉ ra dịch vụ hỏng khi trạng thái degraded", async () => {
   expect(screen.getByText("Không hoạt động")).toBeTruthy();
 });
 
-it("báo không kết nối được backend kèm địa chỉ cần kiểm tra", async () => {
+it("reports an unreachable backend with the URL to check", async () => {
   mockedGetSystemStatus.mockRejectedValue(new NetworkError("offline"));
 
   renderScreen();
@@ -93,7 +93,7 @@ it("báo không kết nối được backend kèm địa chỉ cần kiểm tra"
   expect(screen.getByText(/http:\/\/localhost:8000/)).toBeTruthy();
 });
 
-it("nút kiểm tra lại gọi lại API", async () => {
+it("check-again button calls the API again", async () => {
   mockedGetSystemStatus.mockResolvedValue(ALL_UP);
   renderScreen();
   await screen.findByText("Mọi thứ hoạt động bình thường");
@@ -103,7 +103,7 @@ it("nút kiểm tra lại gọi lại API", async () => {
   await waitFor(() => expect(mockedGetSystemStatus).toHaveBeenCalledTimes(2));
 });
 
-it("hiển thị tiếng Anh khi đổi ngôn ngữ", async () => {
+it("renders English after switching language", async () => {
   await i18n.changeLanguage("en");
   mockedGetSystemStatus.mockResolvedValue(ALL_UP);
 

@@ -1,5 +1,5 @@
--- Khởi tạo PostgreSQL. Chỉ chạy khi volume dữ liệu được tạo lần đầu.
--- Database chính (flashcard) do POSTGRES_DB tạo; thêm database test riêng (R11).
+-- PostgreSQL init. Runs only when the data volume is first created.
+-- POSTGRES_DB creates `flashcard`; this adds the separate test database (R11).
 
 CREATE EXTENSION IF NOT EXISTS vector;
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";

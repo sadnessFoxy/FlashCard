@@ -2,4 +2,4 @@
 
 from __future__ import annotations
 
-# TODO (giai đoạn F): implement dependencies cho module admin
+# TODO(F slices): implement dependencies for the admin module

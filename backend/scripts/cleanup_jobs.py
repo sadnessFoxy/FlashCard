@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Script dọn dẹp jobs và dữ liệu cũ.
-Chạy định kỳ qua cron hoặc ARQ scheduled task.
+Cleanup script for stale jobs and data,
+run periodically via cron or an ARQ scheduled task.
 """
 
 from __future__ import annotations
@@ -17,17 +17,17 @@ logger = get_logger(__name__)
 
 async def cleanup_stale_processing_documents() -> int:
     """
-    Đặt lại tài liệu stuck ở PROCESSING quá lâu.
-    Tài liệu ở PROCESSING quá 30 phút -> chuyển về PENDING để retry.
+    Requeue documents stuck in PROCESSING:
+    after 30 minutes they go back to QUEUED for retry.
     """
-    # TODO (giai đoạn F5): implement với DB query
+    # TODO(F5): implement
     logger.info("Checking for stale processing documents")
     return 0
 
 
 async def cleanup_expired_one_time_tokens() -> int:
-    """Xóa token xác minh email và reset mật khẩu đã hết hạn."""
-    # TODO (giai đoạn F4): implement
+    """Delete expired email-verification and password-reset tokens."""
+    # TODO(F4): implement
     logger.info("Cleaning up expired one-time tokens")
     return 0
 

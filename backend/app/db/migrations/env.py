@@ -1,6 +1,6 @@
 """
 Alembic migration environment.
-Đọc DATABASE_URL từ biến môi trường (không hardcode).
+DATABASE_URL comes from the environment.
 """
 
 from __future__ import annotations
@@ -15,8 +15,8 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 import app.modules.admin.models  # noqa: F401
 
-# Import tất cả models để Alembic nhận biết schema
-# (thêm import khi tạo model mới)
+# Import every model module so autogenerate sees the full schema
+# (add new model modules here)
 import app.modules.auth.models  # noqa: F401
 import app.modules.chat.models  # noqa: F401
 import app.modules.documents.models  # noqa: F401

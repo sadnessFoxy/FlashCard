@@ -3,4 +3,4 @@
 from __future__ import annotations
 
 
-# TODO (giai đoạn F): implement schemas cho module usage
+# TODO(F slices): implement schemas for the usage module

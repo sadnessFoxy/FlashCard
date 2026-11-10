@@ -1,6 +1,6 @@
 """
-Đi thật qua backend tới PostgreSQL (database test, có pgvector) và Redis.
-Cần các dịch vụ Docker đang chạy: `make infra-up`.
+Real round trip through the backend to PostgreSQL (test DB with pgvector) and Redis.
+Needs the Docker services running: `make infra-up`.
 """
 
 from __future__ import annotations

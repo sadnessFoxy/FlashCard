@@ -2,4 +2,4 @@
 
 from __future__ import annotations
 
-# TODO (giai đoạn F): implement service cho module documents
+# TODO(F slices): implement service for the documents module

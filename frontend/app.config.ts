@@ -28,8 +28,8 @@ const envConfig = {
 
 const env = envConfig[APP_ENV as keyof typeof envConfig] ?? envConfig.development;
 
-// Gốc API, KHÔNG kèm /v1 (đường dẫn trong contract đã có /v1).
-// Thử trên điện thoại thật: đặt API_URL=http://<IP-máy-tính>:8000 vì "localhost" là chính điện thoại.
+// API origin WITHOUT /v1 (contract paths already include it).
+// On a real phone set API_URL=http://<computer-LAN-IP>:8000; localhost is the phone itself.
 const apiUrl = process.env.API_URL ?? env.apiUrl;
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
@@ -43,11 +43,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     supportsTablet: true,
     bundleIdentifier: env.bundleIdentifier,
-    // NOTE: Chỉ bản thử nghiệm, không submit lên App Store
+    // Test builds only: not submitted to the App Store
   },
   android: {
     package: env.androidPackage,
-    // NOTE: Chỉ bản thử nghiệm, không submit lên Google Play
+    // Test builds only: not submitted to Google Play
   },
   web: {
     bundler: "metro",

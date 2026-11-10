@@ -2,4 +2,4 @@
 
 from __future__ import annotations
 
-# TODO (giai đoạn F): implement repository cho module documents
+# TODO(F slices): implement repository for the documents module

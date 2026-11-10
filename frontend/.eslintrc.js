@@ -46,12 +46,12 @@ module.exports = {
     "react-native/no-inline-styles": "warn",
     "react-native/no-color-literals": "off",
     "react-native/no-raw-text": "error",
-    // Thứ tự thuộc tính style không ảnh hưởng chất lượng; chỉ gây nhiễu
+    // Style property order is noise, not quality
     "react-native/sort-styles": "off",
 
     // General
     "no-console": ["warn", { allow: ["warn", "error"] }],
-    // Cho phép vòng lặp đọc stream kiểu while (true) { ... break }
+    // Allow while (true) { ... break } stream-reading loops
     "no-constant-condition": ["error", { checkLoops: false }],
   },
   settings: {

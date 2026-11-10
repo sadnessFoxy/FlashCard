@@ -2,7 +2,7 @@
 
 # ==========================================
 # FlashCard Makefile
-# Backend chạy trong môi trường ảo backend/.venv
+# Backend runs in the backend/.venv virtualenv
 # ==========================================
 
 ifeq ($(OS),Windows_NT)
@@ -55,7 +55,7 @@ migrate:
 migrate-create:
 	cd backend && $(PY) -m alembic revision --autogenerate -m "$(name)"
 
-# Sinh kiểu TypeScript từ contract (commit kết quả; CI kiểm tra không lệch contract)
+# Generate TypeScript types from the contract (committed)
 gen-api:
 	cd frontend && npm run gen-api
 

@@ -6,14 +6,14 @@ export const systemStatusQueryKey = ["system", "status"] as const;
 
 const REFRESH_INTERVAL_MS = 15_000;
 
-/** Trạng thái backend và các phụ thuộc, tự làm mới mỗi 15 giây. */
+/** Backend and dependency status, refreshed every 15 seconds. */
 export function useSystemStatus() {
   return useQuery({
     queryKey: systemStatusQueryKey,
     queryFn: ({ signal }) => getSystemStatus(signal),
     refetchInterval: REFRESH_INTERVAL_MS,
     staleTime: 0,
-    // API client đã tự thử lại khi lỗi mạng; không thử thêm để báo lỗi nhanh.
+    // The API client already retries network errors; fail fast here.
     retry: false,
   });
 }

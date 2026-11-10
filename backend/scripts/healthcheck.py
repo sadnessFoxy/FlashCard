@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Script kiểm tra sức khỏe các dịch vụ.
-Dùng trong Docker healthcheck và runbook.
+Service health check script,
+used by the Docker healthcheck and runbooks.
 """
 
 from __future__ import annotations
@@ -13,7 +13,7 @@ import httpx
 
 
 async def check_api() -> bool:
-    """Kiểm tra API health endpoint."""
+    """Call the API health endpoint."""
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
             response = await client.get("http://localhost:8000/health")

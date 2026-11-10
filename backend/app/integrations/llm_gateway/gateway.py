@@ -1,7 +1,7 @@
 """
-LLM Gateway: điểm vào duy nhất cho mọi lời gọi AI.
-Tuân thủ R5: mọi AI call qua gateway này.
-Tuân thủ R8: lỗi hết hạn mức không retry, chuyển PAUSED_QUOTA.
+LLM gateway: the single entry point for AI calls.
+R5: every AI call goes through here.
+R8: quota errors are never retried (jobs move to PAUSED_QUOTA).
 """
 
 from __future__ import annotations
@@ -19,16 +19,16 @@ from app.modules.ai.usage import record_ai_usage
 logger = get_logger(__name__)
 
 MAX_RETRIES = 3
-RETRY_DELAYS = [1.0, 2.0, 4.0]  # Exponential backoff (giây)
+RETRY_DELAYS = [1.0, 2.0, 4.0]  # exponential backoff (seconds)
 
 
 class LLMGateway:
     """
-    Gateway cho tất cả AI calls.
-    - Retry cho lỗi tạm thời (network, 5xx)
-    - Không retry lỗi hết hạn mức (quota exhausted)
-    - Circuit breaker để ngăn gọi liên tục khi provider lỗi
-    - Ghi usage sau mỗi lần gọi
+    Gateway for all AI calls:
+    - retries transient errors (network, 5xx)
+    - never retries quota exhaustion
+    - circuit breaker while the provider is failing
+    - records usage after each call
     """
 
     def __init__(self, provider: LLMProvider) -> None:
@@ -43,7 +43,7 @@ class LLMGateway:
         texts: list[str],
         user_id: str | None = None,
     ) -> list[list[float]]:
-        """Tạo embeddings với retry và circuit breaker."""
+        """Embed texts with retry and circuit breaker."""
         if self._circuit_breaker.state == CircuitState.OPEN:
             raise AiTemporarilyUnavailableError()
 
@@ -84,7 +84,7 @@ class LLMGateway:
                     error_code=e.code if hasattr(e, "code") else "AI_ERROR",
                 )
 
-                # R8: lỗi hết hạn mức - không retry
+                # R8: quota exhausted, do not retry
                 if isinstance(e, AiRateLimitedError):
                     raise
 
@@ -113,7 +113,7 @@ class LLMGateway:
         temperature: float = 0.7,
         user_id: str | None = None,
     ) -> AsyncGenerator[str, None]:
-        """Streaming chat với circuit breaker."""
+        """Streaming chat behind the circuit breaker."""
         if self._circuit_breaker.state == CircuitState.OPEN:
             raise AiTemporarilyUnavailableError()
 
@@ -165,7 +165,7 @@ class LLMGateway:
         response_format: dict[str, Any] | None = None,
         user_id: str | None = None,
     ) -> str:
-        """Non-streaming generation với retry."""
+        """Non-streaming generation with retry."""
         if self._circuit_breaker.state == CircuitState.OPEN:
             raise AiTemporarilyUnavailableError()
 
@@ -210,7 +210,7 @@ class LLMGateway:
                     error_code=e.code if hasattr(e, "code") else "AI_ERROR",
                 )
 
-                # R8: lỗi hết hạn mức - không retry
+                # R8: quota exhausted, do not retry
                 if isinstance(e, AiRateLimitedError):
                     raise
 

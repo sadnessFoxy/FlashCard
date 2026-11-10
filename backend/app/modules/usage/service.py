@@ -2,4 +2,4 @@
 
 from __future__ import annotations
 
-# TODO (giai đoạn F): implement service cho module usage
+# TODO(F slices): implement service for the usage module

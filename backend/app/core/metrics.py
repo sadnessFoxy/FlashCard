@@ -1,6 +1,6 @@
 """
 Metrics placeholder cho Prometheus.
-Sẽ implement đầy đủ ở giai đoạn 5 (Hiệu năng).
+Full implementation in phase 5 (performance).
 """
 
 from __future__ import annotations
@@ -13,7 +13,7 @@ logger = get_logger(__name__)
 class MetricsCollector:
     """
     Placeholder metrics collector.
-    Sẽ tích hợp prometheus_client ở giai đoạn 5.
+    prometheus_client integration comes in phase 5.
     """
 
     def increment_counter(self, name: str, labels: dict[str, str] | None = None) -> None:

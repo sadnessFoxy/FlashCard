@@ -1,9 +1,9 @@
 """
-Backend khớp contract/openapi.yaml:
-- mọi route của app đều có trong contract và ngược lại (không có endpoint "chui"),
-- operationId giống nhau,
-- validator của contract thật sự bắt được payload sai (tránh test luôn xanh).
-Kiểm tra body response theo schema nằm trong từng test endpoint (test_system.py).
+Backend matches contract/openapi.yaml:
+- every app route is in the contract and vice versa (no undocumented endpoints),
+- operationIds match,
+- the contract validator really rejects bad payloads (no always-green tests).
+Response bodies are checked against schemas in each endpoint test.
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ from tests.contract_schema import (
 
 
 def _app_operations() -> dict[tuple[str, str], str]:
-    """Các operation backend thật sự phục vụ, lấy từ schema FastAPI tự sinh."""
+    """Operations the backend actually serves, from FastAPI's generated schema."""
     ops: dict[tuple[str, str], str] = {}
     for path, item in app.openapi()["paths"].items():
         for method, operation in item.items():
@@ -36,8 +36,10 @@ def test_contract_is_openapi_3_1() -> None:
 def test_every_app_route_is_in_contract_and_vice_versa() -> None:
     app_ops = set(_app_operations())
     contract_ops = set(contract_operations())
-    assert app_ops - contract_ops == set(), "Route có trong backend nhưng thiếu trong contract"
-    assert contract_ops - app_ops == set(), "Route có trong contract nhưng backend chưa làm"
+    assert app_ops - contract_ops == set(), (
+        "Route served by the backend but missing in the contract"
+    )
+    assert contract_ops - app_ops == set(), "Route in the contract but not implemented"
 
 
 def test_operation_ids_match_contract() -> None:

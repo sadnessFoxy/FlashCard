@@ -1,5 +1,5 @@
 """
-Router gốc - gom tất cả module routers.
+Root API router: mounts every module router.
 """
 
 from __future__ import annotations

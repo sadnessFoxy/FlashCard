@@ -9,6 +9,6 @@ function keys(obj: Record<string, unknown>, prefix = ""): string[] {
   );
 }
 
-it("tiếng Việt và tiếng Anh có cùng bộ khóa (không còn chuỗi chưa dịch)", () => {
+it("vi and en have the same keys (nothing untranslated)", () => {
   expect(keys(en).sort()).toEqual(keys(vi).sort());
 });

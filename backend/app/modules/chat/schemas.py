@@ -3,4 +3,4 @@
 from __future__ import annotations
 
 
-# TODO (giai đoạn F): implement schemas cho module chat
+# TODO(F slices): implement schemas for the chat module

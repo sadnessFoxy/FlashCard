@@ -38,7 +38,7 @@ jobs:
       run:
         working-directory: backend
 
-    # R11: database test riêng, không dùng database phát triển hay production
+    # R11: dedicated test database, never dev or prod
     services:
       postgres:
         image: pgvector/pgvector:pg16
@@ -107,7 +107,7 @@ jobs:
         run: |
           npm run gen-api
           git diff --exit-code -- src/api/generated \
-            || (echo "::error::src/api/generated lệch contract/openapi.yaml. Chạy 'make gen-api' rồi commit." && exit 1)
+            || (echo "::error::src/api/generated is out of sync with contract/openapi.yaml. Run 'make gen-api' and commit." && exit 1)
 
       - run: npm run lint
       - run: npm run typecheck

@@ -3,4 +3,4 @@
 from __future__ import annotations
 
 
-# TODO (giai đoạn F): implement models cho module documents
+# TODO(F slices): implement models for the documents module

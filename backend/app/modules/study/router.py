@@ -6,4 +6,4 @@ from fastapi import APIRouter
 
 router = APIRouter()
 
-# TODO (giai đoạn F): implement endpoints cho module study
+# TODO(F slices): implement endpoints for the study module

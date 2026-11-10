@@ -1,6 +1,6 @@
 """
-Fake AI provider cho unit test và development offline.
-Trả về dữ liệu giả định không gọi API thật.
+Fake AI provider for tests and offline development.
+Returns canned data; never calls a real API.
 """
 
 from __future__ import annotations
@@ -16,8 +16,8 @@ from app.modules.ai.providers.base import LLMProvider
 
 class FakeProvider(LLMProvider):
     """
-    Provider giả lập cho test.
-    Trả về dữ liệu có cấu trúc đúng nhưng không có nghĩa.
+    Test double for LLMProvider.
+    Output has the right shape but no meaning.
     """
 
     @property
@@ -29,8 +29,8 @@ class FakeProvider(LLMProvider):
         return "fake"
 
     async def embed(self, texts: list[str]) -> list[list[float]]:
-        """Tạo random embeddings có đúng số chiều."""
-        await asyncio.sleep(0.01)  # Giả lập latency nhỏ
+        """Random embeddings of the configured size."""
+        await asyncio.sleep(0.01)  # simulate latency
         embeddings = []
         for _ in texts:
             vec = [random.gauss(0, 1) for _ in range(self.embedding_dimensions)]
@@ -47,16 +47,16 @@ class FakeProvider(LLMProvider):
         max_tokens: int | None = None,
         temperature: float = 0.7,
     ) -> AsyncGenerator[str, None]:
-        """Giả lập streaming response từng từ."""
+        """Stream a canned answer word by word."""
         last_message = messages[-1]["content"] if messages else ""
         response = (
-            f"[FAKE] Đây là câu trả lời giả lập cho câu hỏi: '{last_message[:50]}'. "
-            "Dùng provider thật để có câu trả lời thực sự."
+            f"[FAKE] Canned answer for: '{last_message[:50]}'. "
+            "Use a real provider for real answers."
         )
 
         words = response.split()
         for word in words:
-            await asyncio.sleep(0.05)  # Giả lập streaming delay
+            await asyncio.sleep(0.05)  # simulate streaming delay
             yield word + " "
 
     async def generate(
@@ -67,13 +67,13 @@ class FakeProvider(LLMProvider):
         temperature: float = 0.7,
         response_format: dict[str, Any] | None = None,
     ) -> str:
-        """Giả lập non-streaming response."""
+        """Canned non-streaming response."""
         await asyncio.sleep(0.1)
 
         if response_format and response_format.get("type") == "json_object":
             return '{"result": "[FAKE] JSON response", "confidence": 0.9}'
 
         return (
-            f"[FAKE] Phản hồi giả lập cho prompt: '{prompt[:50]}...'. "
-            "Đây là FakeProvider dùng cho test, không gọi API thật."
+            f"[FAKE] Canned response for: '{prompt[:50]}...'. "
+            "This is FakeProvider; no real API was called."
         )

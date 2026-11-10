@@ -1,4 +1,4 @@
-"""Cách các hàm kiểm tra phụ thuộc phân loại lỗi (không cần Docker)."""
+"""How dependency checks classify failures (no Docker needed)."""
 
 from __future__ import annotations
 

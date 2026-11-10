@@ -2,7 +2,7 @@
 # FlashCard monorepo .gitignore
 # ==========================================
 
-# --- Secrets (KHÔNG BAO GIỜ commit) ---
+# --- Secrets (never commit) ---
 .env
 .env.local
 .env.*.local
@@ -24,7 +24,7 @@ dist/
 web-build/
 *.jsbundle
 
-# Generated code (sinh tự động từ contract)
+# Generated code: frontend/src/api/generated IS committed (CI checks drift)
 
 # Testing
 coverage/

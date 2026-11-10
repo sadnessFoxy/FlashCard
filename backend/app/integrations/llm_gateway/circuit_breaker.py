@@ -1,6 +1,6 @@
 """
 Circuit breaker cho LLM Gateway.
-Ngăn gọi liên tục khi AI provider gặp sự cố.
+Stops hammering the AI provider while it is failing.
 """
 
 from __future__ import annotations
@@ -14,18 +14,18 @@ logger = get_logger(__name__)
 
 
 class CircuitState(Enum):
-    CLOSED = "closed"  # Hoạt động bình thường
-    OPEN = "open"  # Đang ngăn tất cả requests
-    HALF_OPEN = "half_open"  # Đang thử phục hồi
+    CLOSED = "closed"  # normal operation
+    OPEN = "open"  # rejecting all calls
+    HALF_OPEN = "half_open"  # probing for recovery
 
 
 class CircuitBreaker:
     """
     Circuit breaker pattern cho AI calls.
 
-    - CLOSED: Hoạt động bình thường, đếm lỗi liên tiếp
-    - OPEN: Đủ lỗi -> ngăn tất cả calls, chờ recovery_timeout
-    - HALF_OPEN: Sau recovery_timeout, cho qua một request thử nghiệm
+    - CLOSED: normal; counts consecutive failures
+    - OPEN: too many failures; reject calls until recovery_timeout
+    - HALF_OPEN: after recovery_timeout, let one trial call through
     """
 
     def __init__(
@@ -42,7 +42,7 @@ class CircuitBreaker:
 
     @property
     def state(self) -> CircuitState:
-        """Trạng thái hiện tại, tự chuyển OPEN -> HALF_OPEN sau timeout."""
+        """Current state; moves OPEN -> HALF_OPEN once the timeout passes."""
         if self._state == CircuitState.OPEN:
             if time.monotonic() - self._last_failure_time >= self.recovery_timeout:
                 logger.info("Circuit breaker transitioning OPEN -> HALF_OPEN")
@@ -50,7 +50,7 @@ class CircuitBreaker:
         return self._state
 
     def record_success(self) -> None:
-        """Ghi nhận request thành công."""
+        """Record a success."""
         if self._state != CircuitState.CLOSED:
             logger.info(
                 "Circuit breaker transitioning %s -> CLOSED after success",
@@ -60,7 +60,7 @@ class CircuitBreaker:
         self._failure_count = 0
 
     def record_failure(self) -> None:
-        """Ghi nhận request thất bại."""
+        """Record a failure."""
         self._failure_count += 1
         self._last_failure_time = time.monotonic()
 
@@ -73,7 +73,7 @@ class CircuitBreaker:
             self._state = CircuitState.OPEN
 
     def reset(self) -> None:
-        """Reset circuit breaker về trạng thái ban đầu."""
+        """Reset to CLOSED."""
         self._state = CircuitState.CLOSED
         self._failure_count = 0
         self._last_failure_time = 0.0

@@ -1,5 +1,5 @@
-# FlashCard - Phiên bản công nghệ đã chọn
-# Cập nhật file này khi nâng cấp phiên bản
+# FlashCard - pinned technology versions
+# Update this file when upgrading
 
 Python: 3.11.x
 Node.js: 20.x LTS
@@ -8,14 +8,14 @@ PostgreSQL: 16.x
 pgvector: 0.8.x
 Redis: 7.x
 
-# Frontend dependencies (xem frontend/package.json để biết phiên bản cụ thể)
+# Frontend dependencies (exact versions in frontend/package.json)
 React Native: 0.76.x
 Expo Router: 4.x
 TanStack Query: 5.x
 Zustand: 5.x
 i18next: 23.x
 
-# Backend dependencies (xem backend/pyproject.toml để biết phiên bản cụ thể)
+# Backend dependencies (exact versions in backend/pyproject.toml)
 FastAPI: 0.115.x
 SQLAlchemy: 2.x
 Alembic: 1.13.x

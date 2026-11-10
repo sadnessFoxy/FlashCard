@@ -1,6 +1,6 @@
 
 # Docker Compose cho local development
-# Dùng: docker compose -f infra/docker/docker-compose.yml up -d
+# Usage: docker compose -f infra/docker/docker-compose.yml up -d
 
 services:
   postgres:
@@ -48,15 +48,15 @@ services:
       MP_SMTP_AUTH_ACCEPT_ANY: "true"
       MP_SMTP_AUTH_ALLOW_INSECURE: "true"
 
-  # Kho file tương thích S3 cho local (thay MinIO: image minio/minio không còn tải được).
-  # Không cấu hình danh tính S3 nên chấp nhận mọi khóa; CHỈ dùng cho máy local.
+  # S3-compatible storage for local dev (replaces MinIO, whose image is no longer pullable).
+  # No S3 identities configured, so any key is accepted: local use ONLY.
   s3:
     image: chrislusf/seaweedfs:latest
     container_name: flashcard-s3
     restart: unless-stopped
     command: server -dir=/data -s3 -s3.port=8333 -volume.max=5
     ports:
-      - "9000:8333"   # S3 API: http://localhost:9000 (khớp S3_ENDPOINT_URL)
+      - "9000:8333"   # S3 API at http://localhost:9000 (S3_ENDPOINT_URL)
     volumes:
       - s3_data:/data
 

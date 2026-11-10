@@ -1,6 +1,6 @@
 import { Stack } from "expo-router";
 
-// Giao diện quản trị: chỉ dùng trên web, kiểm tra vai trò admin
+// Admin UI: web only, admin role checked by the backend (F16)
 export default function AdminLayout() {
   return (
     <Stack

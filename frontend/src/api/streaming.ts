@@ -1,6 +1,6 @@
 /**
- * Xử lý Server-Sent Events (SSE) cho hỏi đáp streaming.
- * Mỗi event là một JSON chunk theo contract/openapi.yaml.
+ * Server-Sent Events (SSE) reader for streaming Q&A.
+ * Each event is a JSON chunk as defined in contract/openapi.yaml.
  */
 
 import { ApiError, type ApiErrorCode } from "./errors";
@@ -22,7 +22,7 @@ export type StreamErrorCallback = (error: ApiError) => void;
 export type StreamDoneCallback = () => void;
 
 /**
- * Đọc SSE stream từ response và gọi callback cho mỗi chunk.
+ * Read an SSE response and invoke the callbacks per chunk.
  */
 export async function readStream(
   response: Response,
@@ -75,7 +75,7 @@ export async function readStream(
 
             onChunk(chunk);
           } catch {
-            // Bỏ qua JSON parse lỗi từng dòng
+            // Skip lines that are not valid JSON
           }
         }
       }
