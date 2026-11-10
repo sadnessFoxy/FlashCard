@@ -11,6 +11,16 @@ servers:
 tags:
   - name: system
     description: Liveness and dependency status
+  - name: auth
+    description: |
+      Email + password sign-up, sign-in, session refresh and sign-out (spec: docs/specs/f2-email-auth.md).
+      Native clients receive tokens in the JSON body and keep them in secure storage.
+      Web clients receive httpOnly cookies instead and never see tokens (R12).
+  - name: users
+    description: The signed-in user
+security:
+  - BearerAuth: []
+  - CookieAuth: []
 paths:
   /health:
     get:
@@ -44,12 +54,185 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SystemStatusResponse"
+  /v1/auth/register:
+    post:
+      tags: [auth]
+      operationId: register
+      summary: Create an account with email and password and start a session
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/ClientPlatform"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegisterRequest"
+      responses:
+        "201":
+          description: Account created and signed in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthSession"
+        "403":
+          $ref: "#/components/responses/CsrfRejected"
+        "409":
+          description: "`EMAIL_UNAVAILABLE`: generic message; the client suggests signing in or resetting the password."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: "`VALIDATION_ERROR`, or `WEAK_PASSWORD` with `reason`."
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          $ref: "#/components/responses/TooManyAttempts"
+  /v1/auth/login:
+    post:
+      tags: [auth]
+      operationId: login
+      summary: Sign in with email and password
+      description: |
+        A wrong email and a wrong password return the same `INVALID_CREDENTIALS` response.
+        `ACCOUNT_BLOCKED` is only returned when the password is correct.
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/ClientPlatform"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Signed in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthSession"
+        "401":
+          description: "`INVALID_CREDENTIALS`"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: "`ACCOUNT_BLOCKED` or `CSRF_REJECTED`"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+        "429":
+          $ref: "#/components/responses/TooManyAttempts"
+  /v1/auth/refresh:
+    post:
+      tags: [auth]
+      operationId: refreshSession
+      summary: Rotate the refresh token and issue a new access token
+      description: |
+        Native sends `refresh_token` in the body; web sends the `refresh_token` cookie.
+        The used refresh token stops working. Presenting an already-rotated token revokes
+        every token of that sign-in (suspected theft).
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/ClientPlatform"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokenRequest"
+      responses:
+        "200":
+          description: New session tokens
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthSession"
+        "401":
+          description: "`INVALID_REFRESH_TOKEN`"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: "`ACCOUNT_BLOCKED` or `CSRF_REJECTED`"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /v1/auth/logout:
+    post:
+      tags: [auth]
+      operationId: logout
+      summary: Revoke the current refresh token and clear web cookies
+      description: Always 204, even when the token is missing or already invalid.
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/ClientPlatform"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokenRequest"
+      responses:
+        "204":
+          description: Signed out
+        "403":
+          $ref: "#/components/responses/CsrfRejected"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /v1/me:
+    get:
+      tags: [users]
+      operationId: getMe
+      summary: The signed-in user
+      responses:
+        "200":
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          description: "`ACCOUNT_BLOCKED`"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
 components:
+  parameters:
+    ClientPlatform:
+      name: X-Client-Platform
+      in: header
+      required: true
+      description: "`native` returns tokens in the body; `web` sets httpOnly cookies and omits tokens."
+      schema:
+        type: string
+        enum: [web, native]
   securitySchemes:
     BearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
+      description: Access token (native clients).
+    CookieAuth:
+      type: apiKey
+      in: cookie
+      name: access_token
+      description: httpOnly access token cookie (web clients). Unsafe methods also require an allowed `Origin`.
   schemas:
     ErrorResponse:
       type: object
@@ -62,6 +245,100 @@ components:
         message:
           type: string
           description: Developer-facing message. Not shown to end users.
+        reason:
+          type: string
+          description: "Set with `WEAK_PASSWORD`."
+          enum: [too_short, too_long, too_common, same_as_email]
+        retry_after_seconds:
+          type: integer
+          minimum: 1
+          description: "Set with `TOO_MANY_ATTEMPTS`; also sent as the `Retry-After` header."
+        errors:
+          type: array
+          description: "Set with `VALIDATION_ERROR`: which fields are invalid."
+          items:
+            type: object
+            required: [field, type]
+            properties:
+              field:
+                type: string
+                examples: [email]
+              type:
+                type: string
+                examples: [value_error]
+    Locale:
+      type: string
+      enum: [vi, en]
+    RegisterRequest:
+      type: object
+      additionalProperties: false
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          type: string
+          maxLength: 1024
+          description: Strength rules are checked by the server (`WEAK_PASSWORD`), see the spec.
+        locale:
+          $ref: "#/components/schemas/Locale"
+    LoginRequest:
+      type: object
+      additionalProperties: false
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          maxLength: 254
+        password:
+          type: string
+          maxLength: 1024
+    RefreshTokenRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        refresh_token:
+          type: string
+          maxLength: 512
+          description: Required for native clients; ignored for web (the cookie is used).
+    User:
+      type: object
+      additionalProperties: false
+      required: [id, email, email_verified, locale, role, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+        email_verified:
+          type: boolean
+        locale:
+          $ref: "#/components/schemas/Locale"
+        role:
+          type: string
+          enum: [user, admin]
+        created_at:
+          type: string
+          format: date-time
+    AuthSession:
+      type: object
+      additionalProperties: false
+      required: [user, access_token_expires_in]
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        access_token:
+          type: string
+          description: Native only. Absent for web clients.
+        refresh_token:
+          type: string
+          description: Native only. Absent for web clients.
+        access_token_expires_in:
+          type: integer
+          description: Seconds until the access token expires.
     HealthResponse:
       type: object
       additionalProperties: false
@@ -132,8 +409,30 @@ components:
             redis:
               $ref: "#/components/schemas/DependencyCheck"
   responses:
+    TooManyAttempts:
+      description: "`TOO_MANY_ATTEMPTS` with `retry_after_seconds` and a `Retry-After` header."
+      headers:
+        Retry-After:
+          schema:
+            type: integer
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    ValidationError:
+      description: "`VALIDATION_ERROR`"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    CsrfRejected:
+      description: "`CSRF_REJECTED`: cookie-authenticated unsafe request from an origin that is not allowed."
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
     UnauthorizedError:
-      description: Access token missing or invalid
+      description: "`UNAUTHORIZED`: access token missing, invalid or expired"
       content:
         application/json:
           schema:

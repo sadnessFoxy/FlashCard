@@ -16,7 +16,29 @@
     "logout": "Đăng xuất",
     "email": "Email",
     "password": "Mật khẩu",
-    "forgotPassword": "Quên mật khẩu?"
+    "confirmPassword": "Nhập lại mật khẩu",
+    "forgotPassword": "Quên mật khẩu?",
+    "createAccount": "Tạo tài khoản",
+    "tagline": "Học từ chính giáo trình của bạn",
+    "showPassword": "Hiện",
+    "hidePassword": "Ẩn",
+    "passwordHint": "Ít nhất 8 ký tự. Nên dùng một cụm từ dễ nhớ nhưng khó đoán.",
+    "errors": {
+      "invalidEmail": "Email không đúng định dạng",
+      "passwordRequired": "Hãy nhập mật khẩu",
+      "passwordMismatch": "Hai mật khẩu không khớp",
+      "invalidCredentials": "Email hoặc mật khẩu không đúng",
+      "accountBlocked": "Tài khoản này đã bị khóa. Hãy liên hệ quản trị viên.",
+      "emailUnavailable": "Không thể đăng ký bằng email này. Nếu đây là email của bạn, hãy đăng nhập hoặc đặt lại mật khẩu.",
+      "tooManyAttempts_one": "Bạn đã thử quá nhiều lần. Hãy thử lại sau {{count}} phút.",
+      "tooManyAttempts_other": "Bạn đã thử quá nhiều lần. Hãy thử lại sau {{count}} phút.",
+      "weakPassword": {
+        "too_short": "Mật khẩu cần ít nhất 8 ký tự",
+        "too_long": "Mật khẩu tối đa 128 ký tự",
+        "too_common": "Mật khẩu này quá phổ biến, hãy chọn mật khẩu khác",
+        "same_as_email": "Mật khẩu không được trùng với email"
+      }
+    }
   },
   "errors": {
     "networkError": "Lỗi kết nối mạng",
@@ -25,9 +47,7 @@
     "aiUnavailable": "Tính năng AI tạm thời không khả dụng"
   },
   "tabs": {
-    "library": "Thư viện",
-    "chat": "Hỏi đáp",
-    "study": "Ôn tập",
+    "spaces": "Không gian",
     "profile": "Hồ sơ"
   },
   "system": {
@@ -58,5 +78,15 @@
     },
     "refresh": "Kiểm tra lại",
     "checkedAt": "Kiểm tra lúc {{time}}"
+  },
+  "profile": {
+    "title": "Hồ sơ",
+    "signedInAs": "Đang đăng nhập bằng"
+  },
+  "spaces": {
+    "comingSoon": "Không gian học tập của bạn sẽ xuất hiện ở đây."
+  },
+  "splash": {
+    "unreachable": "Không kết nối được tới máy chủ. Hãy kiểm tra mạng rồi thử lại."
   }
 }

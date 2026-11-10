@@ -1,261 +1,218 @@
 /**
- * API client duy nhất cho toàn bộ frontend.
- * - Gắn Bearer token từ secure storage (native) hoặc dùng cookie (web)
- * - Timeout và retry khi lỗi mạng
- * - Auto refresh token khi nhận 401
- * Tuân thủ R12: token không lưu trong AsyncStorage/localStorage.
+ * The only module allowed to call the network (docs/ARCHITECTURE.md).
+ * - Native: Bearer token from secure storage. Web: httpOnly cookies (R12).
+ * - Every request sends X-Client-Platform so the backend picks body tokens or cookies.
+ * - On 401 it refreshes once (shared by concurrent requests) and retries; if refresh
+ *   fails it clears the session and notifies the auth store.
  */
 
 import { Platform } from "react-native";
+
 import { config } from "../config";
 import {
-  ApiError,
-  NetworkError,
-  TimeoutError,
-  parseApiError,
-} from "./errors";
-
-// Import platform-specific session storage
-// Metro sẽ chọn đúng file theo nền tảng (.native.ts / .web.ts)
-import {
+  clearTokens,
   getAccessToken,
   getRefreshToken,
   saveAccessToken,
   saveRefreshToken,
-  clearTokens,
 } from "../storage/session";
+import { ApiError, NetworkError, TimeoutError, parseApiError } from "./errors";
 
 const DEFAULT_TIMEOUT_MS = 30_000;
 const STREAM_TIMEOUT_MS = 120_000;
-const MAX_RETRIES = 2;
+const MAX_NETWORK_RETRIES = 2;
 const RETRY_DELAY_MS = 1_000;
+
+const IS_WEB = Platform.OS === "web";
+export const CLIENT_PLATFORM = IS_WEB ? "web" : "native";
 
 type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
-interface RequestOptions {
+export interface RequestOptions {
   method?: HttpMethod;
   body?: unknown;
   headers?: Record<string, string>;
   signal?: AbortSignal;
   timeoutMs?: number;
+  /** Skip the Bearer header and the 401 refresh dance (auth endpoints). */
   skipAuth?: boolean;
   isStream?: boolean;
 }
 
-let isRefreshing = false;
-let refreshSubscribers: Array<(token: string | null) => void> = [];
-
-function subscribeTokenRefresh(callback: (token: string | null) => void): void {
-  refreshSubscribers.push(callback);
+/** Tokens returned to native clients; absent on web. */
+export interface SessionTokens {
+  access_token?: string;
+  refresh_token?: string;
 }
 
-function notifyRefreshSubscribers(token: string | null): void {
-  refreshSubscribers.forEach((cb) => cb(token));
-  refreshSubscribers = [];
+let sessionExpiredListener: (() => void) | null = null;
+
+/** The auth store registers here to learn that the session is gone. */
+export function onSessionExpired(listener: (() => void) | null): void {
+  sessionExpiredListener = listener;
 }
 
-async function refreshAccessToken(): Promise<string | null> {
-  const refreshToken = await getRefreshToken();
-  if (!refreshToken && Platform.OS !== "web") {
-    return null;
-  }
-
-  const response = await fetch(`${config.apiUrl}/v1/auth/refresh`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    // Native: gửi refresh token trong body; Web: cookie tự động gửi
-    body: Platform.OS !== "web"
-      ? JSON.stringify({ refresh_token: refreshToken })
-      : undefined,
-    credentials: Platform.OS === "web" ? "include" : "omit",
-  });
-
-  if (!response.ok) {
-    await clearTokens();
-    return null;
-  }
-
-  if (Platform.OS !== "web") {
-    const data = (await response.json()) as {
-      access_token: string;
-      refresh_token?: string;
-    };
-    await saveAccessToken(data.access_token);
-    if (data.refresh_token) {
-      await saveRefreshToken(data.refresh_token);
-    }
-    return data.access_token;
-  }
-
-  // Web: backend set cookie tự động
-  return "__cookie__";
-}
-
-async function buildHeaders(
-  skipAuth: boolean,
-  extraHeaders: Record<string, string> = {}
-): Promise<HeadersInit> {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-    Accept: "application/json",
-    ...extraHeaders,
-  };
-
-  if (!skipAuth && Platform.OS !== "web") {
-    const token = await getAccessToken();
-    if (token) {
-      headers["Authorization"] = `Bearer ${token}`;
-    }
-  }
-
-  return headers;
+export async function storeSessionTokens(tokens: SessionTokens): Promise<void> {
+  if (IS_WEB) return;
+  if (tokens.access_token) await saveAccessToken(tokens.access_token);
+  if (tokens.refresh_token) await saveRefreshToken(tokens.refresh_token);
 }
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-function isRetryableError(error: unknown): boolean {
-  if (error instanceof NetworkError || error instanceof TimeoutError) {
-    return true;
+async function buildHeaders(
+  options: RequestOptions,
+): Promise<Record<string, string>> {
+  const headers: Record<string, string> = {
+    Accept: options.isStream ? "text/event-stream" : "application/json",
+    "X-Client-Platform": CLIENT_PLATFORM,
+    ...options.headers,
+  };
+  if (options.body !== undefined) headers["Content-Type"] = "application/json";
+  if (!options.skipAuth && !IS_WEB) {
+    const token = await getAccessToken();
+    if (token) headers.Authorization = `Bearer ${token}`;
   }
-  return false;
+  return headers;
 }
 
-async function executeRequest(
+async function send(
   url: string,
   options: RequestOptions,
-  retryCount = 0
+  attempt = 0,
 ): Promise<Response> {
-  const {
-    method = "GET",
-    body,
-    headers: extraHeaders = {},
-    timeoutMs = DEFAULT_TIMEOUT_MS,
-    skipAuth = false,
-    isStream = false,
-  } = options;
-
   const controller = new AbortController();
-  const signal = options.signal;
-
-  // Timeout
+  const timeoutMs =
+    options.timeoutMs ??
+    (options.isStream ? STREAM_TIMEOUT_MS : DEFAULT_TIMEOUT_MS);
   const timeoutId = setTimeout(() => controller.abort("timeout"), timeoutMs);
-  if (signal) {
-    signal.addEventListener("abort", () => controller.abort(signal.reason));
-  }
+  options.signal?.addEventListener("abort", () =>
+    controller.abort(options.signal?.reason),
+  );
 
   try {
-    const headers = await buildHeaders(skipAuth, extraHeaders);
-    if (isStream) {
-      (headers as Record<string, string>)["Accept"] = "text/event-stream";
-    }
-
-    const response = await fetch(url, {
-      method,
-      headers,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+    return await fetch(url, {
+      method: options.method ?? "GET",
+      headers: await buildHeaders(options),
+      body:
+        options.body !== undefined ? JSON.stringify(options.body) : undefined,
       signal: controller.signal,
-      credentials: Platform.OS === "web" ? "include" : "omit",
+      credentials: IS_WEB ? "include" : "omit",
     });
-
-    clearTimeout(timeoutId);
-    return response;
   } catch (error) {
-    clearTimeout(timeoutId);
-
-    if (error instanceof Error && error.name === "AbortError") {
-      if (controller.signal.reason === "timeout") {
-        throw new TimeoutError();
-      }
-      throw error;
+    if (controller.signal.aborted) {
+      if (controller.signal.reason === "timeout") throw new TimeoutError();
+      throw error; // cancelled by the caller
     }
-
-    const networkError = new NetworkError(
-      error instanceof Error ? error.message : "Network request failed"
+    if (attempt < MAX_NETWORK_RETRIES) {
+      await sleep(RETRY_DELAY_MS * (attempt + 1));
+      return send(url, options, attempt + 1);
+    }
+    throw new NetworkError(
+      error instanceof Error ? error.message : "Network request failed",
     );
-
-    if (retryCount < MAX_RETRIES && isRetryableError(networkError)) {
-      await sleep(RETRY_DELAY_MS * (retryCount + 1));
-      return executeRequest(url, options, retryCount + 1);
-    }
-
-    throw networkError;
+  } finally {
+    clearTimeout(timeoutId);
   }
+}
+
+let refreshInFlight: Promise<boolean> | null = null;
+
+async function doRefresh(): Promise<boolean> {
+  const refreshToken = IS_WEB ? null : await getRefreshToken();
+  if (!IS_WEB && !refreshToken) return false;
+  try {
+    const response = await send(`${config.apiUrl}/v1/auth/refresh`, {
+      method: "POST",
+      skipAuth: true,
+      ...(IS_WEB ? {} : { body: { refresh_token: refreshToken } }),
+    });
+    if (!response.ok) return false;
+    await storeSessionTokens((await response.json()) as SessionTokens);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Single-flight refresh: concurrent 401s share one call. */
+export function refreshSession(): Promise<boolean> {
+  refreshInFlight ??= doRefresh().finally(() => {
+    refreshInFlight = null;
+  });
+  return refreshInFlight;
+}
+
+export async function endLocalSession(): Promise<void> {
+  await clearTokens();
+  sessionExpiredListener?.();
+}
+
+async function toApiError(response: Response): Promise<ApiError> {
+  let body: unknown = null;
+  try {
+    body = await response.json();
+  } catch {
+    // non-JSON error body
+  }
+  return parseApiError(response.status, body);
 }
 
 export async function request<T>(
   path: string,
-  options: RequestOptions = {}
+  options: RequestOptions = {},
 ): Promise<T> {
   const url = `${config.apiUrl}${path}`;
-  const timeoutMs = options.isStream ? STREAM_TIMEOUT_MS : DEFAULT_TIMEOUT_MS;
+  let response = await send(url, options);
 
-  let response = await executeRequest(url, { ...options, timeoutMs });
-
-  // Auto refresh token khi nhận 401
   if (response.status === 401 && !options.skipAuth) {
-    if (!isRefreshing) {
-      isRefreshing = true;
-
-      const newToken = await refreshAccessToken().catch(() => null);
-      isRefreshing = false;
-      notifyRefreshSubscribers(newToken);
-
-      if (!newToken) {
-        // Refresh thất bại - người dùng cần đăng nhập lại
-        throw new ApiError("UNAUTHORIZED", "Session expired", 401);
-      }
+    if (await refreshSession()) {
+      response = await send(url, options);
     } else {
-      // Chờ token refresh đang chạy
-      await new Promise<void>((resolve) => {
-        subscribeTokenRefresh(() => resolve());
-      });
+      await endLocalSession();
+      throw await toApiError(response);
     }
-
-    // Thử lại request với token mới
-    response = await executeRequest(url, { ...options, timeoutMs });
   }
 
-  if (!response.ok) {
-    let errorBody: unknown;
-    try {
-      errorBody = await response.json();
-    } catch {
-      errorBody = { code: "INTERNAL_SERVER_ERROR", message: response.statusText };
-    }
-    throw parseApiError(response, errorBody);
-  }
-
-  // Stream response - trả về response thô để caller đọc
-  if (options.isStream) {
-    return response as unknown as T;
-  }
-
-  // Empty response (204 No Content)
-  if (response.status === 204) {
-    return undefined as unknown as T;
-  }
-
-  return response.json() as Promise<T>;
+  if (!response.ok) throw await toApiError(response);
+  if (options.isStream) return response as unknown as T;
+  if (response.status === 204) return undefined as T;
+  return (await response.json()) as T;
 }
 
 export const api = {
   get: <T>(path: string, options?: Omit<RequestOptions, "method" | "body">) =>
     request<T>(path, { ...options, method: "GET" }),
-
-  post: <T>(path: string, body?: unknown, options?: Omit<RequestOptions, "method">) =>
-    request<T>(path, { ...options, method: "POST", body }),
-
-  put: <T>(path: string, body?: unknown, options?: Omit<RequestOptions, "method">) =>
-    request<T>(path, { ...options, method: "PUT", body }),
-
-  patch: <T>(path: string, body?: unknown, options?: Omit<RequestOptions, "method">) =>
-    request<T>(path, { ...options, method: "PATCH", body }),
-
-  delete: <T>(path: string, options?: Omit<RequestOptions, "method" | "body">) =>
-    request<T>(path, { ...options, method: "DELETE" }),
-
-  stream: (path: string, body?: unknown, options?: Omit<RequestOptions, "method" | "isStream">) =>
-    request<Response>(path, { ...options, method: "POST", body, isStream: true }),
+  post: <T>(
+    path: string,
+    body?: unknown,
+    options?: Omit<RequestOptions, "method">,
+  ) => request<T>(path, { ...options, method: "POST", body }),
+  put: <T>(
+    path: string,
+    body?: unknown,
+    options?: Omit<RequestOptions, "method">,
+  ) => request<T>(path, { ...options, method: "PUT", body }),
+  patch: <T>(
+    path: string,
+    body?: unknown,
+    options?: Omit<RequestOptions, "method">,
+  ) => request<T>(path, { ...options, method: "PATCH", body }),
+  delete: <T>(
+    path: string,
+    options?: Omit<RequestOptions, "method" | "body">,
+  ) => request<T>(path, { ...options, method: "DELETE" }),
+  stream: (
+    path: string,
+    body?: unknown,
+    options?: Omit<RequestOptions, "method" | "isStream">,
+  ) =>
+    request<Response>(path, {
+      ...options,
+      method: "POST",
+      body,
+      isStream: true,
+    }),
 };

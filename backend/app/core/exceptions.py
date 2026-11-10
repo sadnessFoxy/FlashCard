@@ -1,6 +1,5 @@
 """
-Exceptions tùy chỉnh cho toàn bộ ứng dụng.
-Các mã lỗi khớp với contract/openapi.yaml.
+Application errors; codes match contract/openapi.yaml.
 """
 
 from __future__ import annotations
@@ -9,7 +8,7 @@ from typing import Any
 
 
 class AppError(Exception):
-    """Base exception cho tất cả lỗi nghiệp vụ."""
+    """Base class for expected business errors."""
 
     def __init__(
         self,
@@ -17,12 +16,14 @@ class AppError(Exception):
         message: str,
         status_code: int = 400,
         details: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
     ) -> None:
         super().__init__(message)
         self.code = code
         self.message = message
         self.status_code = status_code
         self.details = details or {}
+        self.headers = headers or {}
 
 
 class UnauthorizedError(AppError):
@@ -123,3 +124,51 @@ class ContextTooLongError(AppError):
             "Query context is too long, please reduce document selection",
             400,
         )
+
+
+# ------- Auth (docs/specs/f2-email-auth.md) -------
+
+
+class InvalidCredentialsError(AppError):
+    """Same error for unknown email and wrong password (no enumeration)."""
+
+    def __init__(self) -> None:
+        super().__init__("INVALID_CREDENTIALS", "Invalid email or password", 401)
+
+
+class AccountBlockedError(AppError):
+    def __init__(self) -> None:
+        super().__init__("ACCOUNT_BLOCKED", "This account has been blocked", 403)
+
+
+class EmailUnavailableError(AppError):
+    def __init__(self) -> None:
+        super().__init__(
+            "EMAIL_UNAVAILABLE",
+            "Cannot register with this email. Sign in or reset the password instead.",
+            409,
+        )
+
+
+class WeakPasswordError(AppError):
+    def __init__(self, reason: str) -> None:
+        super().__init__(
+            "WEAK_PASSWORD", "Password does not meet the rules", 422, {"reason": reason}
+        )
+
+
+class TooManyAttemptsError(AppError):
+    def __init__(self, retry_after_seconds: int) -> None:
+        retry_after = max(1, retry_after_seconds)
+        super().__init__(
+            "TOO_MANY_ATTEMPTS",
+            "Too many attempts, try again later",
+            429,
+            {"retry_after_seconds": retry_after},
+            headers={"Retry-After": str(retry_after)},
+        )
+
+
+class InvalidRefreshTokenError(AppError):
+    def __init__(self) -> None:
+        super().__init__("INVALID_REFRESH_TOKEN", "Session expired, sign in again", 401)

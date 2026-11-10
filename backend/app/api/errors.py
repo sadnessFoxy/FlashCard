@@ -1,14 +1,16 @@
 """
-Xử lý lỗi thống nhất cho toàn bộ API.
-Trả về đúng format theo contract/openapi.yaml.
-Tuân thủ R8: lỗi hết hạn mức trả mã lỗi trong contract, không trả 500.
+Error handlers producing the contract's `ErrorResponse`.
+R8: quota errors use contract codes, never 500.
+R10: validation errors list field names only, never input values (may be passwords).
 """
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import Any
 
 from fastapi import Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from pydantic import ValidationError as PydanticValidationError
 
@@ -17,42 +19,70 @@ from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 
+# Leading "loc" item is the request part, not the field name.
+_LOCATION_PREFIXES = {"body", "query", "path", "header", "cookie"}
+
 
 def make_error_response(
     code: str,
     message: str,
     status_code: int,
     details: dict[str, Any] | None = None,
+    headers: dict[str, str] | None = None,
 ) -> JSONResponse:
     body: dict[str, Any] = {"code": code, "message": message}
     if details:
         body.update(details)
-    return JSONResponse(status_code=status_code, content=body)
+    return JSONResponse(status_code=status_code, content=body, headers=headers)
+
+
+def _safe_errors(errors: Sequence[Any]) -> list[dict[str, str]]:
+    """Keep field and type only; drop `input`/`ctx`, which may hold user data."""
+    safe: list[dict[str, str]] = []
+    for err in errors:
+        loc = [str(part) for part in err.get("loc", ())]
+        if loc and loc[0] in _LOCATION_PREFIXES:
+            loc = loc[1:]
+        safe.append({"field": ".".join(loc) or "body", "type": str(err.get("type", "invalid"))})
+    return safe
 
 
 async def app_error_handler(request: Request, exc: AppError) -> JSONResponse:
-    """Xử lý AppError - lỗi nghiệp vụ đã biết."""
+    """Expected business error."""
     return make_error_response(
         code=exc.code,
         message=exc.message,
         status_code=exc.status_code,
-        details=exc.details if exc.details else None,
+        details=exc.details or None,
+        headers=exc.headers or None,
     )
 
 
-async def validation_error_handler(request: Request, exc: PydanticValidationError) -> JSONResponse:
-    """Xử lý lỗi validation Pydantic."""
+async def request_validation_error_handler(
+    request: Request, exc: RequestValidationError
+) -> JSONResponse:
+    """Malformed request (body, header, query)."""
     return make_error_response(
         code="VALIDATION_ERROR",
         message="Request validation failed",
         status_code=422,
-        details={"errors": exc.errors()},
+        details={"errors": _safe_errors(exc.errors())},
+    )
+
+
+async def validation_error_handler(request: Request, exc: PydanticValidationError) -> JSONResponse:
+    """Pydantic validation error raised inside our code."""
+    return make_error_response(
+        code="VALIDATION_ERROR",
+        message="Request validation failed",
+        status_code=422,
+        details={"errors": _safe_errors(exc.errors())},
     )
 
 
 async def generic_error_handler(request: Request, exc: Exception) -> JSONResponse:
-    """Xử lý lỗi không mong đợi - không tiết lộ chi tiết nội bộ."""
-    logger.exception("Unhandled exception: %s", exc)
+    """Unexpected error: hide internals."""
+    logger.exception("Unhandled exception: %s", type(exc).__name__)
     return make_error_response(
         code="INTERNAL_SERVER_ERROR",
         message="An internal server error occurred",

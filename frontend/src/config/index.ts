@@ -9,7 +9,7 @@ const extra = Constants.expoConfig?.extra as AppConfig | undefined;
 
 if (!extra?.apiUrl) {
   throw new Error(
-    "Missing apiUrl in app config. Check app.config.ts and APP_ENV environment variable."
+    "Missing apiUrl in app config. Check app.config.ts and APP_ENV environment variable.",
   );
 }
 

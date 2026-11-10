@@ -24,18 +24,14 @@ dependencies = [
     "pydantic>=2.9.0",
     "pydantic-settings>=2.5.0",
     # Security
-    "python-jose[cryptography]>=3.3.0",
-    "passlib[bcrypt]>=1.7.4",
+    "pyjwt>=2.9.0",
     "argon2-cffi>=23.1.0",
+    "email-validator>=2.2.0",
     # File handling
     "python-multipart>=0.0.17",
     "aiofiles>=24.1.0",
     # HTTP client
     "httpx>=0.27.0",
-    "pyyaml>=6.0",
-    "jsonschema>=4.23.0",
-    "types-pyyaml",
-    "types-jsonschema",
 ]
 
 [project.optional-dependencies]
@@ -43,16 +39,22 @@ dev = [
     # Linting & formatting
     "ruff>=0.8.0",
     "mypy>=1.13.0",
-    "types-passlib",
     "types-aiofiles",
     # Testing
     "pytest>=8.3.0",
     "pytest-asyncio>=0.24.0",
     "pytest-cov>=6.0.0",
     "httpx>=0.27.0",
+    "pyyaml>=6.0",
+    "jsonschema>=4.23.0",
+    "types-pyyaml",
+    "types-jsonschema",
     "factory-boy>=3.3.0",
     "faker>=30.0.0",
 ]
+
+[tool.setuptools.package-data]
+"app.modules.auth" = ["data/*.txt"]
 
 [tool.setuptools.packages.find]
 where = ["."]
@@ -99,7 +101,7 @@ show_error_codes = true
 exclude = ["alembic/", "tests/"]
 
 [[tool.mypy.overrides]]
-module = ["arq.*", "passlib.*", "jose.*"]
+module = ["arq.*"]
 ignore_missing_imports = true
 
 [tool.pytest.ini_options]
@@ -112,5 +114,7 @@ filterwarnings = [
 ]
 
 [tool.coverage.run]
+# SQLAlchemy async runs code in greenlets; without this, lines after awaits look uncovered.
+concurrency = ["greenlet", "thread"]
 source = ["app"]
 omit = ["tests/*", "alembic/*"]

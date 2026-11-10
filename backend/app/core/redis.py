@@ -1,6 +1,5 @@
 """
-Redis client dùng chung (cache, hạn mức, hàng đợi).
-Tạo lười một lần, đóng khi app tắt.
+Shared Redis client, created lazily and closed on shutdown.
 """
 
 from __future__ import annotations
@@ -13,7 +12,7 @@ _client: Redis | None = None
 
 
 def get_redis() -> Redis:
-    """Trả về Redis client dùng chung, tạo ở lần gọi đầu."""
+    """Return the shared client, creating it on first use."""
     global _client
     if _client is None:
         _client = Redis.from_url(
@@ -25,7 +24,7 @@ def get_redis() -> Redis:
 
 
 async def close_redis() -> None:
-    """Đóng kết nối Redis khi app tắt."""
+    """Close the shared client."""
     global _client
     if _client is not None:
         await _client.aclose()

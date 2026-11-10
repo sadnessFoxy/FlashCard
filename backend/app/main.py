@@ -8,12 +8,18 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import ValidationError as PydanticValidationError
 
 from app import __version__
-from app.api.errors import app_error_handler, generic_error_handler, validation_error_handler
-from app.api.middleware import RequestIdMiddleware, TimingMiddleware
+from app.api.errors import (
+    app_error_handler,
+    generic_error_handler,
+    request_validation_error_handler,
+    validation_error_handler,
+)
+from app.api.middleware import CsrfOriginMiddleware, RequestIdMiddleware, TimingMiddleware
 from app.api.router import api_router
 from app.api.system import router as system_router
 from app.core.config import settings
@@ -27,14 +33,13 @@ logger = get_logger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    """Startup và shutdown lifecycle."""
+    """Startup and shutdown."""
     configure_logging()
     logger.info("Starting FlashCard API (environment=%s)", settings.ENVIRONMENT)
 
-    # Startup: có thể kiểm tra kết nối DB, Redis, v.v.
     yield
 
-    # Shutdown: đóng connection pool và Redis
+    # Close the DB pool and Redis
     await engine.dispose()
     await close_redis()
     logger.info("FlashCard API shutdown complete")
@@ -51,7 +56,10 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # CORS - đọc allowed origins từ config (không hardcode)
+    # Added before CORS so it runs inside it
+    app.add_middleware(CsrfOriginMiddleware, allowed_origins=settings.CORS_ORIGINS)
+
+    # CORS origins come from config
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.CORS_ORIGINS,
@@ -66,6 +74,7 @@ def create_app() -> FastAPI:
 
     # Exception handlers
     app.add_exception_handler(AppError, app_error_handler)  # type: ignore[arg-type]
+    app.add_exception_handler(RequestValidationError, request_validation_error_handler)  # type: ignore[arg-type]
     app.add_exception_handler(PydanticValidationError, validation_error_handler)  # type: ignore[arg-type]
     app.add_exception_handler(Exception, generic_error_handler)
 

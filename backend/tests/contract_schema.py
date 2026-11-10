@@ -1,6 +1,6 @@
 """
-Đọc contract/openapi.yaml và kiểm tra dữ liệu theo schema trong contract.
-Schema OpenAPI 3.1 là JSON Schema 2020-12 nên dùng thẳng jsonschema.
+Validate payloads against contract/openapi.yaml.
+OpenAPI 3.1 schemas are JSON Schema 2020-12, so jsonschema validates them directly.
 """
 
 from __future__ import annotations
@@ -9,6 +9,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
+import httpx
 import yaml
 from jsonschema import Draft202012Validator
 from referencing import Registry, Resource
@@ -33,8 +34,18 @@ def _registry() -> Registry:
     return Registry().with_resource(_CONTRACT_URI, resource)
 
 
+def _resolve(node: dict[str, Any]) -> dict[str, Any]:
+    """Follow a local `$ref` such as `#/components/responses/X`."""
+    while "$ref" in node:
+        target: Any = load_contract()
+        for part in node["$ref"].removeprefix("#/").split("/"):
+            target = target[part]
+        node = target
+    return node
+
+
 def contract_operations() -> dict[tuple[str, str], dict[str, Any]]:
-    """{(METHOD, path): operation} cho mọi operation trong contract."""
+    """{(METHOD, path): operation} for every operation in the contract."""
     ops: dict[tuple[str, str], dict[str, Any]] = {}
     for path, item in load_contract()["paths"].items():
         for method, operation in item.items():
@@ -43,18 +54,33 @@ def contract_operations() -> dict[tuple[str, str], dict[str, Any]]:
     return ops
 
 
-def response_validator(method: str, path: str, status: int) -> Draft202012Validator:
-    """Validator cho body JSON của một response đã khai báo trong contract."""
+def _declared_response(method: str, path: str, status: int) -> dict[str, Any]:
     operation = contract_operations()[(method.upper(), path)]
-    response = operation["responses"][str(status)]
-    schema = response["content"]["application/json"]["schema"]
-    # Bọc lại để $ref nội bộ ("#/components/...") được phân giải trong tài liệu contract.
+    responses = operation["responses"]
+    assert str(status) in responses, f"{method} {path}: status {status} not declared in contract"
+    return _resolve(responses[str(status)])
+
+
+def response_validator(method: str, path: str, status: int) -> Draft202012Validator:
+    schema = _declared_response(method, path, status)["content"]["application/json"]["schema"]
+    # Wrap so internal refs ("#/components/...") resolve inside the contract document.
     wrapped = {"$ref": f"{_CONTRACT_URI}{schema['$ref']}"} if "$ref" in schema else schema
     return Draft202012Validator(wrapped, registry=_registry())
 
 
 def assert_matches_contract(method: str, path: str, status: int, body: Any) -> None:
     errors = sorted(response_validator(method, path, status).iter_errors(body), key=str)
-    assert not errors, "Response không khớp contract:\n" + "\n".join(
+    assert not errors, "Response does not match the contract:\n" + "\n".join(
         f"- {'/'.join(map(str, e.absolute_path)) or '<root>'}: {e.message}" for e in errors
     )
+
+
+def assert_response_matches_contract(response: httpx.Response) -> None:
+    """Check status is declared and, when the contract declares a JSON body, its shape."""
+    request = response.request
+    path = request.url.path
+    declared = _declared_response(request.method, path, response.status_code)
+    if "content" in declared:
+        assert_matches_contract(request.method, path, response.status_code, response.json())
+    else:
+        assert not response.content, f"{request.method} {path}: contract declares no body"

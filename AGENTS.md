@@ -94,6 +94,7 @@ Tất cả lệnh được định nghĩa trong `Makefile` tại gốc repo.
 ## Quy ước (đề xuất, người dùng có thể sửa)
 
 - Tài liệu và thông báo hiển thị cho người dùng bằng tiếng Việt; tên biến, hàm, file, commit message bằng tiếng Anh.
+- **Comment và docstring trong code: tiếng Anh, ngắn gọn** (người dùng yêu cầu 2026-11-10). Chỉ comment khi cần giải thích lý do, không lặp lại điều code đã nói.
 - Nhánh: `main` (production), `develop`, `feature/*`; mọi thay đổi qua Pull Request và phải qua CI.
 - Mỗi module backend gồm `router`, `schemas`, `models`, `service`, `repository`.
 

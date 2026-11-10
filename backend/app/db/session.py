@@ -17,7 +17,7 @@ from app.core.config import settings
 
 engine = create_async_engine(
     settings.DATABASE_URL,
-    echo=settings.is_development,
+    echo=settings.SQL_ECHO,  # off by default: echo logs bound params (emails, hashes), R10
     pool_size=10,
     max_overflow=20,
     pool_pre_ping=True,  # Kiểm tra kết nối trước khi dùng

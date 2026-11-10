@@ -1,8 +1,20 @@
-// Màn hình mở đầu tạm thời của lát F1: trạng thái kết nối tới backend.
-// Từ lát F2 sẽ chuyển hướng sang đăng nhập hoặc thư viện.
-import { config } from "../src/config";
-import { SystemStatusScreen } from "../src/features/system/SystemStatusScreen";
+import { Redirect } from "expo-router";
+
+import { SplashScreen } from "../src/components/feedback/SplashScreen";
+import { useAuthStore } from "../src/features/auth/useAuthStore";
 
 export default function Index() {
-  return <SystemStatusScreen apiUrl={config.apiUrl} />;
+  const status = useAuthStore((s) => s.status);
+  const bootstrap = useAuthStore((s) => s.bootstrap);
+
+  switch (status) {
+    case "signedIn":
+      return <Redirect href="/spaces" />;
+    case "signedOut":
+      return <Redirect href="/login" />;
+    case "unreachable":
+      return <SplashScreen onRetry={() => void bootstrap()} />;
+    default:
+      return <SplashScreen />;
+  }
 }

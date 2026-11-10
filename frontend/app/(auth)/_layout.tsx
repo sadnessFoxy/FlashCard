@@ -1,16 +1,10 @@
-import { Stack } from "expo-router";
+import { Redirect, Stack } from "expo-router";
+
+import { useAuthStore } from "../../src/features/auth/useAuthStore";
 
 export default function AuthLayout() {
-  return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        animation: "fade",
-      }}
-    >
-      <Stack.Screen name="login" />
-      <Stack.Screen name="register" />
-      <Stack.Screen name="forgot-password" />
-    </Stack>
-  );
+  const status = useAuthStore((s) => s.status);
+  if (status === "signedIn") return <Redirect href="/spaces" />;
+  // forgot-password arrives in F4
+  return <Stack screenOptions={{ headerShown: false, animation: "fade" }} />;
 }

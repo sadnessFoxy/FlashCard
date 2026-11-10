@@ -15,15 +15,15 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 | # | Giai đoạn | Xong/Tổng | Trạng thái | Dự kiến | Thực tế |
 |---|---|---|---|---|---|
 | 0 | Chuẩn bị & chốt quyết định | 12/16 | Đang làm | | |
-| 1 | Khởi tạo dự án | 14/19 | Đang làm | Tuần 1 | 2026-11-07 |
+| 1 | Khởi tạo dự án | 15/19 | Đang làm | Tuần 1 | 2026-11-07 |
 | 2 | CI/CD | 0/9 | Chưa bắt đầu | Tuần 1 đến 2 | |
 | 3 | Kết nối & đồng bộ dữ liệu | 0/16 | Chưa bắt đầu | Tuần 2 đến 4 | |
-| 4 | Bảo mật | 0/28 | Chưa bắt đầu | Tuần 2 đến 4, rà soát lại trước beta | |
+| 4 | Bảo mật | 3/28 | Đang làm | Tuần 2 đến 4, rà soát lại trước beta | |
 | 5 | Sức tải, hiệu năng & chi phí AI | 0/19 | Chưa bắt đầu | Trước production | |
 | 6 | Beta & chuẩn bị production | 0/10 | Chưa bắt đầu | | |
 | 7 | Ra mắt & vận hành | 0/6 | Chưa bắt đầu | | |
-| F | Lát chức năng bản 1 | 1/17 | Đang làm | Song song với giai đoạn 1 đến 6 | 2026-11-08 |
-| | **Tổng** | **27/140** | | | |
+| F | Lát chức năng bản 1 | 2/17 | Đang làm | Song song với giai đoạn 1 đến 6 | 2026-11-08 |
+| | **Tổng** | **32/140** | | | |
 
 ---
 
@@ -74,7 +74,7 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 - [x] Tạo backend FastAPI, chia module `auth`, `users`, `documents`, `chat`, `study`, `ai`, `usage`, `admin` (mỗi module có router, schemas, models, service, repository), thêm thư mục `integrations/` (object storage, email, llm_gateway) và `workers/`
 - [x] Viết `contract/openapi.yaml` skeleton (contract-first); CI kiểm tra breaking change (xem `.github/workflows/ci.yml`)
 - [x] Dựng Docker Compose chạy Postgres (pgvector/pgvector:pg16, kèm database test `flashcard_test`), Redis, Mailpit, SeaweedFS làm kho file S3 (`infra/docker/docker-compose.yml`)
-- [ ] Thiết lập Alembic và migration đầu tiên cho các bảng chính (xem docs/DATA_MODEL.md) - cần chạy `make migrate-create` sau khi viết models
+- [x] Thiết lập Alembic và migration đầu tiên cho các bảng chính (xem docs/DATA_MODEL.md): `users`, `auth_identities`, `refresh_tokens` ở lát F2; các bảng khác thêm theo từng lát
 - [ ] Tạo cột vector 768 chiều (đã chốt) và index tương ứng; xác nhận trên tài liệu thật (xem docs/AI_PIPELINE.md) - thuộc lát F5
 - [x] Cài i18n cho frontend (tiếng Việt và tiếng Anh) - `frontend/src/i18n/` với vi.json và en.json
 - [x] Viết `providers/gemini.py` theo interface chung cho LLM và embedding; tên mô hình, số chiều, giới hạn tốc độ, khóa API đọc từ cấu hình/biến môi trường, không viết cứng
@@ -156,7 +156,7 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 **Việc cần làm**
 
 *Phía app*
-- [ ] Lưu token bằng `expo-secure-store` (Keychain/Keystore), không dùng AsyncStorage
+- [x] Lưu token bằng `expo-secure-store` (Keychain/Keystore), không dùng AsyncStorage; web dùng cookie httpOnly (F2)
 - [ ] Không nhúng secret hoặc API key vào app
 - [ ] Bắt buộc HTTPS; cân nhắc certificate pinning cho app tài chính
 - [ ] Phát hiện root/jailbreak nếu app nhạy cảm
@@ -164,8 +164,8 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 - [ ] Che nội dung nhạy cảm ở màn hình đa nhiệm
 
 *Xác thực và phân quyền*
-- [ ] Access token ngắn (khoảng 15 phút) cộng refresh token có xoay vòng (rotation) và thu hồi được
-- [ ] Băm mật khẩu bằng argon2 hoặc bcrypt
+- [x] Access token ngắn (khoảng 15 phút) cộng refresh token có xoay vòng (rotation) và thu hồi được; phát hiện dùng lại token (F2)
+- [x] Băm mật khẩu bằng argon2 hoặc bcrypt (argon2id, F2)
 - [ ] Đăng nhập email và mật khẩu, Google: backend xác thực ID token, quy tắc liên kết tài khoản (xem docs/SECURITY.md)
 - [ ] Xác minh email và quên mật khẩu: token một lần, hạn ngắn, không lộ email có tồn tại hay không, thu hồi phiên sau khi đổi mật khẩu
 - [ ] Tích hợp dịch vụ gửi email (xác minh, đặt lại mật khẩu, cảnh báo)
@@ -272,7 +272,7 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 
 **Việc cần làm**
 - [x] F1. Khung chạy được xuyên suốt: một endpoint thật đi từ frontend qua backend tới database, có kiểm tra sức khỏe và test (`/health`, `/v1/system/status`; màn hình trạng thái ở `frontend/app/index.tsx`)
-- [ ] F2. Đăng ký, đăng nhập bằng email và mật khẩu, duy trì và kết thúc phiên (U1, U4; màn hình 1)
+- [x] F2. Đăng ký, đăng nhập bằng email và mật khẩu, duy trì và kết thúc phiên (U1, U4; màn hình 1; docs/specs/f2-email-auth.md)
 - [ ] F3. Đăng nhập bằng Google (U1; màn hình 1)
 - [ ] F4. Xác minh email và quên, đặt lại mật khẩu (U2, U3; màn hình 2, 3)
 - [ ] F4b. Không gian học tập: tạo, đổi tên, xóa, không gian mặc định (U16; màn hình 5)
@@ -324,3 +324,4 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 | 2026-11-07 | Bước 0 / Giai đoạn 1: Khởi tạo monorepo `flashcard/`. Tạo cấu trúc thư mục đầy đủ; frontend (Expo SDK 52, TypeScript strict, i18n vi/en, API client, session storage); backend (FastAPI, SQLAlchemy async, Pydantic settings, Gemini provider, LLM gateway, circuit breaker); Docker Compose (Postgres+pgvector, Redis, Mailpit, MinIO); GitHub Actions CI; Makefile; versions.txt. 14/19 việc giai đoạn 1 xong; còn E2E tool, branch protection, Alembic migration đầu tiên, và vector index (thuộc lát F5). |
 | 2026-11-08 | Sửa môi trường chạy được thật (npm/pip cài lỗi, MinIO thay bằng SeaweedFS, `make setup` không còn ghi đè `backend/.env`, embedding gửi đúng 768 chiều); chốt mô hình `gemini-3.5-flash-lite` và `gemini-embedding-2` |
 | 2026-11-08 | Lát F1 xong: contract có `GET /health` và `GET /v1/system/status` (database có pgvector, Redis); backend kèm test khớp contract (route, operationId, schema response), unit, integration trên database test riêng (20 test); frontend sinh kiểu từ contract bằng `openapi-typescript`, màn hình trạng thái song ngữ (6 test), build web được; CI viết lại (test backend trên Postgres có pgvector, kiểm tra file sinh lệch contract, chặn thay đổi phá vỡ contract ở PR). CI **chưa chạy** vì repo chưa có remote GitHub nên chưa tick giai đoạn 2. Sửa thêm: khóa Gemini chuyển sang header để không lọt vào log (R10), tên tab viết cứng chuyển sang i18n (R14), thiếu gói web và gói phụ thuộc của expo-router |
+| 2026-11-10 | Lát F2 xong (docs/specs/f2-email-auth.md): đăng ký, đăng nhập, refresh xoay vòng có phát hiện dùng lại, đăng xuất, `/v1/me`; mobile giữ token trong secure store, web dùng cookie httpOnly kèm chống CSRF theo Origin; giới hạn số lần thử bằng Redis; migration Alembic đầu tiên (3 bảng). Test: backend 88 (API, bảo mật, unit, migration lên/xuống), frontend 22. Thay `python-jose`/`passlib` (ngừng bảo trì) bằng `PyJWT`/`argon2-cffi`, thêm `email-validator`. Sửa thêm: SQL echo ghi email và bản băm vào log ở môi trường dev (giờ là `SQL_ECHO`, mặc định tắt), lỗi validation trả lại dữ liệu đã nhập, `SECRET_KEY` bắt buộc từ 32 ký tự. Điều hướng chính đổi theo docs/SCREENS.md (Không gian, Hồ sơ); màn hình trạng thái F1 chuyển sang `/system`. Comment trong code chuyển sang tiếng Anh theo yêu cầu người dùng |

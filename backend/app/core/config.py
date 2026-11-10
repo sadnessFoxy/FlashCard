@@ -1,6 +1,5 @@
 """
-Cấu hình ứng dụng từ biến môi trường.
-Tuân thủ R3: không hardcode secret hay API key.
+Settings from environment variables (R3: no hard-coded secrets).
 """
 
 from __future__ import annotations
@@ -32,7 +31,8 @@ class Settings(BaseSettings):
 
     # ------- Security -------
     SECRET_KEY: str = Field(
-        description="Secret key for JWT signing. Generate with: openssl rand -hex 32"
+        min_length=32,
+        description="Secret key for JWT signing (32+ chars). Generate with: openssl rand -hex 32",
     )
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(
         default=15,
@@ -40,8 +40,26 @@ class Settings(BaseSettings):
     )
     REFRESH_TOKEN_EXPIRE_DAYS: int = Field(
         default=30,
-        description="Refresh token lifetime in days",
+        description="Refresh token lifetime in days (sliding: each refresh issues a new one)",
     )
+    SESSION_MAX_LIFETIME_DAYS: int = Field(
+        default=90,
+        description="Absolute session lifetime from sign-in; then the user must sign in again",
+    )
+    REFRESH_REUSE_GRACE_SECONDS: int = Field(
+        default=30,
+        description=(
+            "A just-rotated refresh token reused within this window is rejected without "
+            "revoking the session (concurrent tabs); later reuse revokes it (suspected theft)"
+        ),
+    )
+
+    # ------- Auth rate limits (docs/specs/f2-email-auth.md) -------
+    LOGIN_MAX_FAILURES_PER_EMAIL: int = Field(default=5)
+    LOGIN_MAX_FAILURES_PER_IP: int = Field(default=20)
+    LOGIN_FAILURE_WINDOW_SECONDS: int = Field(default=15 * 60)
+    REGISTER_MAX_PER_IP: int = Field(default=5)
+    REGISTER_WINDOW_SECONDS: int = Field(default=60 * 60)
 
     # ------- AI / Gemini -------
     GEMINI_API_KEY: str = Field(
@@ -89,6 +107,10 @@ class Settings(BaseSettings):
     SMTP_USE_TLS: bool = Field(default=False)
 
     # ------- App -------
+    SQL_ECHO: bool = Field(
+        default=False,
+        description="Log SQL with bound parameters. Local debugging only: leaks emails and hashes.",
+    )
     ENVIRONMENT: str = Field(
         default="development",
         description="App environment: development | staging | production",
@@ -121,14 +143,14 @@ class Settings(BaseSettings):
     def parse_cors_origins(cls, v: str | list[str]) -> list[str]:
         if isinstance(v, list):
             return [str(origin) for origin in v]
-        # Hỗ trợ JSON array string từ env var
+        # JSON array string
         try:
             parsed = json.loads(v)
         except json.JSONDecodeError:
             parsed = None
         if isinstance(parsed, list):
             return [str(origin) for origin in parsed]
-        # Còn lại: chuỗi phân tách bằng dấu phẩy
+        # Otherwise a comma-separated string
         return [origin.strip() for origin in v.split(",") if origin.strip()]
 
     @field_validator("ENVIRONMENT")
@@ -146,6 +168,11 @@ class Settings(BaseSettings):
     @property
     def is_production(self) -> bool:
         return self.ENVIRONMENT == "production"
+
+    @property
+    def cookie_secure(self) -> bool:
+        """HTTPS-only cookies except for local http development."""
+        return not self.is_development
 
     @property
     def max_file_size_bytes(self) -> int:

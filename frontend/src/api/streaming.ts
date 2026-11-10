@@ -28,7 +28,7 @@ export async function readStream(
   response: Response,
   onChunk: StreamChunkCallback,
   onError: StreamErrorCallback,
-  onDone: StreamDoneCallback
+  onDone: StreamDoneCallback,
 ): Promise<void> {
   if (!response.body) {
     onError(new ApiError("INTERNAL_SERVER_ERROR", "Response body is empty"));
@@ -67,8 +67,8 @@ export async function readStream(
               onError(
                 new ApiError(
                   chunk.error_code,
-                  chunk.error_message ?? "Stream error"
-                )
+                  chunk.error_message ?? "Stream error",
+                ),
               );
               return;
             }

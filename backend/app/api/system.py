@@ -1,8 +1,7 @@
 """
-Endpoint hệ thống: kiểm tra tiến trình sống (/health) và trạng thái phụ thuộc
-(/v1/system/status: database có pgvector, Redis). Khớp contract/openapi.yaml, tag `system`.
+System endpoints: liveness (/health) and dependency status (/v1/system/status).
 
-Không trả chuỗi kết nối hay thông báo lỗi nội bộ; chỉ trả mã lỗi ổn định (R10).
+Only stable error codes are returned, never connection strings or raw errors (R10).
 """
 
 from __future__ import annotations
@@ -74,7 +73,7 @@ def _error_code(exc: BaseException) -> CheckErrorCode:
 
 
 async def check_database() -> DatabaseCheck:
-    """Kết nối database thật và đọc phiên bản pgvector (cần cho embedding)."""
+    """Query the database and read the pgvector version."""
     started = time.perf_counter()
 
     async def _query() -> str | None:
@@ -86,7 +85,7 @@ async def check_database() -> DatabaseCheck:
 
     try:
         version = await asyncio.wait_for(_query(), CHECK_TIMEOUT_SECONDS)
-    except Exception as exc:  # noqa: BLE001 - mọi lỗi đều báo thành trạng thái down
+    except Exception as exc:  # noqa: BLE001 - any failure means down
         logger.warning("Database check failed: %s", type(exc).__name__)
         return DatabaseCheck(
             status="down", latency_ms=_elapsed_ms(started), error_code=_error_code(exc)
@@ -100,7 +99,7 @@ async def check_database() -> DatabaseCheck:
 
 
 async def check_redis() -> DependencyCheck:
-    """Gửi PING tới Redis."""
+    """PING Redis."""
     started = time.perf_counter()
     try:
         await asyncio.wait_for(get_redis().ping(), CHECK_TIMEOUT_SECONDS)
@@ -129,10 +128,10 @@ router = APIRouter(tags=["system"])
 
 @router.get("/health", response_model=HealthResponse, operation_id="getHealth")
 async def get_health() -> HealthResponse:
-    """Tiến trình API còn sống. Không chạm database hay Redis."""
+    """API process is up; touches no dependency."""
     return HealthResponse(
         status="ok",
-        environment=settings.ENVIRONMENT,  # type: ignore[arg-type]  # đã kiểm tra trong Settings
+        environment=settings.ENVIRONMENT,  # type: ignore[arg-type]  # validated in Settings
         version=__version__,
     )
 
@@ -147,7 +146,7 @@ async def get_system_status(
     db_checker: DatabaseChecker = Depends(get_database_checker),
     redis_checker: RedisChecker = Depends(get_redis_checker),
 ) -> SystemStatusResponse:
-    """Kiểm tra song song database và Redis; luôn trả 200 kèm trạng thái từng phần."""
+    """Check database and Redis concurrently; always 200 with per-dependency status."""
     database, redis = await asyncio.gather(db_checker(), redis_checker())
     overall: Literal["ok", "degraded"] = (
         "ok" if database.status == "up" and redis.status == "up" else "degraded"

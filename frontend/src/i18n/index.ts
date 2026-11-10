@@ -17,18 +17,16 @@ const initialLanguage = supportedLanguages.includes(deviceLanguage)
   ? deviceLanguage
   : "vi";
 
-void i18n
-  .use(initReactI18next)
-  .init({
-    resources,
-    lng: initialLanguage,
-    fallbackLng: "vi",
-    defaultNS: "translation",
-    interpolation: {
-      escapeValue: false, // React đã tự escape
-    },
-    compatibilityJSON: "v4",
-  });
+void i18n.use(initReactI18next).init({
+  resources,
+  lng: initialLanguage,
+  fallbackLng: "vi",
+  defaultNS: "translation",
+  interpolation: {
+    escapeValue: false, // React đã tự escape
+  },
+  compatibilityJSON: "v4",
+});
 
 export default i18n;
 export type SupportedLanguage = keyof typeof resources;

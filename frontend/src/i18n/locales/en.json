@@ -11,12 +11,34 @@
     "back": "Back"
   },
   "auth": {
-    "login": "Login",
-    "register": "Register",
-    "logout": "Logout",
+    "login": "Sign in",
+    "register": "Sign up",
+    "logout": "Sign out",
     "email": "Email",
     "password": "Password",
-    "forgotPassword": "Forgot password?"
+    "confirmPassword": "Confirm password",
+    "forgotPassword": "Forgot password?",
+    "createAccount": "Create account",
+    "tagline": "Learn from your own course materials",
+    "showPassword": "Show",
+    "hidePassword": "Hide",
+    "passwordHint": "At least 8 characters. A memorable but hard-to-guess phrase works well.",
+    "errors": {
+      "invalidEmail": "Enter a valid email address",
+      "passwordRequired": "Enter your password",
+      "passwordMismatch": "Passwords do not match",
+      "invalidCredentials": "Incorrect email or password",
+      "accountBlocked": "This account has been blocked. Please contact an administrator.",
+      "emailUnavailable": "You can't sign up with this email. If it's yours, sign in or reset your password.",
+      "tooManyAttempts_one": "Too many attempts. Try again in {{count}} minute.",
+      "tooManyAttempts_other": "Too many attempts. Try again in {{count}} minutes.",
+      "weakPassword": {
+        "too_short": "Password must be at least 8 characters",
+        "too_long": "Password can be at most 128 characters",
+        "too_common": "This password is too common, choose another",
+        "same_as_email": "Password can't be the same as your email"
+      }
+    }
   },
   "errors": {
     "networkError": "Network connection error",
@@ -25,9 +47,7 @@
     "aiUnavailable": "AI features are temporarily unavailable"
   },
   "tabs": {
-    "library": "Library",
-    "chat": "Q&A",
-    "study": "Review",
+    "spaces": "Spaces",
     "profile": "Profile"
   },
   "system": {
@@ -58,5 +78,15 @@
     },
     "refresh": "Check again",
     "checkedAt": "Checked at {{time}}"
+  },
+  "profile": {
+    "title": "Profile",
+    "signedInAs": "Signed in as"
+  },
+  "spaces": {
+    "comingSoon": "Your study spaces will appear here."
+  },
+  "splash": {
+    "unreachable": "Can't reach the server. Check your connection and try again."
   }
 }

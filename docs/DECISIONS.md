@@ -30,6 +30,10 @@
 | Xác thực | Tự xây: email và mật khẩu, Google (không có Apple) | Không phát hành lên App Store/Google Play nên không bị ràng buộc Sign in with Apple | 2026-11-07 | Đã chốt |
 | Rủi ro App Store 4.8 | Không áp dụng | Dự án chỉ là bản thử nghiệm, không phát hành lên store (xem dòng Phạm vi phát hành) | 2026-11-07 | Đã chốt |
 | Xác minh email và quên mật khẩu | Có cả hai (chỉ cho tài khoản email và mật khẩu) |  | 2026-10-29 | Đã chốt |
+| Đăng ký bằng email đã có tài khoản | Trả 409 `EMAIL_UNAVAILABLE` với thông báo chung (đăng nhập hoặc đặt lại mật khẩu); người mới đăng ký vào app ngay, chưa cần xác minh | Người dùng chọn phương án A trong docs/specs/f2-email-auth.md; giảm rủi ro dò email bằng giới hạn 5 lần đăng ký mỗi giờ mỗi IP | 2026-11-09 | Đã chốt |
+| Quy tắc mật khẩu | 8 đến 128 ký tự, không bắt buộc ký tự đặc biệt, chặn mật khẩu phổ biến và trùng email | Theo NIST; người dùng đồng ý | 2026-11-09 | Đã chốt |
+| Giới hạn số lần thử khi đăng nhập, đăng ký | Sai 5 lần/15 phút theo email, 20 lần/15 phút theo IP; đăng ký 5 lần/giờ theo IP | Người dùng đồng ý; đổi được trong cấu hình | 2026-11-09 | Đã chốt |
+| Thời hạn phiên | Access token 15 phút; refresh token 30 ngày, xoay vòng; tối đa 90 ngày từ lần đăng nhập | Người dùng đồng ý; đổi được trong cấu hình | 2026-11-09 | Đã chốt |
 | Quy tắc liên kết tài khoản khi cùng email ở nhiều cách đăng nhập | Tự liên kết nếu email từ Google đã được xác minh; nếu không thì phải đăng nhập bằng cách cũ trước | Mặc định đề xuất, người dùng đồng ý dùng mặc định | 2026-11-07 | Đã chốt (mặc định) |
 | Tài khoản chưa xác minh email bị giới hạn gì | Chưa cho tải tài liệu | Mặc định đề xuất | 2026-11-07 | Đã chốt (mặc định) |
 | Thanh toán | Không có; không có tính năng thu phí | Bản 1 không thu phí | 2026-10-29 | Đã chốt |
