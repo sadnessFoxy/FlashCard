@@ -5,6 +5,7 @@ OpenAPI 3.1 schemas are JSON Schema 2020-12, so jsonschema validates them direct
 
 from __future__ import annotations
 
+import re
 from functools import lru_cache
 from pathlib import Path
 from typing import Any
@@ -54,8 +55,17 @@ def contract_operations() -> dict[tuple[str, str], dict[str, Any]]:
     return ops
 
 
+def contract_path_for(path: str) -> str:
+    """Map a concrete URL path to its contract template, e.g. /v1/spaces/{space_id}."""
+    for template in load_contract()["paths"]:
+        pattern = "^" + re.sub(r"\\\{[^/]+\\\}", "[^/]+", re.escape(template)) + "$"
+        if re.match(pattern, path):
+            return template
+    raise AssertionError(f"{path} is not in the contract")
+
+
 def _declared_response(method: str, path: str, status: int) -> dict[str, Any]:
-    operation = contract_operations()[(method.upper(), path)]
+    operation = contract_operations()[(method.upper(), contract_path_for(path))]
     responses = operation["responses"]
     assert str(status) in responses, f"{method} {path}: status {status} not declared in contract"
     return _resolve(responses[str(status)])

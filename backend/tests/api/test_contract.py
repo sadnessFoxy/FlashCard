@@ -57,3 +57,20 @@ def test_contract_validator_rejects_wrong_payload() -> None:
             200,
             {"status": "ok", "version": "1", "checks": {"database": {"status": "up"}}},
         )
+
+
+async def test_framework_errors_use_error_response_shape(client) -> None:  # type: ignore[no-untyped-def]
+    bad_json = await client.post(
+        "/v1/auth/login",
+        content=b"{not json",
+        headers={"Content-Type": "application/json", "X-Client-Platform": "native"},
+    )
+    unknown = await client.get("/v1/does-not-exist")
+    wrong_method = await client.put("/health")
+
+    for response in (bad_json, unknown, wrong_method):
+        body = response.json()
+        assert set(body) >= {"code", "message"} and "detail" not in body
+    assert bad_json.json()["errors"] == [{"field": "body", "type": "json_invalid"}]
+    assert unknown.json()["code"] == "NOT_FOUND"
+    assert wrong_method.json()["code"] == "METHOD_NOT_ALLOWED"

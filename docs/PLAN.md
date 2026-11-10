@@ -22,8 +22,8 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 | 5 | Sức tải, hiệu năng & chi phí AI | 0/19 | Chưa bắt đầu | Trước production | |
 | 6 | Beta & chuẩn bị production | 0/10 | Chưa bắt đầu | | |
 | 7 | Ra mắt & vận hành | 0/6 | Chưa bắt đầu | | |
-| F | Lát chức năng bản 1 | 2/17 | Đang làm | Song song với giai đoạn 1 đến 6 | 2026-11-08 |
-| | **Tổng** | **32/140** | | | |
+| F | Lát chức năng bản 1 | 3/17 | Đang làm | Song song với giai đoạn 1 đến 6 | 2026-11-08 |
+| | **Tổng** | **33/140** | | | |
 
 ---
 
@@ -277,7 +277,7 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 - [x] F2. Đăng ký, đăng nhập bằng email và mật khẩu, duy trì và kết thúc phiên (U1, U4; màn hình 1; docs/specs/f2-email-auth.md)
 - [ ] F3. Đăng nhập bằng Google (U1; màn hình 1)
 - [ ] F4. Xác minh email và quên, đặt lại mật khẩu (U2, U3; màn hình 2, 3)
-- [ ] F4b. Không gian học tập: tạo, đổi tên, xóa, không gian mặc định (U16; màn hình 5)
+- [x] F4b. Không gian học tập: tạo, đổi tên, xóa, không gian mặc định (U16; màn hình 5; docs/specs/f4b-spaces.md). Hàm tạo không gian mặc định đã có, được gọi từ luồng tải lên ở F5
 - [ ] F5. Tải tài liệu PDF và xử lý nền đến `READY`: trích văn bản, chia đoạn, embedding, trạng thái (U5; màn hình 5, 6)
 - [ ] F6. Quản lý tài liệu: danh sách, chi tiết, thử lại, xóa (U6; màn hình 5, 7)
 - [ ] F7. Hỏi đáp trên nhiều tài liệu, có trích dẫn, trả lời dần (U7; màn hình 9)
@@ -328,3 +328,4 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 | 2026-11-08 | Lát F1 xong: contract có `GET /health` và `GET /v1/system/status` (database có pgvector, Redis); backend kèm test khớp contract (route, operationId, schema response), unit, integration trên database test riêng (20 test); frontend sinh kiểu từ contract bằng `openapi-typescript`, màn hình trạng thái song ngữ (6 test), build web được; CI viết lại (test backend trên Postgres có pgvector, kiểm tra file sinh lệch contract, chặn thay đổi phá vỡ contract ở PR). CI **chưa chạy** vì repo chưa có remote GitHub nên chưa tick giai đoạn 2. Sửa thêm: khóa Gemini chuyển sang header để không lọt vào log (R10), tên tab viết cứng chuyển sang i18n (R14), thiếu gói web và gói phụ thuộc của expo-router |
 | 2026-11-10 | Lát F2 xong (docs/specs/f2-email-auth.md): đăng ký, đăng nhập, refresh xoay vòng có phát hiện dùng lại, đăng xuất, `/v1/me`; mobile giữ token trong secure store, web dùng cookie httpOnly kèm chống CSRF theo Origin; giới hạn số lần thử bằng Redis; migration Alembic đầu tiên (3 bảng). Test: backend 88 (API, bảo mật, unit, migration lên/xuống), frontend 22. Thay `python-jose`/`passlib` (ngừng bảo trì) bằng `PyJWT`/`argon2-cffi`, thêm `email-validator`. Sửa thêm: SQL echo ghi email và bản băm vào log ở môi trường dev (giờ là `SQL_ECHO`, mặc định tắt), lỗi validation trả lại dữ liệu đã nhập, `SECRET_KEY` bắt buộc từ 32 ký tự. Điều hướng chính đổi theo docs/SCREENS.md (Không gian, Hồ sơ); màn hình trạng thái F1 chuyển sang `/system`. Comment trong code chuyển sang tiếng Anh theo yêu cầu người dùng |
 | 2026-11-10 | Hoãn giai đoạn 2 (CI/CD) theo yêu cầu người dùng: workflow chỉ chạy tay; chuyển toàn bộ comment trong code sang tiếng Anh |
+| 2026-11-10 | Lát F4b xong (docs/specs/f4b-spaces.md): module `spaces` (CRUD, tên chuẩn hóa NFC, không trùng tên trong tài khoản theo index `lower(name)`, Không gian của người khác trả 404), migration thứ hai, màn hình danh sách và chi tiết có hộp xác nhận xóa chạy được trên web. Test: backend 125, frontend 34; thử qua HTTP thật đủ luồng. Sửa thêm: lỗi của framework (JSON hỏng, đường dẫn không tồn tại, sai phương thức) trước đây trả `{detail}` thay vì `ErrorResponse` của contract |

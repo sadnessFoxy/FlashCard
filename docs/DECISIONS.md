@@ -21,6 +21,8 @@
 | Phiên bản công nghệ chính (Python, Node, Expo SDK, PostgreSQL, pgvector) | Chọn bản ổn định (stable hoặc LTS), không cần bản mới nhất | Giảm rủi ro; số phiên bản cụ thể chốt khi khởi tạo và ghi vào file khóa phiên bản | 2026-10-29 | Đã chốt |
 | Thư viện hàng đợi | ARQ | Nhẹ, hợp FastAPI bất đồng bộ | 2026-10-29 | Đã chốt |
 | ORM | SQLAlchemy | Người dùng đồng ý đề xuất | 2026-10-29 | Đã chốt |
+| Trùng tên Không gian | Không cho trùng trong cùng tài khoản, so khớp không phân biệt hoa thường (409 `SPACE_NAME_TAKEN`) | Người dùng chọn (docs/specs/f4b-spaces.md Q1) | 2026-11-10 | Đã chốt |
+| Xác nhận xóa Không gian | Hộp xác nhận nêu rõ mọi thứ bên trong bị xóa vĩnh viễn | Người dùng chọn (docs/specs/f4b-spaces.md Q2) | 2026-11-10 | Đã chốt |
 | CI/CD | Tạm hoãn: workflow GitHub Actions chỉ chạy tay (`workflow_dispatch`); mọi kiểm tra chạy ở máy local trước khi commit | Người dùng yêu cầu bỏ qua; tài khoản GitHub đang bị khóa thanh toán nên Actions không chạy được. Bật lại bằng cách khôi phục trigger trong ci.yml | 2026-11-10 | Hoãn |
 | Nơi triển khai | Railway (API, worker, PostgreSQL có pgvector, Redis, kho file) | Dễ dùng cho dự án nhỏ; có template PostgreSQL kèm pgvector | 2026-10-29 | Đã chốt |
 | Ngân sách hosting hằng tháng | Chưa cần | Chỉ chạy trên máy cá nhân; chỉ cần quyết khi muốn đưa lên mạng (Railway không có gói miễn phí vĩnh viễn) | 2026-11-07 | Hoãn |

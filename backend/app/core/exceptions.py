@@ -172,3 +172,11 @@ class TooManyAttemptsError(AppError):
 class InvalidRefreshTokenError(AppError):
     def __init__(self) -> None:
         super().__init__("INVALID_REFRESH_TOKEN", "Session expired, sign in again", 401)
+
+
+# ------- Spaces (docs/specs/f4b-spaces.md) -------
+
+
+class SpaceNameTakenError(AppError):
+    def __init__(self) -> None:
+        super().__init__("SPACE_NAME_TAKEN", "A space with this name already exists", 409)

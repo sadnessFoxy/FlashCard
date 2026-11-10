@@ -84,7 +84,34 @@
     "signedInAs": "Đang đăng nhập bằng"
   },
   "spaces": {
-    "comingSoon": "Không gian học tập của bạn sẽ xuất hiện ở đây."
+    "title": "Không gian",
+    "comingSoon": "Phần này sẽ có ở các bản cập nhật tới.",
+    "create": "Tạo không gian",
+    "createFirst": "Tạo không gian đầu tiên",
+    "createTitle": "Tạo không gian mới",
+    "renameTitle": "Đổi tên không gian",
+    "rename": "Đổi tên",
+    "nameLabel": "Tên không gian",
+    "namePlaceholder": "Ví dụ: Giải tích 1",
+    "emptyTitle": "Chưa có không gian nào",
+    "emptyHint": "Mỗi không gian gom tài liệu, hỏi đáp và thẻ học của một môn.",
+    "updatedAt": "Cập nhật {{date}}",
+    "loadError": "Không tải được danh sách không gian.",
+    "notFound": "Không gian này không tồn tại hoặc đã bị xóa.",
+    "backToList": "Về danh sách không gian",
+    "deleteTitle": "Xóa \"{{name}}\"?",
+    "deleteWarning": "Mọi tài liệu, hội thoại, bộ thẻ và trắc nghiệm trong không gian này sẽ bị xóa vĩnh viễn và không thể khôi phục.",
+    "tabs": {
+      "documents": "Tài liệu",
+      "chat": "Hỏi đáp",
+      "cards": "Thẻ",
+      "quizzes": "Trắc nghiệm"
+    },
+    "errors": {
+      "nameRequired": "Hãy nhập tên không gian",
+      "nameTooLong": "Tên tối đa {{max}} ký tự",
+      "nameTaken": "Bạn đã có một không gian trùng tên này"
+    }
   },
   "splash": {
     "unreachable": "Không kết nối được tới máy chủ. Hãy kiểm tra mạng rồi thử lại."

@@ -2,14 +2,22 @@ import { ActivityIndicator, Pressable, StyleSheet, Text } from "react-native";
 
 import { colors, fontSize, radius, spacing } from "../../theme/tokens";
 
+type Variant = "primary" | "secondary" | "danger";
+
 interface Props {
   label: string;
   onPress: () => void;
   loading?: boolean;
   disabled?: boolean;
-  variant?: "primary" | "secondary";
+  variant?: Variant;
   testID?: string;
 }
+
+const FILLED: Record<Variant, boolean> = {
+  primary: true,
+  secondary: false,
+  danger: true,
+};
 
 export function Button({
   label,
@@ -20,7 +28,7 @@ export function Button({
   testID,
 }: Props) {
   const inactive = disabled || loading;
-  const primary = variant === "primary";
+  const filled = FILLED[variant];
   return (
     <Pressable
       accessibilityRole="button"
@@ -30,20 +38,22 @@ export function Button({
       testID={testID}
       style={({ pressed }) => [
         styles.base,
-        primary ? styles.primary : styles.secondary,
-        pressed && primary && styles.primaryPressed,
+        variant === "primary"
+          ? styles.primary
+          : variant === "danger"
+            ? styles.danger
+            : styles.secondary,
+        pressed && styles.pressed,
         inactive && styles.inactive,
       ]}
     >
       {loading ? (
-        <ActivityIndicator
-          color={primary ? colors.onPrimary : colors.primary}
-        />
+        <ActivityIndicator color={filled ? colors.onPrimary : colors.primary} />
       ) : (
         <Text
           style={[
             styles.label,
-            primary ? styles.labelPrimary : styles.labelSecondary,
+            filled ? styles.labelFilled : styles.labelOutline,
           ]}
         >
           {label}
@@ -62,14 +72,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
   },
   primary: { backgroundColor: colors.primary },
-  primaryPressed: { backgroundColor: colors.primaryPressed },
   secondary: {
     backgroundColor: colors.surface,
     borderColor: colors.border,
     borderWidth: 1,
   },
+  danger: { backgroundColor: colors.danger },
+  pressed: { opacity: 0.85 },
   inactive: { opacity: 0.6 },
   label: { fontSize: fontSize.md, fontWeight: "600" },
-  labelPrimary: { color: colors.onPrimary },
-  labelSecondary: { color: colors.text },
+  labelFilled: { color: colors.onPrimary },
+  labelOutline: { color: colors.text },
 });

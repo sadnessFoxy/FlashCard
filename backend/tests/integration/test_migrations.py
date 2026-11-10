@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from app.core.config import settings
 from tests.conftest import alembic_config
 
-AUTH_TABLES = {"users", "auth_identities", "refresh_tokens"}
+AUTH_TABLES = {"users", "auth_identities", "refresh_tokens", "spaces"}
 
 
 def _public_tables() -> set[str]:

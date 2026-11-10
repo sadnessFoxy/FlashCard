@@ -20,6 +20,7 @@ import app.modules.admin.models  # noqa: F401
 import app.modules.auth.models  # noqa: F401
 import app.modules.chat.models  # noqa: F401
 import app.modules.documents.models  # noqa: F401
+import app.modules.spaces.models  # noqa: F401
 import app.modules.study.models  # noqa: F401
 import app.modules.usage.models  # noqa: F401
 import app.modules.users.models  # noqa: F401

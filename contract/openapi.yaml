@@ -18,6 +18,10 @@ tags:
       Web clients receive httpOnly cookies instead and never see tokens (R12).
   - name: users
     description: The signed-in user
+  - name: spaces
+    description: |
+      Study spaces that group documents, chats, decks and quizzes (spec: docs/specs/f4b-spaces.md).
+      Other users' spaces always answer 404, never 403.
 security:
   - BearerAuth: []
   - CookieAuth: []
@@ -212,8 +216,116 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /v1/spaces:
+    get:
+      tags: [spaces]
+      operationId: listSpaces
+      summary: The caller's spaces, most recently updated first
+      responses:
+        "200":
+          description: All spaces of the caller (not paginated)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SpaceList"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+    post:
+      tags: [spaces]
+      operationId: createSpace
+      summary: Create a space
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SpaceNameRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Space"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/CsrfRejected"
+        "409":
+          $ref: "#/components/responses/SpaceNameTaken"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /v1/spaces/{space_id}:
+    parameters:
+      - $ref: "#/components/parameters/SpaceId"
+    get:
+      tags: [spaces]
+      operationId: getSpace
+      summary: One space
+      responses:
+        "200":
+          description: The space
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Space"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+    patch:
+      tags: [spaces]
+      operationId: renameSpace
+      summary: Rename a space
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SpaceNameRequest"
+      responses:
+        "200":
+          description: Renamed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Space"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/CsrfRejected"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/SpaceNameTaken"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+    delete:
+      tags: [spaces]
+      operationId: deleteSpace
+      summary: Delete a space and everything in it
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/CsrfRejected"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
 components:
   parameters:
+    SpaceId:
+      name: space_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
     ClientPlatform:
       name: X-Client-Platform
       in: header
@@ -269,6 +381,44 @@ components:
     Locale:
       type: string
       enum: [vi, en]
+    SpaceNameRequest:
+      type: object
+      additionalProperties: false
+      required: [name]
+      properties:
+        name:
+          type: string
+          maxLength: 200
+          description: |
+            Trimmed and whitespace-collapsed by the server; must then be 1-100 characters.
+            Unique per user, case-insensitive (`SPACE_NAME_TAKEN`).
+    Space:
+      type: object
+      additionalProperties: false
+      required: [id, name, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    SpaceList:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Space"
     RegisterRequest:
       type: object
       additionalProperties: false
@@ -409,6 +559,18 @@ components:
             redis:
               $ref: "#/components/schemas/DependencyCheck"
   responses:
+    NotFound:
+      description: "`NOT_FOUND`: does not exist or belongs to someone else"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    SpaceNameTaken:
+      description: "`SPACE_NAME_TAKEN`: the caller already has a space with this name (case-insensitive)"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
     TooManyAttempts:
       description: "`TOO_MANY_ATTEMPTS` with `retry_after_seconds` and a `Retry-After` header."
       headers:

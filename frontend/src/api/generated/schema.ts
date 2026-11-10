@@ -4,538 +4,744 @@
  */
 
 export interface paths {
-  "/health": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/health": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Liveness probe
+         * @description Returns 200 when the API process is up. Does not touch the database or Redis.
+         */
+        get: operations["getHealth"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * Liveness probe
-     * @description Returns 200 when the API process is up. Does not touch the database or Redis.
-     */
-    get: operations["getHealth"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/v1/system/status": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/v1/system/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Dependency status (database, Redis)
+         * @description Checks each backing service the API needs. Always returns 200 with an overall
+         *     `status`; a failing dependency is reported as `down` instead of an HTTP error,
+         *     so clients can show which part is unavailable. Never exposes connection strings
+         *     or internal error messages.
+         */
+        get: operations["getSystemStatus"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /**
-     * Dependency status (database, Redis)
-     * @description Checks each backing service the API needs. Always returns 200 with an overall
-     *     `status`; a failing dependency is reported as `down` instead of an HTTP error,
-     *     so clients can show which part is unavailable. Never exposes connection strings
-     *     or internal error messages.
-     */
-    get: operations["getSystemStatus"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/v1/auth/register": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/v1/auth/register": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create an account with email and password and start a session */
+        post: operations["register"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /** Create an account with email and password and start a session */
-    post: operations["register"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/v1/auth/login": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/v1/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sign in with email and password
+         * @description A wrong email and a wrong password return the same `INVALID_CREDENTIALS` response.
+         *     `ACCOUNT_BLOCKED` is only returned when the password is correct.
+         */
+        post: operations["login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Sign in with email and password
-     * @description A wrong email and a wrong password return the same `INVALID_CREDENTIALS` response.
-     *     `ACCOUNT_BLOCKED` is only returned when the password is correct.
-     */
-    post: operations["login"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/v1/auth/refresh": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/v1/auth/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Rotate the refresh token and issue a new access token
+         * @description Native sends `refresh_token` in the body; web sends the `refresh_token` cookie.
+         *     The used refresh token stops working. Presenting an already-rotated token revokes
+         *     every token of that sign-in (suspected theft).
+         */
+        post: operations["refreshSession"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Rotate the refresh token and issue a new access token
-     * @description Native sends `refresh_token` in the body; web sends the `refresh_token` cookie.
-     *     The used refresh token stops working. Presenting an already-rotated token revokes
-     *     every token of that sign-in (suspected theft).
-     */
-    post: operations["refreshSession"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/v1/auth/logout": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/v1/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Revoke the current refresh token and clear web cookies
+         * @description Always 204, even when the token is missing or already invalid.
+         */
+        post: operations["logout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    get?: never;
-    put?: never;
-    /**
-     * Revoke the current refresh token and clear web cookies
-     * @description Always 204, even when the token is missing or already invalid.
-     */
-    post: operations["logout"];
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
-  "/v1/me": {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    "/v1/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The signed-in user */
+        get: operations["getMe"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
     };
-    /** The signed-in user */
-    get: operations["getMe"];
-    put?: never;
-    post?: never;
-    delete?: never;
-    options?: never;
-    head?: never;
-    patch?: never;
-    trace?: never;
-  };
+    "/v1/spaces": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The caller's spaces, most recently updated first */
+        get: operations["listSpaces"];
+        put?: never;
+        /** Create a space */
+        post: operations["createSpace"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/spaces/{space_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                space_id: components["parameters"]["SpaceId"];
+            };
+            cookie?: never;
+        };
+        /** One space */
+        get: operations["getSpace"];
+        put?: never;
+        post?: never;
+        /** Delete a space and everything in it */
+        delete: operations["deleteSpace"];
+        options?: never;
+        head?: never;
+        /** Rename a space */
+        patch: operations["renameSpace"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
-  schemas: {
-    ErrorResponse: {
-      /**
-       * @description Machine-readable error code; the client maps it to an i18n message.
-       * @example VALIDATION_ERROR
-       */
-      code: string;
-      /** @description Developer-facing message. Not shown to end users. */
-      message: string;
-      /**
-       * @description Set with `WEAK_PASSWORD`.
-       * @enum {string}
-       */
-      reason?: "too_short" | "too_long" | "too_common" | "same_as_email";
-      /** @description Set with `TOO_MANY_ATTEMPTS`; also sent as the `Retry-After` header. */
-      retry_after_seconds?: number;
-      /** @description Set with `VALIDATION_ERROR`: which fields are invalid. */
-      errors?: {
-        /** @example email */
-        field: string;
-        /** @example value_error */
-        type: string;
-      }[];
+    schemas: {
+        ErrorResponse: {
+            /**
+             * @description Machine-readable error code; the client maps it to an i18n message.
+             * @example VALIDATION_ERROR
+             */
+            code: string;
+            /** @description Developer-facing message. Not shown to end users. */
+            message: string;
+            /**
+             * @description Set with `WEAK_PASSWORD`.
+             * @enum {string}
+             */
+            reason?: "too_short" | "too_long" | "too_common" | "same_as_email";
+            /** @description Set with `TOO_MANY_ATTEMPTS`; also sent as the `Retry-After` header. */
+            retry_after_seconds?: number;
+            /** @description Set with `VALIDATION_ERROR`: which fields are invalid. */
+            errors?: {
+                /** @example email */
+                field: string;
+                /** @example value_error */
+                type: string;
+            }[];
+        };
+        /** @enum {string} */
+        Locale: "vi" | "en";
+        SpaceNameRequest: {
+            /**
+             * @description Trimmed and whitespace-collapsed by the server; must then be 1-100 characters.
+             *     Unique per user, case-insensitive (`SPACE_NAME_TAKEN`).
+             */
+            name: string;
+        };
+        Space: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        SpaceList: {
+            items: components["schemas"]["Space"][];
+        };
+        RegisterRequest: {
+            /** Format: email */
+            email: string;
+            /** @description Strength rules are checked by the server (`WEAK_PASSWORD`), see the spec. */
+            password: string;
+            locale?: components["schemas"]["Locale"];
+        };
+        LoginRequest: {
+            email: string;
+            password: string;
+        };
+        RefreshTokenRequest: {
+            /** @description Required for native clients; ignored for web (the cookie is used). */
+            refresh_token?: string;
+        };
+        User: {
+            /** Format: uuid */
+            id: string;
+            email: string;
+            email_verified: boolean;
+            locale: components["schemas"]["Locale"];
+            /** @enum {string} */
+            role: "user" | "admin";
+            /** Format: date-time */
+            created_at: string;
+        };
+        AuthSession: {
+            user: components["schemas"]["User"];
+            /** @description Native only. Absent for web clients. */
+            access_token?: string;
+            /** @description Native only. Absent for web clients. */
+            refresh_token?: string;
+            /** @description Seconds until the access token expires. */
+            access_token_expires_in: number;
+        };
+        HealthResponse: {
+            /** @constant */
+            status: "ok";
+            /** @enum {string} */
+            environment: "development" | "staging" | "production";
+            /** @example 1.0.0 */
+            version: string;
+        };
+        /** @enum {string} */
+        DependencyStatus: "up" | "down";
+        DependencyCheck: {
+            status: components["schemas"]["DependencyStatus"];
+            /** @description Time the check took, in milliseconds. */
+            latency_ms: number;
+            /**
+             * @description Set only when status is down. Stable code, no internal details.
+             * @enum {string|null}
+             */
+            error_code?: "TIMEOUT" | "UNREACHABLE" | "EXTENSION_MISSING" | null;
+        };
+        DatabaseCheck: {
+            status: components["schemas"]["DependencyStatus"];
+            latency_ms: number;
+            /** @enum {string|null} */
+            error_code?: "TIMEOUT" | "UNREACHABLE" | "EXTENSION_MISSING" | null;
+            /**
+             * @description Installed pgvector version; null when the database is down or the extension is missing.
+             * @example 0.8.7
+             */
+            pgvector_version?: string | null;
+        };
+        SystemStatusResponse: {
+            /**
+             * @description `ok` when every dependency is up, otherwise `degraded`.
+             * @enum {string}
+             */
+            status: "ok" | "degraded";
+            version: string;
+            checks: {
+                database: components["schemas"]["DatabaseCheck"];
+                redis: components["schemas"]["DependencyCheck"];
+            };
+        };
     };
-    /** @enum {string} */
-    Locale: "vi" | "en";
-    RegisterRequest: {
-      /** Format: email */
-      email: string;
-      /** @description Strength rules are checked by the server (`WEAK_PASSWORD`), see the spec. */
-      password: string;
-      locale?: components["schemas"]["Locale"];
+    responses: {
+        /** @description `NOT_FOUND`: does not exist or belongs to someone else */
+        NotFound: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ErrorResponse"];
+            };
+        };
+        /** @description `SPACE_NAME_TAKEN`: the caller already has a space with this name (case-insensitive) */
+        SpaceNameTaken: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ErrorResponse"];
+            };
+        };
+        /** @description `TOO_MANY_ATTEMPTS` with `retry_after_seconds` and a `Retry-After` header. */
+        TooManyAttempts: {
+            headers: {
+                "Retry-After"?: number;
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ErrorResponse"];
+            };
+        };
+        /** @description `VALIDATION_ERROR` */
+        ValidationError: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ErrorResponse"];
+            };
+        };
+        /** @description `CSRF_REJECTED`: cookie-authenticated unsafe request from an origin that is not allowed. */
+        CsrfRejected: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ErrorResponse"];
+            };
+        };
+        /** @description `UNAUTHORIZED`: access token missing, invalid or expired */
+        UnauthorizedError: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ErrorResponse"];
+            };
+        };
     };
-    LoginRequest: {
-      email: string;
-      password: string;
+    parameters: {
+        SpaceId: string;
+        /** @description `native` returns tokens in the body; `web` sets httpOnly cookies and omits tokens. */
+        ClientPlatform: "web" | "native";
     };
-    RefreshTokenRequest: {
-      /** @description Required for native clients; ignored for web (the cookie is used). */
-      refresh_token?: string;
-    };
-    User: {
-      /** Format: uuid */
-      id: string;
-      email: string;
-      email_verified: boolean;
-      locale: components["schemas"]["Locale"];
-      /** @enum {string} */
-      role: "user" | "admin";
-      /** Format: date-time */
-      created_at: string;
-    };
-    AuthSession: {
-      user: components["schemas"]["User"];
-      /** @description Native only. Absent for web clients. */
-      access_token?: string;
-      /** @description Native only. Absent for web clients. */
-      refresh_token?: string;
-      /** @description Seconds until the access token expires. */
-      access_token_expires_in: number;
-    };
-    HealthResponse: {
-      /** @constant */
-      status: "ok";
-      /** @enum {string} */
-      environment: "development" | "staging" | "production";
-      /** @example 1.0.0 */
-      version: string;
-    };
-    /** @enum {string} */
-    DependencyStatus: "up" | "down";
-    DependencyCheck: {
-      status: components["schemas"]["DependencyStatus"];
-      /** @description Time the check took, in milliseconds. */
-      latency_ms: number;
-      /**
-       * @description Set only when status is down. Stable code, no internal details.
-       * @enum {string|null}
-       */
-      error_code?: "TIMEOUT" | "UNREACHABLE" | "EXTENSION_MISSING" | null;
-    };
-    DatabaseCheck: {
-      status: components["schemas"]["DependencyStatus"];
-      latency_ms: number;
-      /** @enum {string|null} */
-      error_code?: "TIMEOUT" | "UNREACHABLE" | "EXTENSION_MISSING" | null;
-      /**
-       * @description Installed pgvector version; null when the database is down or the extension is missing.
-       * @example 0.8.7
-       */
-      pgvector_version?: string | null;
-    };
-    SystemStatusResponse: {
-      /**
-       * @description `ok` when every dependency is up, otherwise `degraded`.
-       * @enum {string}
-       */
-      status: "ok" | "degraded";
-      version: string;
-      checks: {
-        database: components["schemas"]["DatabaseCheck"];
-        redis: components["schemas"]["DependencyCheck"];
-      };
-    };
-  };
-  responses: {
-    /** @description `TOO_MANY_ATTEMPTS` with `retry_after_seconds` and a `Retry-After` header. */
-    TooManyAttempts: {
-      headers: {
-        "Retry-After"?: number;
-        [name: string]: unknown;
-      };
-      content: {
-        "application/json": components["schemas"]["ErrorResponse"];
-      };
-    };
-    /** @description `VALIDATION_ERROR` */
-    ValidationError: {
-      headers: {
-        [name: string]: unknown;
-      };
-      content: {
-        "application/json": components["schemas"]["ErrorResponse"];
-      };
-    };
-    /** @description `CSRF_REJECTED`: cookie-authenticated unsafe request from an origin that is not allowed. */
-    CsrfRejected: {
-      headers: {
-        [name: string]: unknown;
-      };
-      content: {
-        "application/json": components["schemas"]["ErrorResponse"];
-      };
-    };
-    /** @description `UNAUTHORIZED`: access token missing, invalid or expired */
-    UnauthorizedError: {
-      headers: {
-        [name: string]: unknown;
-      };
-      content: {
-        "application/json": components["schemas"]["ErrorResponse"];
-      };
-    };
-  };
-  parameters: {
-    /** @description `native` returns tokens in the body; `web` sets httpOnly cookies and omits tokens. */
-    ClientPlatform: "web" | "native";
-  };
-  requestBodies: never;
-  headers: never;
-  pathItems: never;
+    requestBodies: never;
+    headers: never;
+    pathItems: never;
 }
 export type $defs = Record<string, never>;
 export interface operations {
-  getHealth: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    getHealth: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description API process is alive */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HealthResponse"];
+                };
+            };
+        };
     };
-    requestBody?: never;
-    responses: {
-      /** @description API process is alive */
-      200: {
-        headers: {
-          [name: string]: unknown;
+    getSystemStatus: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          "application/json": components["schemas"]["HealthResponse"];
+        requestBody?: never;
+        responses: {
+            /** @description Status report of the API and its dependencies */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SystemStatusResponse"];
+                };
+            };
         };
-      };
     };
-  };
-  getSystemStatus: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
+    register: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description `native` returns tokens in the body; `web` sets httpOnly cookies and omits tokens. */
+                "X-Client-Platform": components["parameters"]["ClientPlatform"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegisterRequest"];
+            };
+        };
+        responses: {
+            /** @description Account created and signed in */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthSession"];
+                };
+            };
+            403: components["responses"]["CsrfRejected"];
+            /** @description `EMAIL_UNAVAILABLE`: generic message; the client suggests signing in or resetting the password. */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description `VALIDATION_ERROR`, or `WEAK_PASSWORD` with `reason`. */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            429: components["responses"]["TooManyAttempts"];
+        };
     };
-    requestBody?: never;
-    responses: {
-      /** @description Status report of the API and its dependencies */
-      200: {
-        headers: {
-          [name: string]: unknown;
+    login: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description `native` returns tokens in the body; `web` sets httpOnly cookies and omits tokens. */
+                "X-Client-Platform": components["parameters"]["ClientPlatform"];
+            };
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          "application/json": components["schemas"]["SystemStatusResponse"];
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginRequest"];
+            };
         };
-      };
+        responses: {
+            /** @description Signed in */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthSession"];
+                };
+            };
+            /** @description `INVALID_CREDENTIALS` */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description `ACCOUNT_BLOCKED` or `CSRF_REJECTED` */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["TooManyAttempts"];
+        };
     };
-  };
-  register: {
-    parameters: {
-      query?: never;
-      header: {
-        /** @description `native` returns tokens in the body; `web` sets httpOnly cookies and omits tokens. */
-        "X-Client-Platform": components["parameters"]["ClientPlatform"];
-      };
-      path?: never;
-      cookie?: never;
+    refreshSession: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description `native` returns tokens in the body; `web` sets httpOnly cookies and omits tokens. */
+                "X-Client-Platform": components["parameters"]["ClientPlatform"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["RefreshTokenRequest"];
+            };
+        };
+        responses: {
+            /** @description New session tokens */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthSession"];
+                };
+            };
+            /** @description `INVALID_REFRESH_TOKEN` */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description `ACCOUNT_BLOCKED` or `CSRF_REJECTED` */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            422: components["responses"]["ValidationError"];
+        };
     };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["RegisterRequest"];
-      };
+    logout: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description `native` returns tokens in the body; `web` sets httpOnly cookies and omits tokens. */
+                "X-Client-Platform": components["parameters"]["ClientPlatform"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["RefreshTokenRequest"];
+            };
+        };
+        responses: {
+            /** @description Signed out */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["CsrfRejected"];
+            422: components["responses"]["ValidationError"];
+        };
     };
-    responses: {
-      /** @description Account created and signed in */
-      201: {
-        headers: {
-          [name: string]: unknown;
+    getMe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
         };
-        content: {
-          "application/json": components["schemas"]["AuthSession"];
+        requestBody?: never;
+        responses: {
+            /** @description Current user */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["User"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            /** @description `ACCOUNT_BLOCKED` */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
         };
-      };
-      403: components["responses"]["CsrfRejected"];
-      /** @description `EMAIL_UNAVAILABLE`: generic message; the client suggests signing in or resetting the password. */
-      409: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description `VALIDATION_ERROR`, or `WEAK_PASSWORD` with `reason`. */
-      422: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      429: components["responses"]["TooManyAttempts"];
     };
-  };
-  login: {
-    parameters: {
-      query?: never;
-      header: {
-        /** @description `native` returns tokens in the body; `web` sets httpOnly cookies and omits tokens. */
-        "X-Client-Platform": components["parameters"]["ClientPlatform"];
-      };
-      path?: never;
-      cookie?: never;
+    listSpaces: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description All spaces of the caller (not paginated) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SpaceList"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+        };
     };
-    requestBody: {
-      content: {
-        "application/json": components["schemas"]["LoginRequest"];
-      };
+    createSpace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SpaceNameRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Space"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["CsrfRejected"];
+            409: components["responses"]["SpaceNameTaken"];
+            422: components["responses"]["ValidationError"];
+        };
     };
-    responses: {
-      /** @description Signed in */
-      200: {
-        headers: {
-          [name: string]: unknown;
+    getSpace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                space_id: components["parameters"]["SpaceId"];
+            };
+            cookie?: never;
         };
-        content: {
-          "application/json": components["schemas"]["AuthSession"];
+        requestBody?: never;
+        responses: {
+            /** @description The space */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Space"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
         };
-      };
-      /** @description `INVALID_CREDENTIALS` */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description `ACCOUNT_BLOCKED` or `CSRF_REJECTED` */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      422: components["responses"]["ValidationError"];
-      429: components["responses"]["TooManyAttempts"];
     };
-  };
-  refreshSession: {
-    parameters: {
-      query?: never;
-      header: {
-        /** @description `native` returns tokens in the body; `web` sets httpOnly cookies and omits tokens. */
-        "X-Client-Platform": components["parameters"]["ClientPlatform"];
-      };
-      path?: never;
-      cookie?: never;
+    deleteSpace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                space_id: components["parameters"]["SpaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["CsrfRejected"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
     };
-    requestBody?: {
-      content: {
-        "application/json": components["schemas"]["RefreshTokenRequest"];
-      };
+    renameSpace: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                space_id: components["parameters"]["SpaceId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SpaceNameRequest"];
+            };
+        };
+        responses: {
+            /** @description Renamed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Space"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["CsrfRejected"];
+            404: components["responses"]["NotFound"];
+            409: components["responses"]["SpaceNameTaken"];
+            422: components["responses"]["ValidationError"];
+        };
     };
-    responses: {
-      /** @description New session tokens */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["AuthSession"];
-        };
-      };
-      /** @description `INVALID_REFRESH_TOKEN` */
-      401: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      /** @description `ACCOUNT_BLOCKED` or `CSRF_REJECTED` */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-      422: components["responses"]["ValidationError"];
-    };
-  };
-  logout: {
-    parameters: {
-      query?: never;
-      header: {
-        /** @description `native` returns tokens in the body; `web` sets httpOnly cookies and omits tokens. */
-        "X-Client-Platform": components["parameters"]["ClientPlatform"];
-      };
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: {
-      content: {
-        "application/json": components["schemas"]["RefreshTokenRequest"];
-      };
-    };
-    responses: {
-      /** @description Signed out */
-      204: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content?: never;
-      };
-      403: components["responses"]["CsrfRejected"];
-      422: components["responses"]["ValidationError"];
-    };
-  };
-  getMe: {
-    parameters: {
-      query?: never;
-      header?: never;
-      path?: never;
-      cookie?: never;
-    };
-    requestBody?: never;
-    responses: {
-      /** @description Current user */
-      200: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["User"];
-        };
-      };
-      401: components["responses"]["UnauthorizedError"];
-      /** @description `ACCOUNT_BLOCKED` */
-      403: {
-        headers: {
-          [name: string]: unknown;
-        };
-        content: {
-          "application/json": components["schemas"]["ErrorResponse"];
-        };
-      };
-    };
-  };
 }

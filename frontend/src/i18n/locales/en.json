@@ -84,7 +84,34 @@
     "signedInAs": "Signed in as"
   },
   "spaces": {
-    "comingSoon": "Your study spaces will appear here."
+    "title": "Spaces",
+    "comingSoon": "This part is coming in a later update.",
+    "create": "New space",
+    "createFirst": "Create your first space",
+    "createTitle": "New space",
+    "renameTitle": "Rename space",
+    "rename": "Rename",
+    "nameLabel": "Space name",
+    "namePlaceholder": "e.g. Calculus 1",
+    "emptyTitle": "No spaces yet",
+    "emptyHint": "A space groups the documents, Q&A and flashcards of one subject.",
+    "updatedAt": "Updated {{date}}",
+    "loadError": "Couldn't load your spaces.",
+    "notFound": "This space doesn't exist or was deleted.",
+    "backToList": "Back to spaces",
+    "deleteTitle": "Delete \"{{name}}\"?",
+    "deleteWarning": "All documents, chats, decks and quizzes in this space will be permanently deleted and can't be recovered.",
+    "tabs": {
+      "documents": "Documents",
+      "chat": "Q&A",
+      "cards": "Cards",
+      "quizzes": "Quizzes"
+    },
+    "errors": {
+      "nameRequired": "Enter a space name",
+      "nameTooLong": "At most {{max}} characters",
+      "nameTaken": "You already have a space with this name"
+    }
   },
   "splash": {
     "unreachable": "Can't reach the server. Check your connection and try again."

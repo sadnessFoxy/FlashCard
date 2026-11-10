@@ -72,7 +72,7 @@ study-assistant/
 │   │   ├── core/                      # config, security, logging, metrics, rate_limit, exceptions
 │   │   ├── db/                        # session, base, migrations/
 │   │   ├── modules/
-│   │   │   ├── auth/  users/  documents/  chat/  study/  usage/  admin/
+│   │   │   ├── auth/  users/  spaces/  documents/  chat/  study/  usage/  admin/
 │   │   │   │   (mỗi module: router, schemas, models, service, repository, dependencies)
 │   │   │   └── ai/
 │   │   │       ├── providers/  ingestion/  retrieval/   # providers/gemini.py là nhà cung cấp mặc định
@@ -137,3 +137,7 @@ Lưu ý: `modules/usage/` quản lý hạn mức ba tầng, thống kê và cả
 | Hướng phát triển | Tách microservices khi đo được nhu cầu thật |
 
 Quy tắc nếu sau này tách microservices: mỗi service có database riêng, không truy vấn thẳng bảng của service khác, giao tiếp qua REST/gRPC hoặc event.
+
+## Bổ sung module (2026-11-10)
+
+- `modules/spaces/` (lát F4b): Không gian là cấp cha của tài liệu, hội thoại, bộ thẻ và trắc nghiệm, nên tách thành module riêng thay vì đặt trong `documents`. Các module khác gọi `SpaceService` để kiểm tra Không gian thuộc về người dùng, không đọc thẳng bảng `spaces`.

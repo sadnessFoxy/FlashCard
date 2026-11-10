@@ -11,11 +11,13 @@ from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import ValidationError as PydanticValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app import __version__
 from app.api.errors import (
     app_error_handler,
     generic_error_handler,
+    http_error_handler,
     request_validation_error_handler,
     validation_error_handler,
 )
@@ -74,6 +76,7 @@ def create_app() -> FastAPI:
 
     # Exception handlers
     app.add_exception_handler(AppError, app_error_handler)  # type: ignore[arg-type]
+    app.add_exception_handler(StarletteHTTPException, http_error_handler)  # type: ignore[arg-type]
     app.add_exception_handler(RequestValidationError, request_validation_error_handler)  # type: ignore[arg-type]
     app.add_exception_handler(PydanticValidationError, validation_error_handler)  # type: ignore[arg-type]
     app.add_exception_handler(Exception, generic_error_handler)
