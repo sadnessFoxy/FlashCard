@@ -16,7 +16,7 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 |---|---|---|---|---|---|
 | 0 | Chuẩn bị & chốt quyết định | 12/16 | Đang làm | | |
 | 1 | Khởi tạo dự án | 15/19 | Đang làm | Tuần 1 | 2026-11-07 |
-| 2 | CI/CD | 0/9 | Chưa bắt đầu | Tuần 1 đến 2 | |
+| 2 | CI/CD | 0/9 | Tạm hoãn | Người dùng hoãn 2026-11-10 | |
 | 3 | Kết nối & đồng bộ dữ liệu | 0/16 | Chưa bắt đầu | Tuần 2 đến 4 | |
 | 4 | Bảo mật | 3/28 | Đang làm | Tuần 2 đến 4, rà soát lại trước beta | |
 | 5 | Sức tải, hiệu năng & chi phí AI | 0/19 | Chưa bắt đầu | Trước production | |
@@ -86,6 +86,8 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 ---
 
 ## Giai đoạn 2. CI/CD
+
+> **Tạm hoãn (2026-11-10):** người dùng yêu cầu bỏ qua CI/CD. Workflow `.github/workflows/ci.yml` vẫn giữ nhưng chỉ chạy tay; kiểm tra chất lượng chạy ở máy local (lint, typecheck, test) trước mỗi commit. Agent không làm các việc dưới đây cho tới khi người dùng mở lại.
 
 **Mục tiêu:** mỗi lần đẩy code, hệ thống tự kiểm tra, build và phát hành mà không cần làm tay.
 
@@ -325,3 +327,4 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 | 2026-11-08 | Sửa môi trường chạy được thật (npm/pip cài lỗi, MinIO thay bằng SeaweedFS, `make setup` không còn ghi đè `backend/.env`, embedding gửi đúng 768 chiều); chốt mô hình `gemini-3.5-flash-lite` và `gemini-embedding-2` |
 | 2026-11-08 | Lát F1 xong: contract có `GET /health` và `GET /v1/system/status` (database có pgvector, Redis); backend kèm test khớp contract (route, operationId, schema response), unit, integration trên database test riêng (20 test); frontend sinh kiểu từ contract bằng `openapi-typescript`, màn hình trạng thái song ngữ (6 test), build web được; CI viết lại (test backend trên Postgres có pgvector, kiểm tra file sinh lệch contract, chặn thay đổi phá vỡ contract ở PR). CI **chưa chạy** vì repo chưa có remote GitHub nên chưa tick giai đoạn 2. Sửa thêm: khóa Gemini chuyển sang header để không lọt vào log (R10), tên tab viết cứng chuyển sang i18n (R14), thiếu gói web và gói phụ thuộc của expo-router |
 | 2026-11-10 | Lát F2 xong (docs/specs/f2-email-auth.md): đăng ký, đăng nhập, refresh xoay vòng có phát hiện dùng lại, đăng xuất, `/v1/me`; mobile giữ token trong secure store, web dùng cookie httpOnly kèm chống CSRF theo Origin; giới hạn số lần thử bằng Redis; migration Alembic đầu tiên (3 bảng). Test: backend 88 (API, bảo mật, unit, migration lên/xuống), frontend 22. Thay `python-jose`/`passlib` (ngừng bảo trì) bằng `PyJWT`/`argon2-cffi`, thêm `email-validator`. Sửa thêm: SQL echo ghi email và bản băm vào log ở môi trường dev (giờ là `SQL_ECHO`, mặc định tắt), lỗi validation trả lại dữ liệu đã nhập, `SECRET_KEY` bắt buộc từ 32 ký tự. Điều hướng chính đổi theo docs/SCREENS.md (Không gian, Hồ sơ); màn hình trạng thái F1 chuyển sang `/system`. Comment trong code chuyển sang tiếng Anh theo yêu cầu người dùng |
+| 2026-11-10 | Hoãn giai đoạn 2 (CI/CD) theo yêu cầu người dùng: workflow chỉ chạy tay; chuyển toàn bộ comment trong code sang tiếng Anh |

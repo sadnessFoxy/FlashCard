@@ -1,10 +1,13 @@
 name: CI
 
+# CI/CD is on hold (docs/DECISIONS.md, 2026-11-10): manual runs only.
+# To re-enable, restore the push/pull_request triggers below.
 on:
-  push:
-    branches: [main, develop]
-  pull_request:
-    branches: [main, develop]
+  workflow_dispatch:
+  # push:
+  #   branches: [main, develop]
+  # pull_request:
+  #   branches: [main, develop]
 
 concurrency:
   group: ci-${{ github.ref }}
