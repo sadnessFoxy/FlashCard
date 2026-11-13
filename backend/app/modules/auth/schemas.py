@@ -76,3 +76,10 @@ class PasswordResetRequest(BaseModel):
 class PasswordResetConfirmRequest(PasswordResetRequest):
     code: str = Field(pattern=CODE_PATTERN)
     new_password: str = Field(max_length=1024)
+
+
+class ChangePasswordRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    current_password: str = Field(max_length=1024)
+    new_password: str = Field(max_length=1024)

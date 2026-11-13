@@ -282,3 +282,25 @@ class InvalidCodeError(AppError):
 
     def __init__(self) -> None:
         super().__init__("INVALID_CODE", "The code is invalid or has expired", 400)
+
+
+# ------- Profile and account (docs/specs/f15-profile.md) -------
+
+
+class InvalidPasswordError(AppError):
+    """The current password re-entered for a sensitive action is wrong."""
+
+    def __init__(self) -> None:
+        super().__init__("INVALID_PASSWORD", "The current password is wrong", 403)
+
+
+class NoPasswordError(AppError):
+    """The account signs in with Google only and has no password."""
+
+    def __init__(self) -> None:
+        super().__init__("NO_PASSWORD", "This account has no password", 409)
+
+
+class ConfirmationMismatchError(AppError):
+    def __init__(self) -> None:
+        super().__init__("CONFIRMATION_MISMATCH", "The confirmation does not match", 422)

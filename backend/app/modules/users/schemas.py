@@ -57,3 +57,18 @@ class ConsentListOut(BaseModel):
 
     items: list[ConsentOut]
     current_versions: dict[str, str]
+
+
+class UpdateMeRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    locale: Locale
+
+
+class DeleteAccountRequest(BaseModel):
+    """Password accounts send `password`; Google-only accounts retype `confirm_email`."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    password: str | None = Field(default=None, max_length=1024)
+    confirm_email: str | None = Field(default=None, max_length=254)

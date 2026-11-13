@@ -12,12 +12,14 @@ from app.api.errors import app_error_handler
 from app.core.exceptions import AppError, InvalidRefreshTokenError
 from app.core.security import access_token_ttl_seconds
 from app.db.session import get_db
-from app.integrations.email import Mailer, get_mailer
+from app.integrations.email import Mailer, get_mailer, send_quietly
 from app.modules.auth.cookies import REFRESH_COOKIE, clear_session_cookies, set_session_cookies
 from app.modules.auth.dependencies import get_client_info, get_current_user
+from app.modules.auth.email_templates import account_email
 from app.modules.auth.password_reset import PasswordReset
 from app.modules.auth.schemas import (
     AuthSessionOut,
+    ChangePasswordRequest,
     ClientPlatform,
     LoginRequest,
     PasswordResetConfirmRequest,
@@ -188,3 +190,30 @@ async def confirm_password_reset(
 ) -> Response:
     await PasswordReset(db, mailer).reset(body.email, body.code, body.new_password)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post(
+    "/password/change",
+    response_model=AuthSessionOut,
+    response_model_exclude_none=True,
+    operation_id="changePassword",
+)
+async def change_password(
+    body: ChangePasswordRequest,
+    user: CurrentUser,
+    platform: PlatformHeader,
+    response: Response,
+    db: Db,
+    client: Client,
+    mailer: Mail,
+) -> AuthSessionOut:
+    """Every other session is signed out; this device gets a fresh session."""
+    issued = await AuthService(db).change_password(
+        user=user,
+        current_password=body.current_password,
+        new_password=body.new_password,
+        client=client,
+    )
+    alert = account_email("password_changed", user.email, user.locale)
+    await send_quietly(mailer, alert, "password_changed")
+    return _session_response(issued, platform, response)

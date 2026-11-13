@@ -34,6 +34,7 @@ from app.core.security import (
 from app.modules.auth.email import normalize_email
 from app.modules.auth.models import AuthIdentity, RefreshToken
 from app.modules.auth.password_policy import check_password
+from app.modules.auth.reauth import PasswordConfirmation
 from app.modules.auth.repository import AuthRepository
 from app.modules.users.models import User
 from app.modules.users.service import EmailAlreadyUsedError, UserService
@@ -141,6 +142,21 @@ class AuthService:
             await self._users.update_password_hash(user, hash_password(password))
 
         logger.info("User signed in (user_id=%s)", user.id)
+        return await self._start_session(user, client)
+
+    # ----------------------------------------------------------- change password
+
+    async def change_password(
+        self, *, user: User, current_password: str, new_password: str, client: ClientInfo
+    ) -> IssuedSession:
+        """Signs out every session, then starts a fresh one for this device."""
+        await PasswordConfirmation(self._limiter).confirm(user, current_password)
+        problem = check_password(new_password, user.email)
+        if problem is not None:
+            raise WeakPasswordError(problem)
+        await self._users.update_password_hash(user, hash_password(new_password))
+        await self._repo.revoke_all_for_user(user.id, _utcnow())
+        logger.info("Password changed (user_id=%s)", user.id)
         return await self._start_session(user, client)
 
     # ------------------------------------------------------------------- refresh

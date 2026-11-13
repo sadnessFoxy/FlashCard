@@ -4,15 +4,26 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, Header, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.exceptions import ValidationError
 from app.db.session import get_db
+from app.modules.auth.cookies import clear_session_cookies
 from app.modules.auth.dependencies import get_current_user
+from app.modules.auth.schemas import ClientPlatform
+from app.modules.documents.queue import JobQueue, get_job_queue
+from app.modules.users.account_deletion import AccountDeletion
 from app.modules.users.models import User
-from app.modules.users.schemas import ConsentListOut, ConsentOut, ConsentRequest, UserOut
+from app.modules.users.schemas import (
+    ConsentListOut,
+    ConsentOut,
+    ConsentRequest,
+    DeleteAccountRequest,
+    UpdateMeRequest,
+    UserOut,
+)
 from app.modules.users.service import UserService
 
 router = APIRouter()
@@ -58,3 +69,27 @@ async def give_consent(
     if not created:
         response.status_code = status.HTTP_200_OK
     return ConsentOut.model_validate(consent)
+
+
+@router.patch("/me", response_model=UserOut, operation_id="updateMe")
+async def update_me(body: UpdateMeRequest, user: CurrentUser, db: Db) -> UserOut:
+    """Interface language, kept per account (U10)."""
+    return UserOut.from_model(await UserService(db).update_locale(user, body.locale))
+
+
+@router.post("/me/deletion", status_code=status.HTTP_204_NO_CONTENT, operation_id="deleteMe")
+async def delete_me(
+    body: DeleteAccountRequest,
+    user: CurrentUser,
+    db: Db,
+    queue: Annotated[JobQueue, Depends(get_job_queue)],
+    platform: Annotated[ClientPlatform, Header(alias="X-Client-Platform")],
+) -> Response:
+    """Permanently delete the account and everything in it (U9)."""
+    await AccountDeletion(db, queue).delete(
+        user, password=body.password, confirm_email=body.confirm_email
+    )
+    response = Response(status_code=status.HTTP_204_NO_CONTENT)
+    if platform == "web":
+        clear_session_cookies(response)
+    return response

@@ -127,6 +127,81 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/auth/email-verification": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Email a fresh 6-digit verification code (no-op when already verified)
+         * @description Registration already sends one. At most one per minute and 5 per hour.
+         */
+        post: operations["sendEmailVerification"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/email-verification/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Verify the email with the emailed code */
+        post: operations["confirmEmailVerification"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/password-reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Email a password reset code if the account exists
+         * @description Always 202 with no body, whether or not the email exists or the request was rate
+         *     limited, so it cannot reveal accounts. Google-only accounts get a pointer to Google sign-in.
+         */
+        post: operations["requestPasswordReset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/password-reset/confirm": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Set a new password with the emailed code; signs out every session */
+        post: operations["confirmPasswordReset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/me": {
         parameters: {
             query?: never;
@@ -138,6 +213,44 @@ export interface paths {
         get: operations["getMe"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Change the interface language (kept per account) */
+        patch: operations["updateMe"];
+        trace?: never;
+    };
+    "/v1/me/deletion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Permanently delete the account and all its data
+         * @description Password accounts send `password`; Google-only accounts retype their email in `confirm_email`.
+         */
+        post: operations["deleteMe"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/password/change": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Change the password; signs out every other session and returns a fresh one */
+        post: operations["changePassword"];
         delete?: never;
         options?: never;
         head?: never;
@@ -880,6 +993,30 @@ export interface components {
             items: components["schemas"]["Flashcard"][];
             total_due: number;
         };
+        VerifyEmailRequest: {
+            /** @description The 6-digit code from the email. */
+            code: string;
+        };
+        PasswordResetRequest: {
+            email: string;
+        };
+        PasswordResetConfirmRequest: {
+            email: string;
+            /** @description The 6-digit code from the email. */
+            code: string;
+            new_password: string;
+        };
+        UpdateMeRequest: {
+            locale: components["schemas"]["Locale"];
+        };
+        DeleteAccountRequest: {
+            password?: string | null;
+            confirm_email?: string | null;
+        };
+        ChangePasswordRequest: {
+            current_password: string;
+            new_password: string;
+        };
         /** @enum {string} */
         Locale: "vi" | "en";
         /** @enum {string} */
@@ -1051,6 +1188,15 @@ export interface components {
         };
         /** @description `AI_TEMPORARILY_UNAVAILABLE`: the AI provider cannot be reached right now. */
         AiUnavailable: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ErrorResponse"];
+            };
+        };
+        /** @description `INVALID_CODE`: wrong, expired, already used, or too many wrong tries */
+        InvalidCode: {
             headers: {
                 [name: string]: unknown;
             };
@@ -1324,6 +1470,112 @@ export interface operations {
             422: components["responses"]["ValidationError"];
         };
     };
+    sendEmailVerification: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sent (or nothing to do) */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["CsrfRejected"];
+            429: components["responses"]["TooManyAttempts"];
+        };
+    };
+    confirmEmailVerification: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["VerifyEmailRequest"];
+            };
+        };
+        responses: {
+            /** @description Verified; the updated user */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["User"];
+                };
+            };
+            400: components["responses"]["InvalidCode"];
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["CsrfRejected"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    requestPasswordReset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordResetRequest"];
+            };
+        };
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            403: components["responses"]["CsrfRejected"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    confirmPasswordReset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PasswordResetConfirmRequest"];
+            };
+        };
+        responses: {
+            /** @description Password changed; all refresh tokens revoked; email marked verified */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            400: components["responses"]["InvalidCode"];
+            403: components["responses"]["CsrfRejected"];
+            /** @description `VALIDATION_ERROR`, or `WEAK_PASSWORD` with `reason` */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     getMe: {
         parameters: {
             query?: never;
@@ -1352,6 +1604,134 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
+        };
+    };
+    updateMe: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateMeRequest"];
+            };
+        };
+        responses: {
+            /** @description Updated user */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["User"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["CsrfRejected"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    deleteMe: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description `native` returns tokens in the body; `web` sets httpOnly cookies and omits tokens. */
+                "X-Client-Platform": components["parameters"]["ClientPlatform"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeleteAccountRequest"];
+            };
+        };
+        responses: {
+            /** @description Deleted; web session cookies cleared */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["UnauthorizedError"];
+            /** @description `INVALID_PASSWORD` or `CSRF_REJECTED` */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description `VALIDATION_ERROR` or `CONFIRMATION_MISMATCH` */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            429: components["responses"]["TooManyAttempts"];
+        };
+    };
+    changePassword: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description `native` returns tokens in the body; `web` sets httpOnly cookies and omits tokens. */
+                "X-Client-Platform": components["parameters"]["ClientPlatform"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ChangePasswordRequest"];
+            };
+        };
+        responses: {
+            /** @description New session (tokens in the body for native, cookies for web) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthSession"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            /** @description `INVALID_PASSWORD` or `CSRF_REJECTED` */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description `NO_PASSWORD`: Google-only account */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description `VALIDATION_ERROR`, or `WEAK_PASSWORD` with `reason` */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            429: components["responses"]["TooManyAttempts"];
         };
     };
     listMyConsents: {

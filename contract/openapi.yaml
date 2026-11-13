@@ -322,6 +322,104 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+    patch:
+      tags: [users]
+      operationId: updateMe
+      summary: Change the interface language (kept per account)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateMeRequest"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/CsrfRejected"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /v1/me/deletion:
+    post:
+      tags: [users]
+      operationId: deleteMe
+      summary: Permanently delete the account and all its data
+      description: Password accounts send `password`; Google-only accounts retype their email in `confirm_email`.
+      parameters:
+        - $ref: "#/components/parameters/ClientPlatform"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeleteAccountRequest"
+      responses:
+        "204":
+          description: Deleted; web session cookies cleared
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          description: "`INVALID_PASSWORD` or `CSRF_REJECTED`"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: "`VALIDATION_ERROR` or `CONFIRMATION_MISMATCH`"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          $ref: "#/components/responses/TooManyAttempts"
+  /v1/auth/password/change:
+    post:
+      tags: [auth]
+      operationId: changePassword
+      summary: Change the password; signs out every other session and returns a fresh one
+      parameters:
+        - $ref: "#/components/parameters/ClientPlatform"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangePasswordRequest"
+      responses:
+        "200":
+          description: New session (tokens in the body for native, cookies for web)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthSession"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          description: "`INVALID_PASSWORD` or `CSRF_REJECTED`"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: "`NO_PASSWORD`: Google-only account"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: "`VALIDATION_ERROR`, or `WEAK_PASSWORD` with `reason`"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          $ref: "#/components/responses/TooManyAttempts"
   /v1/me/consents:
     get:
       tags: [users]
@@ -1887,6 +1985,34 @@ components:
           type: string
           pattern: "^\\s*\\d{6}\\s*$"
           description: The 6-digit code from the email.
+        new_password:
+          type: string
+          maxLength: 1024
+    UpdateMeRequest:
+      type: object
+      additionalProperties: false
+      required: [locale]
+      properties:
+        locale:
+          $ref: "#/components/schemas/Locale"
+    DeleteAccountRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        password:
+          type: [string, "null"]
+          maxLength: 1024
+        confirm_email:
+          type: [string, "null"]
+          maxLength: 254
+    ChangePasswordRequest:
+      type: object
+      additionalProperties: false
+      required: [current_password, new_password]
+      properties:
+        current_password:
+          type: string
+          maxLength: 1024
         new_password:
           type: string
           maxLength: 1024

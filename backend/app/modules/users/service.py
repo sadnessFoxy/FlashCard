@@ -35,6 +35,11 @@ class UserService:
         except IntegrityError as exc:
             raise EmailAlreadyUsedError from exc
 
+    async def update_locale(self, user: User, locale: str) -> User:
+        user.locale = locale
+        await self._session.flush()
+        return user
+
     async def update_password_hash(self, user: User, password_hash: str) -> None:
         user.password_hash = password_hash
         await self._session.flush()

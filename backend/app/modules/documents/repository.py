@@ -103,6 +103,13 @@ class DocumentRepository:
         )
         return [(row[0], row[1]) for row in result.all()]
 
+    async def all_for_owner(self, owner_id: uuid.UUID) -> list[tuple[uuid.UUID, str]]:
+        """(id, storage_key) of every document of the owner, in any status."""
+        result = await self._session.execute(
+            select(Document.id, Document.storage_key).where(Document.owner_id == owner_id)
+        )
+        return [(row[0], row[1]) for row in result.all()]
+
     async def delete_if_deleting(self, document_id: uuid.UUID) -> bool:
         result = await self._session.execute(
             delete(Document)
