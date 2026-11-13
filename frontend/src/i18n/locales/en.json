@@ -8,7 +8,8 @@
     "confirm": "Confirm",
     "save": "Save",
     "delete": "Delete",
-    "back": "Back"
+    "back": "Back",
+    "close": "Close"
   },
   "auth": {
     "login": "Sign in",
@@ -166,6 +167,32 @@
       "pages_other": "{{count}} pages",
       "size": "Size: {{size}}",
       "uploaded": "Uploaded: {{date}}"
+    }
+  },
+  "chat": {
+    "quota": "{{remaining}}/{{limit}} questions left today",
+    "newConversation": "New conversation",
+    "placeholder": "Ask about your documents…",
+    "send": "Send",
+    "thinking": "Searching your documents…",
+    "emptyHint": "Ask anything about the documents in this space. Answers come with page citations.",
+    "noDocumentsTitle": "No documents ready yet",
+    "noDocumentsHint": "Upload documents in the Documents tab and wait for processing to finish to start asking.",
+    "notFound": "This isn't covered in the selected documents.",
+    "retrievalOnly": "AI is taking a break. Here are the most relevant passages from your documents (no question used).",
+    "partial": "The answer was cut off.",
+    "failed": "Couldn't answer this question.",
+    "page": "page {{page}}",
+    "pages": "pages {{start}}–{{end}}",
+    "deletedDocument": "deleted document",
+    "errors": {
+      "quota": "You've used all your questions for today.",
+      "quotaUntil": "You've used all your questions for today. New ones at {{time}}.",
+      "aiUnavailable": "AI is taking a break, please try again in a few minutes.",
+      "network": "Connection lost. Your question is still in the box; send it again.",
+      "notFound": "This conversation no longer exists.",
+      "invalid": "Invalid question (max 2,000 characters).",
+      "generic": "Something went wrong. Please send your question again."
     }
   }
 }

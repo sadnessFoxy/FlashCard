@@ -27,7 +27,7 @@ from app.modules.users.schemas import UserOut
 router = APIRouter()
 
 PlatformHeader = Annotated[ClientPlatform, Header(alias="X-Client-Platform")]
-Db = Annotated[AsyncSession, Depends(get_db)]
+Db = Annotated[AsyncSession, Depends(get_db, scope="function")]
 Client = Annotated[ClientInfo, Depends(get_client_info)]
 
 

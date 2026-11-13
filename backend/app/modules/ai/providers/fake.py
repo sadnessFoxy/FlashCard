@@ -21,6 +21,10 @@ class FakeProvider(LLMProvider):
         # Errors raised by the next embed calls, in order; None means succeed.
         self.embed_script: list[AppError | None] = []
         self.embed_calls: list[list[str]] = []
+        # Next chat answers, in order: a string (streamed word by word), an error raised
+        # before the first token, or (partial_text, error) to fail mid-stream.
+        self.chat_script: list[str | AppError | tuple[str, AppError]] = []
+        self.chat_calls: list[dict[str, Any]] = []
 
     @property
     def embedding_dimensions(self) -> int:
@@ -51,8 +55,16 @@ class FakeProvider(LLMProvider):
         max_tokens: int | None = None,
         temperature: float = 0.7,
     ) -> AsyncGenerator[str, None]:
-        for word in "[FAKE] Canned answer. Use a real provider for real answers.".split():
-            yield word + " "
+        self.chat_calls.append({"messages": messages, "system_prompt": system_prompt})
+        step = self.chat_script.pop(0) if self.chat_script else "[FAKE] Canned answer [1]."
+        if isinstance(step, AppError):
+            raise step
+        text, failure = (step, None) if isinstance(step, str) else step
+        words = text.split(" ")
+        for i, word in enumerate(words):
+            yield word if i == len(words) - 1 else word + " "
+        if failure is not None:
+            raise failure
 
     async def generate(
         self,

@@ -285,6 +285,91 @@ export interface paths {
         patch: operations["renameSpace"];
         trace?: never;
     };
+    "/v1/usage/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Today's question quota (resets at local midnight, UTC+7) */
+        get: operations["getMyUsage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/conversations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The caller's conversations in a space, most recently updated first (latest 20) */
+        get: operations["listConversations"];
+        put?: never;
+        /** Start a conversation in a space */
+        post: operations["createConversation"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/conversations/{conversation_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversation_id: components["parameters"]["ConversationId"];
+            };
+            cookie?: never;
+        };
+        /** A conversation with its messages, oldest first */
+        get: operations["getConversation"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/conversations/{conversation_id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversation_id: components["parameters"]["ConversationId"];
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ask a question; the answer streams back as Server-Sent Events
+         * @description Each event has `event: <name>` and `data: <JSON>`, in this order:
+         *     - `start` (`ChatStartEvent`): the saved question, the answer's message id and the planned mode
+         *     - `citations` (`ChatCitationsEvent`): the sources, before any text (not sent for `not_found`)
+         *     - `delta` (`ChatDeltaEvent`), repeated: the next piece of answer text (only for `answer`)
+         *     - `done` (`ChatDoneEvent`): the final saved message; its `mode` is authoritative
+         *       (it can become `not_found` or `retrieval_only` after `start`)
+         *     - `error` (`ChatErrorEvent`): the stream failed; any partial text is saved with status `partial`
+         *
+         *     Errors before the stream starts (quota, not found, AI unavailable while searching) are JSON `ErrorResponse`s.
+         *     `not_found` and `retrieval_only` answers do not use the daily quota.
+         */
+        post: operations["sendMessage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -316,6 +401,13 @@ export interface components {
             max_size_mb?: number;
             /** @description Set with `DOCUMENT_NOT_RETRYABLE`: the document's current status. */
             status?: string;
+            /** @description Set with `USER_QUOTA_EXCEEDED`. */
+            quota_remaining?: number;
+            /**
+             * Format: date-time
+             * @description Set with `USER_QUOTA_EXCEEDED`: when the daily quota resets.
+             */
+            quota_reset_at?: string;
             /** @description Set with `VALIDATION_ERROR`: which fields are invalid. */
             errors?: {
                 /** @example email */
@@ -323,6 +415,122 @@ export interface components {
                 /** @example value_error */
                 type: string;
             }[];
+        };
+        Usage: {
+            daily_limit: number;
+            used_today: number;
+            remaining: number;
+            /** Format: date-time */
+            resets_at: string;
+        };
+        CreateConversationRequest: {
+            /** Format: uuid */
+            space_id: string;
+        };
+        Conversation: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            space_id: string;
+            /** @description First question, cut to 80 characters; null until the first question. */
+            title: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        ConversationList: {
+            items: components["schemas"]["Conversation"][];
+        };
+        ConversationDetail: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            space_id: string;
+            title: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            messages: components["schemas"]["Message"][];
+        };
+        SendMessageRequest: {
+            /** @description The question; trimmed, must not be blank. */
+            content: string;
+            /**
+             * @description Ask only these documents. Omitted or null means every READY document in the space.
+             *     IDs that are not the caller's READY documents in this space are ignored.
+             */
+            document_ids?: string[] | null;
+        };
+        /** @description Snapshot saved with the message, so it still shows after the document is deleted. */
+        Citation: {
+            /** @description The number used as [n] in the answer. */
+            index: number;
+            /**
+             * Format: uuid
+             * @description Null once the document has been deleted.
+             */
+            document_id: string | null;
+            document_name: string;
+            page_start: number;
+            page_end: number;
+            snippet: string;
+        };
+        /**
+         * @description `question` for the user's message. For answers: `answer` (AI answer with citations),
+         *     `retrieval_only` (AI unavailable, only the matching passages), `not_found` (nothing relevant).
+         * @enum {string}
+         */
+        MessageMode: "question" | "answer" | "retrieval_only" | "not_found";
+        Message: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            conversation_id: string;
+            /** @enum {string} */
+            role: "user" | "assistant";
+            /** @description Empty for `not_found` and `retrieval_only`; the client shows a localized text. */
+            content: string;
+            mode: components["schemas"]["MessageMode"];
+            /**
+             * @description `partial`: the stream broke after some text; `error`: it broke before any.
+             * @enum {string}
+             */
+            status: "pending" | "complete" | "partial" | "error";
+            error_code: string | null;
+            citations: components["schemas"]["Citation"][];
+            /** @description The document selection used for the question; null means all. */
+            document_ids: string[] | null;
+            /** Format: date-time */
+            created_at: string;
+        };
+        ChatStartEvent: {
+            user_message: components["schemas"]["Message"];
+            /** Format: uuid */
+            assistant_message_id: string;
+            /** @enum {string} */
+            mode: "answer" | "retrieval_only" | "not_found";
+        };
+        ChatCitationsEvent: {
+            citations: components["schemas"]["Citation"][];
+        };
+        ChatDeltaEvent: {
+            text: string;
+        };
+        ChatDoneEvent: {
+            message: components["schemas"]["Message"];
+        };
+        ChatErrorEvent: {
+            /**
+             * @example AI_TEMPORARILY_UNAVAILABLE
+             * @example USER_QUOTA_EXCEEDED
+             */
+            code: string;
+            /** @description Developer-facing; the client maps `code` to an i18n message. */
+            message: string;
+            /** Format: date-time */
+            quota_reset_at?: string;
         };
         /** @enum {string} */
         Locale: "vi" | "en";
@@ -484,6 +692,24 @@ export interface components {
                 "application/json": components["schemas"]["ErrorResponse"];
             };
         };
+        /** @description `USER_QUOTA_EXCEEDED`: no questions left today; includes `quota_remaining` (0) and `quota_reset_at`. */
+        UserQuotaExceeded: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ErrorResponse"];
+            };
+        };
+        /** @description `AI_TEMPORARILY_UNAVAILABLE`: the AI provider cannot be reached right now. */
+        AiUnavailable: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ErrorResponse"];
+            };
+        };
         /** @description `SPACE_NAME_TAKEN`: the caller already has a space with this name (case-insensitive) */
         SpaceNameTaken: {
             headers: {
@@ -533,6 +759,7 @@ export interface components {
     };
     parameters: {
         SpaceId: string;
+        ConversationId: string;
         /** @description `native` returns tokens in the body; `web` sets httpOnly cookies and omits tokens. */
         ClientPlatform: "web" | "native";
     };
@@ -1203,6 +1430,137 @@ export interface operations {
             404: components["responses"]["NotFound"];
             409: components["responses"]["SpaceNameTaken"];
             422: components["responses"]["ValidationError"];
+        };
+    };
+    getMyUsage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Quota status */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Usage"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+        };
+    };
+    listConversations: {
+        parameters: {
+            query: {
+                space_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Conversations */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationList"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    createConversation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateConversationRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Conversation"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["CsrfRejected"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    getConversation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversation_id: components["parameters"]["ConversationId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The conversation */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationDetail"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    sendMessage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversation_id: components["parameters"]["ConversationId"];
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SendMessageRequest"];
+            };
+        };
+        responses: {
+            /** @description Server-Sent Events stream */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/event-stream": string;
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["CsrfRejected"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+            429: components["responses"]["UserQuotaExceeded"];
+            503: components["responses"]["AiUnavailable"];
         };
     };
 }

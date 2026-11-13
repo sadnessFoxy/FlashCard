@@ -21,7 +21,7 @@ from app.modules.users.models import User
 router = APIRouter()
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
-Db = Annotated[AsyncSession, Depends(get_db)]
+Db = Annotated[AsyncSession, Depends(get_db, scope="function")]
 Queue = Annotated[JobQueue, Depends(get_job_queue)]
 Storage = Annotated[ObjectStorage, Depends(get_storage)]
 

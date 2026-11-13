@@ -8,7 +8,8 @@
     "confirm": "Xác nhận",
     "save": "Lưu",
     "delete": "Xóa",
-    "back": "Quay lại"
+    "back": "Quay lại",
+    "close": "Đóng"
   },
   "auth": {
     "login": "Đăng nhập",
@@ -166,6 +167,32 @@
       "pages_other": "{{count}} trang",
       "size": "Dung lượng: {{size}}",
       "uploaded": "Tải lên: {{date}}"
+    }
+  },
+  "chat": {
+    "quota": "Còn {{remaining}}/{{limit}} câu hỏi hôm nay",
+    "newConversation": "Hội thoại mới",
+    "placeholder": "Đặt câu hỏi về tài liệu của bạn…",
+    "send": "Gửi",
+    "thinking": "Đang tìm trong tài liệu…",
+    "emptyHint": "Hỏi bất cứ điều gì về các tài liệu trong không gian này. Câu trả lời sẽ kèm trích dẫn trang.",
+    "noDocumentsTitle": "Chưa có tài liệu sẵn sàng",
+    "noDocumentsHint": "Tải tài liệu lên ở tab Tài liệu và chờ xử lý xong để bắt đầu hỏi đáp.",
+    "notFound": "Không tìm thấy nội dung này trong các tài liệu đã chọn.",
+    "retrievalOnly": "AI đang tạm nghỉ. Đây là các đoạn liên quan nhất trong tài liệu của bạn (không tính lượt hỏi).",
+    "partial": "Câu trả lời bị ngắt giữa chừng.",
+    "failed": "Chưa trả lời được câu hỏi này.",
+    "page": "trang {{page}}",
+    "pages": "trang {{start}}–{{end}}",
+    "deletedDocument": "tài liệu đã xóa",
+    "errors": {
+      "quota": "Bạn đã dùng hết lượt hỏi hôm nay.",
+      "quotaUntil": "Bạn đã dùng hết lượt hỏi hôm nay. Lượt mới có lúc {{time}}.",
+      "aiUnavailable": "AI đang tạm nghỉ, vui lòng thử lại sau ít phút.",
+      "network": "Mất kết nối. Câu hỏi vẫn còn trong ô nhập, hãy gửi lại.",
+      "notFound": "Hội thoại này không còn tồn tại.",
+      "invalid": "Câu hỏi không hợp lệ (tối đa 2.000 ký tự).",
+      "generic": "Đã có lỗi xảy ra. Hãy gửi lại câu hỏi."
     }
   }
 }

@@ -90,7 +90,21 @@ def assert_response_matches_contract(response: httpx.Response) -> None:
     request = response.request
     path = request.url.path
     declared = _declared_response(request.method, path, response.status_code)
-    if "content" in declared:
+    if "content" in declared and "application/json" not in declared["content"]:
+        media = response.headers.get("content-type", "").split(";")[0]
+        assert media in declared["content"], f"{request.method} {path}: {media} not declared"
+    elif "content" in declared:
         assert_matches_contract(request.method, path, response.status_code, response.json())
     else:
         assert not response.content, f"{request.method} {path}: contract declares no body"
+
+
+def assert_component_matches(name: str, body: Any) -> None:
+    """Validate a payload against `#/components/schemas/<name>` (e.g. an SSE event)."""
+    validator = Draft202012Validator(
+        {"$ref": f"{_CONTRACT_URI}#/components/schemas/{name}"}, registry=_registry()
+    )
+    errors = sorted(validator.iter_errors(body), key=str)
+    assert not errors, f"{name} does not match the contract:\n" + "\n".join(
+        f"- {'/'.join(map(str, e.absolute_path)) or '<root>'}: {e.message}" for e in errors
+    )

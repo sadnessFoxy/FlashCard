@@ -67,6 +67,13 @@ function encodeBody(body: unknown): BodyInit | undefined {
   return isFormData(body) ? body : JSON.stringify(body);
 }
 
+function nativeStreamingFetch(): typeof fetch {
+  // Loaded lazily so web bundles and Jest never touch the native module.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const mod = require("expo/fetch") as { fetch: unknown };
+  return mod.fetch as typeof fetch;
+}
+
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -103,8 +110,11 @@ async function send(
     controller.abort(options.signal?.reason),
   );
 
+  // React Native's fetch buffers the whole body; expo/fetch streams it.
+  const doFetch = options.isStream && !IS_WEB ? nativeStreamingFetch() : fetch;
+
   try {
-    return await fetch(url, {
+    return await doFetch(url, {
       method: options.method ?? "GET",
       headers: await buildHeaders(options),
       body: encodeBody(options.body),
@@ -116,7 +126,8 @@ async function send(
       if (controller.signal.reason === "timeout") throw new TimeoutError();
       throw error; // cancelled by the caller
     }
-    if (attempt < MAX_NETWORK_RETRIES) {
+    // Never resend a question automatically: it may already have been received.
+    if (attempt < MAX_NETWORK_RETRIES && !options.isStream) {
       await sleep(RETRY_DELAY_MS * (attempt + 1));
       return send(url, options, attempt + 1);
     }

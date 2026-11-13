@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import { ApiError } from "../../api/errors";
 import { Button } from "../../components/ui/Button";
 import { colors, fontSize, radius, spacing } from "../../theme/tokens";
+import { ChatTab } from "../chat/ChatTab";
 import { DocumentsTab } from "../documents/DocumentsTab";
 import { useDeleteSpace, useRenameSpace, useSpace } from "./hooks";
 import { DeleteSpaceDialog, SpaceNameDialog } from "./SpaceDialogs";
@@ -102,8 +103,10 @@ export function SpaceDetailScreen({ id }: { id: string }) {
 
       {tab === "documents" ? (
         <DocumentsTab spaceId={id} />
+      ) : tab === "chat" ? (
+        <ChatTab spaceId={id} />
       ) : (
-        // Chat (F7), cards (F9) and quizzes (F11) arrive in later slices.
+        // Cards (F9) and quizzes (F11) arrive in later slices.
         <View style={styles.placeholder} testID={`space-tab-${tab}`}>
           <Text style={styles.muted}>{t("spaces.comingSoon")}</Text>
         </View>

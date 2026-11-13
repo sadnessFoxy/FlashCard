@@ -20,7 +20,7 @@ from app.modules.users.models import User
 router = APIRouter()
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
-Db = Annotated[AsyncSession, Depends(get_db)]
+Db = Annotated[AsyncSession, Depends(get_db, scope="function")]
 
 
 @router.get("", response_model=SpaceListOut, operation_id="listSpaces")

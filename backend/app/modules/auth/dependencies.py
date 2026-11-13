@@ -29,7 +29,9 @@ def access_token_from_request(request: Request) -> str | None:
     return _bearer_token(request) or request.cookies.get(ACCESS_COOKIE)
 
 
-async def get_current_user(request: Request, db: AsyncSession = Depends(get_db)) -> User:
+async def get_current_user(
+    request: Request, db: AsyncSession = Depends(get_db, scope="function")
+) -> User:
     token = access_token_from_request(request)
     if not token:
         raise UnauthorizedError()

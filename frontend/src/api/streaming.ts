@@ -1,91 +1,61 @@
 /**
- * Server-Sent Events (SSE) reader for streaming Q&A.
- * Each event is a JSON chunk as defined in contract/openapi.yaml.
+ * Server-Sent Events reader for streamed answers (contract: POST /v1/conversations/{id}/messages).
+ * Each event is `event: <name>` + `data: <JSON>` separated by a blank line.
  */
 
-import { ApiError, type ApiErrorCode } from "./errors";
-
-export interface StreamChunk {
-  type: "text" | "citation" | "error" | "done";
-  content?: string;
-  citations?: Array<{
-    document_id: string;
-    page: number;
-    excerpt: string;
-  }>;
-  error_code?: ApiErrorCode;
-  error_message?: string;
+export interface SseEvent {
+  event: string;
+  data: unknown;
 }
 
-export type StreamChunkCallback = (chunk: StreamChunk) => void;
-export type StreamErrorCallback = (error: ApiError) => void;
-export type StreamDoneCallback = () => void;
+/** Split complete events off the buffer; the unfinished tail is returned as `rest`. */
+export function parseSse(buffer: string): { events: SseEvent[]; rest: string } {
+  const normalized = buffer.replace(/\r\n/g, "\n");
+  const blocks = normalized.split("\n\n");
+  const rest = blocks.pop() ?? "";
+  const events: SseEvent[] = [];
+  for (const block of blocks) {
+    let event = "message";
+    const data: string[] = [];
+    for (const line of block.split("\n")) {
+      if (line.startsWith("event:")) event = line.slice(6).trim();
+      else if (line.startsWith("data:")) data.push(line.slice(5).trimStart());
+    }
+    if (data.length === 0) continue;
+    try {
+      events.push({ event, data: JSON.parse(data.join("\n")) });
+    } catch {
+      // ignore malformed events
+    }
+  }
+  return { events, rest };
+}
 
-/**
- * Read an SSE response and invoke the callbacks per chunk.
- */
-export async function readStream(
+/** Feed every event of a streaming response to `onEvent`, as it arrives. */
+export async function readSse(
   response: Response,
-  onChunk: StreamChunkCallback,
-  onError: StreamErrorCallback,
-  onDone: StreamDoneCallback,
+  onEvent: (event: SseEvent) => void,
 ): Promise<void> {
-  if (!response.body) {
-    onError(new ApiError("INTERNAL_SERVER_ERROR", "Response body is empty"));
+  const body = response.body;
+  if (!body || typeof body.getReader !== "function") {
+    // Fetch without streaming support: deliver everything at the end.
+    const { events } = parseSse(`${await response.text()}\n\n`);
+    events.forEach(onEvent);
     return;
   }
-
-  const reader = response.body.getReader();
+  const reader = body.getReader();
   const decoder = new TextDecoder();
   let buffer = "";
-
   try {
-    while (true) {
+    for (;;) {
       const { done, value } = await reader.read();
-
-      if (done) {
-        onDone();
-        break;
-      }
-
+      if (done) break;
       buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop() ?? "";
-
-      for (const line of lines) {
-        if (line.startsWith("data: ")) {
-          const data = line.slice(6).trim();
-          if (data === "[DONE]") {
-            onDone();
-            return;
-          }
-
-          try {
-            const chunk = JSON.parse(data) as StreamChunk;
-
-            if (chunk.type === "error" && chunk.error_code) {
-              onError(
-                new ApiError(
-                  chunk.error_code,
-                  chunk.error_message ?? "Stream error",
-                ),
-              );
-              return;
-            }
-
-            onChunk(chunk);
-          } catch {
-            // Skip lines that are not valid JSON
-          }
-        }
-      }
+      const parsed = parseSse(buffer);
+      buffer = parsed.rest;
+      parsed.events.forEach(onEvent);
     }
-  } catch (error) {
-    if (error instanceof Error) {
-      onError(new ApiError("NETWORK_ERROR", error.message));
-    } else {
-      onError(new ApiError("NETWORK_ERROR", "Unknown stream error"));
-    }
+    parseSse(`${buffer}${decoder.decode()}\n\n`).events.forEach(onEvent);
   } finally {
     reader.releaseLock();
   }

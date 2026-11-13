@@ -43,6 +43,13 @@ jest.mock("../../src/features/documents/api", () => ({
 
 const mockPush = jest.fn();
 const mockReplace = jest.fn();
+jest.mock("../../src/features/chat/api", () => ({
+  createConversation: jest.fn(),
+  getConversation: jest.fn(),
+  getUsage: jest.fn(),
+  listConversations: jest.fn(),
+  sendMessage: jest.fn(),
+}));
 jest.mock("expo-router", () => ({
   useRouter: () => ({ push: mockPush, replace: mockReplace }),
 }));

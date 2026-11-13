@@ -26,6 +26,12 @@ tags:
     description: |
       Study spaces that group documents, chats, decks and quizzes (spec: docs/specs/f4b-spaces.md).
       Other users' spaces always answer 404, never 403.
+  - name: chat
+    description: |
+      Questions over the caller's READY documents in a space, answered with page citations (spec: docs/specs/f7-qa.md).
+      Answers stream as Server-Sent Events. Other users' conversations answer 404.
+  - name: usage
+    description: The caller's daily question quota
 security:
   - BearerAuth: []
   - CookieAuth: []
@@ -579,10 +585,144 @@ paths:
           $ref: "#/components/responses/NotFound"
         "422":
           $ref: "#/components/responses/ValidationError"
+  /v1/usage/me:
+    get:
+      tags: [usage]
+      operationId: getMyUsage
+      summary: Today's question quota (resets at local midnight, UTC+7)
+      responses:
+        "200":
+          description: Quota status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Usage"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+  /v1/conversations:
+    get:
+      tags: [chat]
+      operationId: listConversations
+      summary: The caller's conversations in a space, most recently updated first (latest 20)
+      parameters:
+        - name: space_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Conversations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConversationList"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+    post:
+      tags: [chat]
+      operationId: createConversation
+      summary: Start a conversation in a space
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateConversationRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Conversation"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/CsrfRejected"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /v1/conversations/{conversation_id}:
+    parameters:
+      - $ref: "#/components/parameters/ConversationId"
+    get:
+      tags: [chat]
+      operationId: getConversation
+      summary: A conversation with its messages, oldest first
+      responses:
+        "200":
+          description: The conversation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConversationDetail"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /v1/conversations/{conversation_id}/messages:
+    parameters:
+      - $ref: "#/components/parameters/ConversationId"
+    post:
+      tags: [chat]
+      operationId: sendMessage
+      summary: Ask a question; the answer streams back as Server-Sent Events
+      description: |
+        Each event has `event: <name>` and `data: <JSON>`, in this order:
+        - `start` (`ChatStartEvent`): the saved question, the answer's message id and the planned mode
+        - `citations` (`ChatCitationsEvent`): the sources, before any text (not sent for `not_found`)
+        - `delta` (`ChatDeltaEvent`), repeated: the next piece of answer text (only for `answer`)
+        - `done` (`ChatDoneEvent`): the final saved message; its `mode` is authoritative
+          (it can become `not_found` or `retrieval_only` after `start`)
+        - `error` (`ChatErrorEvent`): the stream failed; any partial text is saved with status `partial`
+
+        Errors before the stream starts (quota, not found, AI unavailable while searching) are JSON `ErrorResponse`s.
+        `not_found` and `retrieval_only` answers do not use the daily quota.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendMessageRequest"
+      responses:
+        "200":
+          description: Server-Sent Events stream
+          content:
+            text/event-stream:
+              schema:
+                type: string
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/CsrfRejected"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+        "429":
+          $ref: "#/components/responses/UserQuotaExceeded"
+        "503":
+          $ref: "#/components/responses/AiUnavailable"
 components:
   parameters:
     SpaceId:
       name: space_id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ConversationId:
+      name: conversation_id
       in: path
       required: true
       schema:
@@ -645,6 +785,14 @@ components:
         status:
           type: string
           description: "Set with `DOCUMENT_NOT_RETRYABLE`: the document's current status."
+        quota_remaining:
+          type: integer
+          minimum: 0
+          description: "Set with `USER_QUOTA_EXCEEDED`."
+        quota_reset_at:
+          type: string
+          format: date-time
+          description: "Set with `USER_QUOTA_EXCEEDED`: when the daily quota resets."
         errors:
           type: array
           description: "Set with `VALIDATION_ERROR`: which fields are invalid."
@@ -658,6 +806,220 @@ components:
               type:
                 type: string
                 examples: [value_error]
+    Usage:
+      type: object
+      additionalProperties: false
+      required: [daily_limit, used_today, remaining, resets_at]
+      properties:
+        daily_limit:
+          type: integer
+        used_today:
+          type: integer
+        remaining:
+          type: integer
+          minimum: 0
+        resets_at:
+          type: string
+          format: date-time
+    CreateConversationRequest:
+      type: object
+      additionalProperties: false
+      required: [space_id]
+      properties:
+        space_id:
+          type: string
+          format: uuid
+    Conversation:
+      type: object
+      additionalProperties: false
+      required: [id, space_id, title, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        space_id:
+          type: string
+          format: uuid
+        title:
+          type: [string, "null"]
+          maxLength: 80
+          description: First question, cut to 80 characters; null until the first question.
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    ConversationList:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Conversation"
+    ConversationDetail:
+      type: object
+      additionalProperties: false
+      required: [id, space_id, title, created_at, updated_at, messages]
+      properties:
+        id:
+          type: string
+          format: uuid
+        space_id:
+          type: string
+          format: uuid
+        title:
+          type: [string, "null"]
+          maxLength: 80
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/Message"
+    SendMessageRequest:
+      type: object
+      additionalProperties: false
+      required: [content]
+      properties:
+        content:
+          type: string
+          minLength: 1
+          maxLength: 2000
+          description: The question; trimmed, must not be blank.
+        document_ids:
+          type: [array, "null"]
+          maxItems: 100
+          description: |
+            Ask only these documents. Omitted or null means every READY document in the space.
+            IDs that are not the caller's READY documents in this space are ignored.
+          items:
+            type: string
+            format: uuid
+    Citation:
+      type: object
+      additionalProperties: false
+      required: [index, document_id, document_name, page_start, page_end, snippet]
+      description: Snapshot saved with the message, so it still shows after the document is deleted.
+      properties:
+        index:
+          type: integer
+          minimum: 1
+          description: The number used as [n] in the answer.
+        document_id:
+          type: [string, "null"]
+          format: uuid
+          description: Null once the document has been deleted.
+        document_name:
+          type: string
+        page_start:
+          type: integer
+          minimum: 1
+        page_end:
+          type: integer
+          minimum: 1
+        snippet:
+          type: string
+    MessageMode:
+      type: string
+      enum: [question, answer, retrieval_only, not_found]
+      description: |
+        `question` for the user's message. For answers: `answer` (AI answer with citations),
+        `retrieval_only` (AI unavailable, only the matching passages), `not_found` (nothing relevant).
+    Message:
+      type: object
+      additionalProperties: false
+      required: [id, conversation_id, role, content, mode, status, error_code, citations, document_ids, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        conversation_id:
+          type: string
+          format: uuid
+        role:
+          type: string
+          enum: [user, assistant]
+        content:
+          type: string
+          description: Empty for `not_found` and `retrieval_only`; the client shows a localized text.
+        mode:
+          $ref: "#/components/schemas/MessageMode"
+        status:
+          type: string
+          enum: [pending, complete, partial, error]
+          description: "`partial`: the stream broke after some text; `error`: it broke before any."
+        error_code:
+          type: [string, "null"]
+        citations:
+          type: array
+          items:
+            $ref: "#/components/schemas/Citation"
+        document_ids:
+          type: [array, "null"]
+          description: The document selection used for the question; null means all.
+          items:
+            type: string
+            format: uuid
+        created_at:
+          type: string
+          format: date-time
+    ChatStartEvent:
+      type: object
+      additionalProperties: false
+      required: [user_message, assistant_message_id, mode]
+      properties:
+        user_message:
+          $ref: "#/components/schemas/Message"
+        assistant_message_id:
+          type: string
+          format: uuid
+        mode:
+          type: string
+          enum: [answer, retrieval_only, not_found]
+    ChatCitationsEvent:
+      type: object
+      additionalProperties: false
+      required: [citations]
+      properties:
+        citations:
+          type: array
+          items:
+            $ref: "#/components/schemas/Citation"
+    ChatDeltaEvent:
+      type: object
+      additionalProperties: false
+      required: [text]
+      properties:
+        text:
+          type: string
+    ChatDoneEvent:
+      type: object
+      additionalProperties: false
+      required: [message]
+      properties:
+        message:
+          $ref: "#/components/schemas/Message"
+    ChatErrorEvent:
+      type: object
+      additionalProperties: false
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          examples: [AI_TEMPORARILY_UNAVAILABLE, USER_QUOTA_EXCEEDED]
+        message:
+          type: string
+          description: Developer-facing; the client maps `code` to an i18n message.
+        quota_reset_at:
+          type: string
+          format: date-time
     Locale:
       type: string
       enum: [vi, en]
@@ -934,6 +1296,18 @@ components:
   responses:
     NotFound:
       description: "`NOT_FOUND`: does not exist or belongs to someone else"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    UserQuotaExceeded:
+      description: "`USER_QUOTA_EXCEEDED`: no questions left today; includes `quota_remaining` (0) and `quota_reset_at`."
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    AiUnavailable:
+      description: "`AI_TEMPORARILY_UNAVAILABLE`: the AI provider cannot be reached right now."
       content:
         application/json:
           schema:

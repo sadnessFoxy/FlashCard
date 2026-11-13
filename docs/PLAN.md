@@ -17,13 +17,13 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 | 0 | Chuẩn bị & chốt quyết định | 12/16 | Đang làm | | |
 | 1 | Khởi tạo dự án | 15/19 | Đang làm | Tuần 1 | 2026-11-07 |
 | 2 | CI/CD | 0/9 | Tạm hoãn | Người dùng hoãn 2026-11-10 | |
-| 3 | Kết nối & đồng bộ dữ liệu | 2/16 | Đang làm | Tuần 2 đến 4 | |
+| 3 | Kết nối & đồng bộ dữ liệu | 3/16 | Đang làm | Tuần 2 đến 4 | |
 | 4 | Bảo mật | 5/28 | Đang làm | Tuần 2 đến 4, rà soát lại trước beta | |
-| 5 | Sức tải, hiệu năng & chi phí AI | 2/19 | Đang làm | Trước production | |
+| 5 | Sức tải, hiệu năng & chi phí AI | 3/19 | Đang làm | Trước production | |
 | 6 | Beta & chuẩn bị production | 0/10 | Chưa bắt đầu | | |
 | 7 | Ra mắt & vận hành | 0/6 | Chưa bắt đầu | | |
-| F | Lát chức năng bản 1 | 5/17 | Đang làm | Song song với giai đoạn 1 đến 6 | 2026-11-08 |
-| | **Tổng** | **41/140** | | | |
+| F | Lát chức năng bản 1 | 6/17 | Đang làm | Song song với giai đoạn 1 đến 6 | 2026-11-08 |
+| | **Tổng** | **44/140** | | | |
 
 ---
 
@@ -141,7 +141,7 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 - [ ] Push notification qua Expo Notifications (FCM/APNs)
 - [x] Hiển thị trạng thái xử lý tài liệu cho người dùng (polling hoặc thông báo) theo máy trạng thái ở docs/DATA_MODEL.md (polling 3 giây khi còn tài liệu đang xử lý, F5)
 - [ ] Khai báo mã lỗi hạn mức AI trong hợp đồng OpenAPI (`AI_TEMPORARILY_UNAVAILABLE`, `AI_RATE_LIMITED`, `USER_QUOTA_EXCEEDED`, `CONTEXT_TOO_LONG`), kể cả lỗi giữa luồng streaming (docs/QUOTA_AND_RESILIENCE.md)
-- [ ] App xử lý các mã lỗi hạn mức: thông báo thân thiện, hiện số lượt còn lại và thời điểm đặt lại, giữ lại câu hỏi đã gõ để gửi lại
+- [x] App xử lý các mã lỗi hạn mức: thông báo thân thiện, hiện số lượt còn lại và thời điểm đặt lại, giữ lại câu hỏi đã gõ để gửi lại
 
 *Tương thích phiên bản*
 - [ ] Đánh phiên bản API (`/v1`, `/v2`) và giữ tương thích ngược
@@ -222,7 +222,7 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 - [ ] Hạn mức ba tầng (hệ thống, người dùng, mỗi yêu cầu/tài liệu): đếm bằng Redis, ước lượng trước khi gọi và ghi số token thực tế vào `ai_usage`
 - [x] Phân loại lỗi và circuit breaker ở `llm_gateway`: lỗi tạm thời thì thử lại có giới hạn, lỗi hết hạn mức thì không thử lại và mở cầu dao (F5: phân biệt giới hạn tốc độ, hết hạn mức ngày hoặc billing, lỗi tạm thời)
 - [x] Trạng thái `PAUSED_QUOTA` cho job tài liệu, lưu tiến độ theo từng đoạn, tự chạy lại khi hạn mức phục hồi (F5: tác vụ định kỳ 10 phút)
-- [ ] Chế độ suy giảm khi AI ngừng: hỏi đáp chuyển sang chỉ tìm đoạn liên quan, các tính năng không cần AI vẫn chạy
+- [x] Chế độ suy giảm khi AI ngừng: hỏi đáp chuyển sang chỉ tìm đoạn liên quan, các tính năng không cần AI vẫn chạy (F7: không tạo được embedding thì tìm theo từ khóa)
 - [ ] Biện pháp giảm token: giới hạn số đoạn đưa vào ngữ cảnh, tóm tắt hội thoại cũ, mô hình nhỏ cho việc đơn giản, giới hạn độ dài đầu ra
 - [ ] Cố ý chạm giới hạn tốc độ của gói miễn phí để kiểm tra retry, circuit breaker, `PAUSED_QUOTA` và thông báo trên app
 
@@ -280,7 +280,7 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 - [x] F4b. Không gian học tập: tạo, đổi tên, xóa, không gian mặc định (U16; màn hình 5; docs/specs/f4b-spaces.md). Hàm tạo không gian mặc định đã có, được gọi từ luồng tải lên ở F5
 - [x] F5. Tải tài liệu PDF và xử lý nền đến `READY`: trích văn bản, chia đoạn, embedding, trạng thái (U5; màn hình 5, 6) (docs/specs/f5-document-upload.md)
 - [x] F6. Quản lý tài liệu: danh sách, chi tiết, thử lại, xóa (U6; màn hình 5, 7) (docs/specs/f6-document-management.md)
-- [ ] F7. Hỏi đáp trên nhiều tài liệu, có trích dẫn, trả lời dần (U7; màn hình 9)
+- [x] F7. Hỏi đáp trên nhiều tài liệu, có trích dẫn, trả lời dần (U7; màn hình 9) (docs/specs/f7-qa.md)
 - [ ] F8. Xem trích dẫn và lịch sử hội thoại (U7; màn hình 10, 11)
 - [ ] F9. Flashcard: bộ thẻ, AI đề xuất và người học duyệt, tạo tay, sửa, xóa (U11; màn hình 12, 13, 14)
 - [ ] F10. Ôn tập lặp lại ngắt quãng theo SM-2 và kết quả ôn tập (U12; màn hình 15, 16)
@@ -331,3 +331,4 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 | 2026-11-10 | Lát F4b xong (docs/specs/f4b-spaces.md): module `spaces` (CRUD, tên chuẩn hóa NFC, không trùng tên trong tài khoản theo index `lower(name)`, Không gian của người khác trả 404), migration thứ hai, màn hình danh sách và chi tiết có hộp xác nhận xóa chạy được trên web. Test: backend 125, frontend 34; thử qua HTTP thật đủ luồng. Sửa thêm: lỗi của framework (JSON hỏng, đường dẫn không tồn tại, sai phương thức) trước đây trả `{detail}` thay vì `ErrorResponse` của contract |
 | 2026-11-12 | Lát F5 xong (docs/specs/f5-document-upload.md): tải PDF (kiểm tra nội dung thật, 20 MB, 200 trang, 10 tài liệu, PDF có mật khẩu), Idempotency-Key, đồng ý dữ liệu theo phiên bản, Không gian mặc định, kho file S3 (boto3), worker ARQ trích văn bản theo trang, chia đoạn theo cấu trúc (chương, trang), embedding Gemini 768 chiều lưu pgvector có index HNSW, `PAUSED_QUOTA` và tự chạy lại, ghi `ai_usage`. Gateway phân biệt giới hạn tốc độ (chờ rồi thử lại) với hết hạn mức (không thử lại). Thử thật với Gemini trên giáo trình tiếng Việt mẫu: READY sau 2 giây, 3 câu hỏi đều trỏ đúng trang. Test: backend 197, frontend 44. Sửa: SeaweedFS cấu hình quá ít volume nên không ghi được file; worker thiếu model khi chạy riêng (thêm `app/db/all_models.py` và test chạy worker ở tiến trình riêng) |
 | 2026-11-13 | Lát F6 xong (docs/specs/f6-document-management.md): chi tiết tài liệu, thử lại (`FAILED`, `PAUSED_QUOTA`), xóa theo máy trạng thái với job dọn nền mang sẵn khóa lưu trữ, chuyển Không gian; xóa Không gian giờ dọn cả file tài liệu bên trong; tác vụ định kỳ dọn lại các xóa bị kẹt. Thử thật qua worker và SeaweedFS: không còn file, không còn bản ghi. Test: backend 206, frontend 50 |
+| 2026-11-13 | Lát F7 xong (docs/specs/f7-qa.md): hội thoại theo Không gian, câu trả lời trả dần qua SSE (start, citations, delta, done, error), truy xuất lọc theo chủ sở hữu, Không gian, tài liệu `READY` và tập đã chọn trước khi xếp hạng; trích dẫn lưu dạng bản ghi nhanh nên vẫn hiện khi tài liệu bị xóa; hạn mức 30 câu/ngày theo giờ Việt Nam bằng Redis (không tìm thấy và chế độ chỉ tìm đoạn không trừ lượt); AI ngừng thì chuyển sang chỉ tìm đoạn, kể cả khi không tạo được embedding (tìm theo từ khóa). Tab Hỏi đáp: chip chọn tài liệu, trả lời hiện dần (mobile dùng `expo/fetch`), chip trích dẫn, đếm lượt, giữ câu hỏi khi lỗi. Thử thật với Gemini: chữ đầu tiên sau khoảng 1,5 giây, trích dẫn đúng trang, câu ngoài tài liệu trả "không tìm thấy". Test: backend 226, frontend 63. Sửa lỗi có từ trước: phiên database commit **sau** khi phản hồi đã gửi, nên yêu cầu kế tiếp có thể chưa thấy dữ liệu (401 ngay sau đăng ký, 404 ngay sau tạo); giờ commit trước khi gửi phản hồi, có test chặn tái diễn |

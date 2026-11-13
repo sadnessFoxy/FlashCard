@@ -155,6 +155,20 @@ class Settings(BaseSettings):
     AI_RATE_LIMIT_MAX_WAIT_SECONDS: int = Field(default=60)
     PAUSED_QUOTA_RESUME_MINUTES: int = Field(default=10)
 
+    # ------- Q&A (docs/specs/f7-qa.md) -------
+    QUOTA_UTC_OFFSET_HOURS: int = Field(
+        default=7, description="Daily quotas reset at local midnight (Vietnam, no DST)"
+    )
+    CHAT_MAX_DISTANCE: float = Field(
+        default=0.55, description="Cosine distance above which a chunk is not relevant"
+    )
+    CHAT_TOP_K: int = Field(default=6)
+    CHAT_MAX_PER_DOCUMENT: int = Field(default=3)
+    CHAT_CANDIDATES: int = Field(default=24)
+    CHAT_HISTORY_MESSAGES: int = Field(default=6)
+    CHAT_MAX_OUTPUT_TOKENS: int = Field(default=1024)
+    CHAT_QUESTION_MAX_CHARS: int = Field(default=2000)
+
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def parse_cors_origins(cls, v: str | list[str]) -> list[str]:

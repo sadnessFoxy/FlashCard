@@ -18,7 +18,7 @@ from app.modules.users.service import UserService
 router = APIRouter()
 
 CurrentUser = Annotated[User, Depends(get_current_user)]
-Db = Annotated[AsyncSession, Depends(get_db)]
+Db = Annotated[AsyncSession, Depends(get_db, scope="function")]
 
 
 def _current_versions() -> dict[str, str]:

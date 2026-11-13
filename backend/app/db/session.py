@@ -34,7 +34,11 @@ AsyncSessionLocal = async_sessionmaker(
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    """FastAPI dependency: one session per request, committed on success."""
+    """
+    FastAPI dependency: one session per request, committed on success.
+    Always use `Depends(get_db, scope="function")` so the commit happens before the
+    response is sent; otherwise a client's next request can miss the data it just wrote.
+    """
     async with AsyncSessionLocal() as session:
         try:
             yield session

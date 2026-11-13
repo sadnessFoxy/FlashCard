@@ -21,6 +21,8 @@ AUTH_TABLES = {
     "document_jobs",
     "user_consents",
     "ai_usage",
+    "conversations",
+    "messages",
 }
 
 
