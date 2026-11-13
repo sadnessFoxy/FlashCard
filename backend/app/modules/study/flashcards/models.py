@@ -60,3 +60,5 @@ class Flashcard(Base):
     due_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False, default=lambda: datetime.now(UTC)
     )
+    # Latest review applied; an older review arriving later (offline sync) must not undo it.
+    last_reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

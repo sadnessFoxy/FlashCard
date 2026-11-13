@@ -99,6 +99,18 @@ export function DeckDetailScreen({ deckId }: { deckId: string }) {
       </Text>
 
       <View style={styles.actions}>
+        {data.due_count > 0 ? (
+          <Button
+            label={t("review.start")}
+            onPress={() =>
+              router.push({
+                pathname: "/spaces/review",
+                params: { spaceId: data.space_id, deckId: data.id },
+              })
+            }
+            testID="deck-review"
+          />
+        ) : null}
         <Button
           label={t("cards.generate")}
           onPress={() =>

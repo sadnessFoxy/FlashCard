@@ -492,6 +492,46 @@ export interface paths {
         patch: operations["updateFlashcard"];
         trace?: never;
     };
+    "/v1/reviews/due": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Cards due now in a space (optionally one deck), most overdue first */
+        get: operations["listDueCards"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Record graded reviews and reschedule the cards (SM-2)
+         * @description Applied oldest first. Per review, `status` is `applied`, `duplicate` (this id was
+         *     already recorded; nothing changes), `stale` (the card has a newer review; logged only)
+         *     or `not_found` (not one of the caller's cards). A `reviewed_at` in the future is
+         *     clamped to the server clock.
+         */
+        post: operations["submitReviews"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -798,6 +838,47 @@ export interface components {
         };
         SuggestionList: {
             items: components["schemas"]["Suggestion"][];
+        };
+        /**
+         * @description SM-2 quality 1, 3, 4 and 5.
+         * @enum {string}
+         */
+        ReviewGrade: "again" | "hard" | "good" | "easy";
+        Review: {
+            /**
+             * Format: uuid
+             * @description Made by the client; resending the same id is a no-op.
+             */
+            id: string;
+            /** Format: uuid */
+            card_id: string;
+            grade: components["schemas"]["ReviewGrade"];
+            /** Format: date-time */
+            reviewed_at: string;
+        };
+        SubmitReviewsRequest: {
+            reviews: components["schemas"]["Review"][];
+        };
+        ReviewResult: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            card_id: string;
+            /** @enum {string} */
+            status: "applied" | "duplicate" | "stale" | "not_found";
+            /**
+             * Format: date-time
+             * @description When the card is due next; null for `not_found`.
+             */
+            due_at: string | null;
+            interval_days: number | null;
+        };
+        SubmitReviewsResult: {
+            results: components["schemas"]["ReviewResult"][];
+        };
+        DueCards: {
+            items: components["schemas"]["Flashcard"][];
+            total_due: number;
         };
         /** @enum {string} */
         Locale: "vi" | "en";
@@ -2157,6 +2238,60 @@ export interface operations {
             401: components["responses"]["UnauthorizedError"];
             403: components["responses"]["CsrfRejected"];
             404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    listDueCards: {
+        parameters: {
+            query: {
+                space_id: string;
+                deck_id?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Due cards and how many are due in total */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DueCards"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    submitReviews: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubmitReviewsRequest"];
+            };
+        };
+        responses: {
+            /** @description One result per review, in request order */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SubmitReviewsResult"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["CsrfRejected"];
             422: components["responses"]["ValidationError"];
         };
     };

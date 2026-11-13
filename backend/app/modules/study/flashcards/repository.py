@@ -67,9 +67,7 @@ class FlashcardRepository:
 
     async def cards(self, deck_id: uuid.UUID) -> list[Flashcard]:
         result = await self._session.execute(
-            select(Flashcard)
-            .where(Flashcard.deck_id == deck_id)
-            .order_by(Flashcard.position)
+            select(Flashcard).where(Flashcard.deck_id == deck_id).order_by(Flashcard.position)
         )
         return list(result.scalars())
 

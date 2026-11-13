@@ -3,5 +3,6 @@
 from __future__ import annotations
 
 from app.modules.study.flashcards.models import Flashcard, FlashcardDeck
+from app.modules.study.reviews.models import ReviewLog
 
-__all__ = ["Flashcard", "FlashcardDeck"]
+__all__ = ["Flashcard", "FlashcardDeck", "ReviewLog"]

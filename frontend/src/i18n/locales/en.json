@@ -265,5 +265,30 @@
       "notFound": "This deck or card no longer exists.",
       "generic": "Something went wrong, please try again."
     }
+  },
+  "review": {
+    "start": "Start review",
+    "startAll_one": "Review now ({{count}} card)",
+    "startAll_other": "Review now ({{count}} cards)",
+    "progress": "Card {{current}}/{{total}}",
+    "flip": "Show answer",
+    "howWell": "How well did you remember?",
+    "grades": {
+      "again": "Again",
+      "hard": "Hard",
+      "good": "Good",
+      "easy": "Easy"
+    },
+    "nothingDueTitle": "Nothing to review",
+    "nothingDueHint": "You're done with every due card. Come back later.",
+    "loadError": "Couldn't load due cards.",
+    "summaryTitle": "Session complete",
+    "reviewedCount_one": "{{count}} review done",
+    "reviewedCount_other": "{{count}} reviews done",
+    "difficultTitle": "Hard cards",
+    "nextDue": "Next review: {{time}}",
+    "pendingSync_one": "{{count}} result is saved on this device and will sync when you're online.",
+    "pendingSync_other": "{{count}} results are saved on this device and will sync when you're online.",
+    "done": "Done"
   }
 }

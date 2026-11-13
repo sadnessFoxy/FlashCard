@@ -265,5 +265,30 @@
       "notFound": "Bộ thẻ hoặc thẻ không còn tồn tại.",
       "generic": "Đã có lỗi xảy ra, hãy thử lại."
     }
+  },
+  "review": {
+    "start": "Bắt đầu ôn",
+    "startAll_one": "Ôn tập ngay ({{count}} thẻ)",
+    "startAll_other": "Ôn tập ngay ({{count}} thẻ)",
+    "progress": "Thẻ {{current}}/{{total}}",
+    "flip": "Lật thẻ",
+    "howWell": "Bạn nhớ thẻ này thế nào?",
+    "grades": {
+      "again": "Quên",
+      "hard": "Khó",
+      "good": "Được",
+      "easy": "Dễ"
+    },
+    "nothingDueTitle": "Không có thẻ cần ôn",
+    "nothingDueHint": "Bạn đã ôn hết thẻ đến hạn. Quay lại sau nhé.",
+    "loadError": "Không tải được thẻ cần ôn.",
+    "summaryTitle": "Hoàn thành phiên ôn tập",
+    "reviewedCount_one": "Đã ôn {{count}} lượt",
+    "reviewedCount_other": "Đã ôn {{count}} lượt",
+    "difficultTitle": "Thẻ khó nhớ",
+    "nextDue": "Lần ôn kế tiếp: {{time}}",
+    "pendingSync_one": "{{count}} kết quả đang lưu trên máy, sẽ đồng bộ khi có mạng.",
+    "pendingSync_other": "{{count}} kết quả đang lưu trên máy, sẽ đồng bộ khi có mạng.",
+    "done": "Xong"
   }
 }

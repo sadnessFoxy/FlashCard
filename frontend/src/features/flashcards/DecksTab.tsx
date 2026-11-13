@@ -36,10 +36,22 @@ export function DecksTab({ spaceId }: { spaceId: string }) {
     return <Text style={styles.muted}>{t("cards.loadError")}</Text>;
   }
 
+  const totalDue = decks.data.items.reduce((sum, d) => sum + d.due_count, 0);
+
   return (
     <View style={styles.container}>
+      {totalDue > 0 ? (
+        <Button
+          label={t("review.startAll", { count: totalDue })}
+          onPress={() =>
+            router.push({ pathname: "/spaces/review", params: { spaceId } })
+          }
+          testID="decks-review"
+        />
+      ) : null}
       <Button
         label={t("cards.newDeck")}
+        variant={totalDue > 0 ? "secondary" : "primary"}
         onPress={() => setCreating(true)}
         testID="decks-create"
       />
