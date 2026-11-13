@@ -22,6 +22,6 @@ api_router.include_router(users_router, tags=["users"])
 api_router.include_router(spaces_router, prefix="/spaces", tags=["spaces"])
 api_router.include_router(documents_router, prefix="/documents", tags=["documents"])
 api_router.include_router(chat_router, prefix="/conversations", tags=["chat"])
-api_router.include_router(study_router, prefix="/study", tags=["study"])
+api_router.include_router(study_router)  # /decks, /flashcards
 api_router.include_router(usage_router, prefix="/usage", tags=["usage"])
 api_router.include_router(admin_router, prefix="/admin", tags=["admin"])

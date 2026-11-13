@@ -42,6 +42,8 @@ from app.modules.ai.providers.fake import FakeProvider  # noqa: E402
 ALLOWED_ORIGIN = "http://localhost:8081"
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 _TABLES = (
+    "flashcards",
+    "flashcard_decks",
     "messages",
     "conversations",
     "ai_usage",

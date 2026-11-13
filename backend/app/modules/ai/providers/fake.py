@@ -25,6 +25,9 @@ class FakeProvider(LLMProvider):
         # before the first token, or (partial_text, error) to fail mid-stream.
         self.chat_script: list[str | AppError | tuple[str, AppError]] = []
         self.chat_calls: list[dict[str, Any]] = []
+        # Next generate results, in order: returned text, or an error to raise.
+        self.generate_script: list[str | AppError] = []
+        self.generate_calls: list[dict[str, Any]] = []
 
     @property
     def embedding_dimensions(self) -> int:
@@ -74,6 +77,12 @@ class FakeProvider(LLMProvider):
         temperature: float = 0.7,
         response_format: dict[str, Any] | None = None,
     ) -> str:
+        self.generate_calls.append({"prompt": prompt, "system_prompt": system_prompt})
+        if self.generate_script:
+            step = self.generate_script.pop(0)
+            if isinstance(step, AppError):
+                raise step
+            return step
         if response_format and response_format.get("type") == "json_object":
             return '{"result": "[FAKE] JSON response"}'
         return "[FAKE] Canned response; no real API was called."

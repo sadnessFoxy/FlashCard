@@ -22,8 +22,8 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 | 5 | Sức tải, hiệu năng & chi phí AI | 3/19 | Đang làm | Trước production | |
 | 6 | Beta & chuẩn bị production | 0/10 | Chưa bắt đầu | | |
 | 7 | Ra mắt & vận hành | 0/6 | Chưa bắt đầu | | |
-| F | Lát chức năng bản 1 | 7/17 | Đang làm | Song song với giai đoạn 1 đến 6 | 2026-11-08 |
-| | **Tổng** | **45/140** | | | |
+| F | Lát chức năng bản 1 | 8/17 | Đang làm | Song song với giai đoạn 1 đến 6 | 2026-11-08 |
+| | **Tổng** | **46/140** | | | |
 
 ---
 
@@ -282,7 +282,7 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 - [x] F6. Quản lý tài liệu: danh sách, chi tiết, thử lại, xóa (U6; màn hình 5, 7) (docs/specs/f6-document-management.md)
 - [x] F7. Hỏi đáp trên nhiều tài liệu, có trích dẫn, trả lời dần (U7; màn hình 9) (docs/specs/f7-qa.md)
 - [x] F8. Xem trích dẫn và lịch sử hội thoại (U7; màn hình 10, 11) (docs/specs/f8-citations-history.md)
-- [ ] F9. Flashcard: bộ thẻ, AI đề xuất và người học duyệt, tạo tay, sửa, xóa (U11; màn hình 12, 13, 14)
+- [x] F9. Flashcard: bộ thẻ, AI đề xuất và người học duyệt, tạo tay, sửa, xóa (U11; màn hình 12, 13, 14) (docs/specs/f9-flashcards.md)
 - [ ] F10. Ôn tập lặp lại ngắt quãng theo SM-2 và kết quả ôn tập (U12; màn hình 15, 16)
 - [ ] F11. Câu hỏi trắc nghiệm: tạo, làm bài, chấm bằng code, xem lại câu sai kèm nguồn (U13; màn hình 17, 18, 19)
 - [ ] F12. Tóm tắt theo chương (U15; màn hình 8)
@@ -333,3 +333,4 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 | 2026-11-13 | Lát F6 xong (docs/specs/f6-document-management.md): chi tiết tài liệu, thử lại (`FAILED`, `PAUSED_QUOTA`), xóa theo máy trạng thái với job dọn nền mang sẵn khóa lưu trữ, chuyển Không gian; xóa Không gian giờ dọn cả file tài liệu bên trong; tác vụ định kỳ dọn lại các xóa bị kẹt. Thử thật qua worker và SeaweedFS: không còn file, không còn bản ghi. Test: backend 206, frontend 50 |
 | 2026-11-13 | Lát F7 xong (docs/specs/f7-qa.md): hội thoại theo Không gian, câu trả lời trả dần qua SSE (start, citations, delta, done, error), truy xuất lọc theo chủ sở hữu, Không gian, tài liệu `READY` và tập đã chọn trước khi xếp hạng; trích dẫn lưu dạng bản ghi nhanh nên vẫn hiện khi tài liệu bị xóa; hạn mức 30 câu/ngày theo giờ Việt Nam bằng Redis (không tìm thấy và chế độ chỉ tìm đoạn không trừ lượt); AI ngừng thì chuyển sang chỉ tìm đoạn, kể cả khi không tạo được embedding (tìm theo từ khóa). Tab Hỏi đáp: chip chọn tài liệu, trả lời hiện dần (mobile dùng `expo/fetch`), chip trích dẫn, đếm lượt, giữ câu hỏi khi lỗi. Thử thật với Gemini: chữ đầu tiên sau khoảng 1,5 giây, trích dẫn đúng trang, câu ngoài tài liệu trả "không tìm thấy". Test: backend 226, frontend 63. Sửa lỗi có từ trước: phiên database commit **sau** khi phản hồi đã gửi, nên yêu cầu kế tiếp có thể chưa thấy dữ liệu (401 ngay sau đăng ký, 404 ngay sau tạo); giờ commit trước khi gửi phản hồi, có test chặn tái diễn |
 | 2026-11-13 | Lát F8 xong (docs/specs/f8-citations-history.md): xem trang được trích dạng văn bản đọc lại từ PDF gốc, đoạn trích được tô nổi bật, chuyển trang, cache Redis theo người dùng; lịch sử hội thoại theo Không gian, mở lại, xóa có xác nhận. Theo yêu cầu người dùng về code dễ đọc, dễ bảo trì: tách module chat backend (nguồn trích, trích dẫn, luồng trả lời, trình bày) và tab Hỏi đáp frontend (hook gửi câu hỏi, bong bóng tin nhắn, hộp trích dẫn, chip tài liệu, ô nhập); gom helper test dùng chung. Sửa nhờ thử thật với Gemini: câu hỏi tiếng Anh trên giáo trình tiếng Việt bị trả lời bằng tiếng Việt (giờ ghi rõ ngôn ngữ cần trả lời cạnh câu hỏi, đúng 3/3 lần thử), câu trả lời có ký hiệu LaTeX, câu hỏi không có câu trả lời trong lịch sử làm lệch câu kế tiếp. Test: backend 233, frontend 74 |
+| 2026-11-13 | Lát F9 xong (docs/specs/f9-flashcards.md): bộ thẻ trong Không gian, thẻ tạo bằng tay hoặc AI đề xuất từ tài liệu (khoảng trang) hay từ câu trả lời hỏi đáp; người học sửa, bỏ chọn rồi mới lưu; nguồn thẻ là bản ghi nhanh (tài liệu, trang); hạn mức tạo thẻ 10 lần mỗi ngày tính riêng với hỏi đáp; bảng thẻ có sẵn cột lịch SM-2 cho F10. Code: module `study/flashcards/`; hạn mức theo ngày tổng quát hóa (`DailyQuota`) dùng chung cho hỏi đáp và tạo thẻ; khối nguồn `<source>` và nhận diện ngôn ngữ tách ra dùng chung (`modules/ai/`); hộp xác nhận, nhóm chip dùng chung ở frontend; cấu hình test frontend có sẵn địa chỉ API nên màn hình mới không làm vỡ test cũ. Thử thật với Gemini: 6 thẻ tiếng Việt đúng nội dung, đúng trang, sau 2,3 giây. Test: backend 246, frontend 83 |

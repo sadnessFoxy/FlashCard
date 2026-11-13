@@ -165,6 +165,12 @@ export function ChatTab({ spaceId, initialConversationId }: Props) {
               text={m.content}
               citations={m.citations}
               onOpenCitation={setOpened}
+              onMakeCards={() =>
+                router.push({
+                  pathname: "/spaces/decks/generate",
+                  params: { spaceId, messageId: m.id },
+                })
+              }
             />
           ),
         )}

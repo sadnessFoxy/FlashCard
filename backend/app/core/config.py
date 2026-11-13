@@ -174,6 +174,17 @@ class Settings(BaseSettings):
         default=3600, description="How long extracted page text stays cached in Redis"
     )
 
+    # ------- Flashcards (docs/specs/f9-flashcards.md) -------
+    CARD_SUGGESTION_DAILY_LIMIT: int = Field(
+        default=10, description="AI card suggestion requests per user per day"
+    )
+    CARD_SUGGESTION_MAX_CARDS: int = Field(default=20, description="Cards per suggestion request")
+    CARD_SUGGESTION_SOURCE_CHARS: int = Field(
+        default=12000, description="Source text sent to the AI for one suggestion request"
+    )
+    CARD_SUGGESTION_MAX_OUTPUT_TOKENS: int = Field(default=4096)
+    MAX_CARDS_PER_DECK: int = Field(default=1000)
+
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def parse_cors_origins(cls, v: str | list[str]) -> list[str]:

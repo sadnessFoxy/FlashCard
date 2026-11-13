@@ -164,3 +164,38 @@ async def keyword_search(
         )
         for i, r in enumerate(rows)
     ]
+
+
+async def document_passages(
+    session: AsyncSession,
+    *,
+    owner_id: uuid.UUID,
+    document_id: uuid.UUID,
+    page_start: int | None = None,
+    page_end: int | None = None,
+) -> list[RetrievedChunk]:
+    """Chunks of one owned document in reading order, optionally limited to a page range."""
+    stmt = (
+        select(
+            DocumentChunk.id,
+            DocumentChunk.document_id,
+            Document.filename,
+            DocumentChunk.page_start,
+            DocumentChunk.page_end,
+            DocumentChunk.content,
+        )
+        .join(Document, Document.id == DocumentChunk.document_id)
+        .where(
+            DocumentChunk.owner_id == owner_id,
+            Document.owner_id == owner_id,
+            Document.id == document_id,
+            Document.status == READY,
+        )
+        .order_by(DocumentChunk.chunk_index)
+    )
+    if page_start is not None:
+        stmt = stmt.where(DocumentChunk.page_end >= page_start)
+    if page_end is not None:
+        stmt = stmt.where(DocumentChunk.page_start <= page_end)
+    rows = (await session.execute(stmt)).all()
+    return [RetrievedChunk(r[0], r[1], r[2], r[3], r[4], r[5], 0.0) for r in rows]

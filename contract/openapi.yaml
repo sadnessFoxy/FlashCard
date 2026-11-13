@@ -32,6 +32,10 @@ tags:
       Answers stream as Server-Sent Events. Other users' conversations answer 404.
   - name: usage
     description: The caller's daily question quota
+  - name: flashcards
+    description: |
+      Decks and cards in a space; the AI only suggests cards, the learner saves them (spec: docs/specs/f9-flashcards.md).
+      Other users' decks and cards always answer 404.
 security:
   - BearerAuth: []
   - CookieAuth: []
@@ -772,6 +776,247 @@ paths:
           $ref: "#/components/responses/UserQuotaExceeded"
         "503":
           $ref: "#/components/responses/AiUnavailable"
+  /v1/decks:
+    get:
+      tags: [flashcards]
+      operationId: listDecks
+      summary: The caller's decks in a space, most recently updated first
+      parameters:
+        - name: space_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Decks with card and due counts
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeckList"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+    post:
+      tags: [flashcards]
+      operationId: createDeck
+      summary: Create a deck in a space
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateDeckRequest"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deck"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/CsrfRejected"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /v1/decks/{deck_id}:
+    parameters:
+      - name: deck_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [flashcards]
+      operationId: getDeck
+      summary: A deck with its cards, oldest first
+      responses:
+        "200":
+          description: The deck
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeckDetail"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+    patch:
+      tags: [flashcards]
+      operationId: renameDeck
+      summary: Rename a deck
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeckNameRequest"
+      responses:
+        "200":
+          description: Renamed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Deck"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/CsrfRejected"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+    delete:
+      tags: [flashcards]
+      operationId: deleteDeck
+      summary: Delete a deck and its cards
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/CsrfRejected"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /v1/flashcards:
+    post:
+      tags: [flashcards]
+      operationId: createFlashcards
+      summary: Save cards into a deck (written by hand or picked from AI suggestions)
+      description: |
+        A `source.document_id` that is not one of the caller's documents is dropped silently,
+        as is a page beyond the document's page count.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFlashcardsRequest"
+      responses:
+        "201":
+          description: Created, in request order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FlashcardList"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/CsrfRejected"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: "`DECK_FULL`: the deck would exceed `max_cards`"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /v1/flashcards/suggestions:
+    post:
+      tags: [flashcards]
+      operationId: suggestFlashcards
+      summary: Ask the AI to propose cards from a document (or page range) or a Q&A answer
+      description: |
+        Nothing is saved. Uses the separate daily card-suggestion quota (see `Usage.card_suggestions`);
+        a failed AI call does not use it.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SuggestionRequest"
+      responses:
+        "200":
+          description: Proposed cards
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuggestionList"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/CsrfRejected"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: "`DOCUMENT_NOT_READY`: the document is not READY"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: "`VALIDATION_ERROR`, or `SOURCE_EMPTY` when the source has no text"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          $ref: "#/components/responses/UserQuotaExceeded"
+        "503":
+          $ref: "#/components/responses/AiUnavailable"
+  /v1/flashcards/{card_id}:
+    parameters:
+      - name: card_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      tags: [flashcards]
+      operationId: updateFlashcard
+      summary: Edit a card's front or back
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateFlashcardRequest"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Flashcard"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/CsrfRejected"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+    delete:
+      tags: [flashcards]
+      operationId: deleteFlashcard
+      summary: Delete a card
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/CsrfRejected"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
 components:
   parameters:
     SpaceId:
@@ -845,6 +1090,9 @@ components:
         status:
           type: string
           description: "Set with `DOCUMENT_NOT_RETRYABLE`: the document's current status."
+        max_cards:
+          type: integer
+          description: "Set with `DECK_FULL`."
         quota_remaining:
           type: integer
           minimum: 0
@@ -866,7 +1114,7 @@ components:
               type:
                 type: string
                 examples: [value_error]
-    Usage:
+    UsageCounter:
       type: object
       additionalProperties: false
       required: [daily_limit, used_today, remaining, resets_at]
@@ -881,6 +1129,24 @@ components:
         resets_at:
           type: string
           format: date-time
+    Usage:
+      type: object
+      additionalProperties: false
+      description: Top-level fields are the daily question quota; each other AI feature has its own counter.
+      required: [daily_limit, used_today, remaining, resets_at, card_suggestions]
+      properties:
+        daily_limit:
+          type: integer
+        used_today:
+          type: integer
+        remaining:
+          type: integer
+          minimum: 0
+        resets_at:
+          type: string
+          format: date-time
+        card_suggestions:
+          $ref: "#/components/schemas/UsageCounter"
     CreateConversationRequest:
       type: object
       additionalProperties: false
@@ -1101,6 +1367,263 @@ components:
           description: Page text in reading order; empty when the page has no text layer.
           items:
             type: string
+    DeckNameRequest:
+      type: object
+      additionalProperties: false
+      required: [name]
+      properties:
+        name:
+          type: string
+          maxLength: 200
+          description: Trimmed and whitespace-collapsed by the server; must then be 1-100 characters.
+    CreateDeckRequest:
+      type: object
+      additionalProperties: false
+      required: [space_id, name]
+      properties:
+        space_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 200
+          description: Trimmed and whitespace-collapsed by the server; must then be 1-100 characters.
+    Deck:
+      type: object
+      additionalProperties: false
+      required: [id, space_id, name, card_count, due_count, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        space_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        card_count:
+          type: integer
+          minimum: 0
+        due_count:
+          type: integer
+          minimum: 0
+          description: Cards due for review now.
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    DeckList:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Deck"
+    DeckDetail:
+      type: object
+      additionalProperties: false
+      required: [id, space_id, name, card_count, due_count, created_at, updated_at, cards]
+      properties:
+        id:
+          type: string
+          format: uuid
+        space_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        card_count:
+          type: integer
+          minimum: 0
+        due_count:
+          type: integer
+          minimum: 0
+          description: Cards due for review now.
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        cards:
+          type: array
+          items:
+            $ref: "#/components/schemas/Flashcard"
+    CardSource:
+      description: Where a card comes from; a snapshot that survives document deletion.
+      type: [object, "null"]
+      additionalProperties: false
+      required: [document_id, document_name, page]
+      properties:
+        document_id:
+          type: [string, "null"]
+          format: uuid
+          description: Null once the document has been deleted.
+        document_name:
+          type: string
+        page:
+          type: [integer, "null"]
+          minimum: 1
+    Flashcard:
+      type: object
+      additionalProperties: false
+      required: [id, deck_id, front, back, origin, source, due_at, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        deck_id:
+          type: string
+          format: uuid
+        front:
+          type: string
+        back:
+          type: string
+        origin:
+          type: string
+          enum: [ai, manual]
+        source:
+          $ref: "#/components/schemas/CardSource"
+        due_at:
+          type: string
+          format: date-time
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    FlashcardList:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Flashcard"
+    NewFlashcard:
+      type: object
+      additionalProperties: false
+      required: [front, back]
+      properties:
+        front:
+          type: string
+          minLength: 1
+          maxLength: 500
+        back:
+          type: string
+          minLength: 1
+          maxLength: 2000
+        origin:
+          type: string
+          enum: [ai, manual]
+          default: manual
+        source:
+          type: [object, "null"]
+          additionalProperties: false
+          required: [document_id]
+          properties:
+            document_id:
+              type: string
+              format: uuid
+            page:
+              type: [integer, "null"]
+              minimum: 1
+    CreateFlashcardsRequest:
+      type: object
+      additionalProperties: false
+      required: [deck_id, cards]
+      properties:
+        deck_id:
+          type: string
+          format: uuid
+        cards:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items:
+            $ref: "#/components/schemas/NewFlashcard"
+    UpdateFlashcardRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        front:
+          type: [string, "null"]
+          minLength: 1
+          maxLength: 500
+        back:
+          type: [string, "null"]
+          minLength: 1
+          maxLength: 2000
+    SuggestionRequest:
+      type: object
+      additionalProperties: false
+      required: [space_id, source]
+      properties:
+        space_id:
+          type: string
+          format: uuid
+        count:
+          type: integer
+          minimum: 1
+          maximum: 20
+          default: 10
+        source:
+          oneOf:
+            - type: object
+              additionalProperties: false
+              required: [type, document_id]
+              properties:
+                type:
+                  const: document
+                document_id:
+                  type: string
+                  format: uuid
+                page_start:
+                  type: [integer, "null"]
+                  minimum: 1
+                page_end:
+                  type: [integer, "null"]
+                  minimum: 1
+            - type: object
+              additionalProperties: false
+              required: [type, message_id]
+              properties:
+                type:
+                  const: message
+                message_id:
+                  type: string
+                  format: uuid
+                  description: An assistant message in a conversation of this space.
+    Suggestion:
+      type: object
+      additionalProperties: false
+      required: [front, back, source]
+      properties:
+        front:
+          type: string
+        back:
+          type: string
+        source:
+          $ref: "#/components/schemas/CardSource"
+    SuggestionList:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Suggestion"
     Locale:
       type: string
       enum: [vi, en]

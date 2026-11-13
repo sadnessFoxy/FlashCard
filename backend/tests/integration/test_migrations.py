@@ -23,6 +23,8 @@ AUTH_TABLES = {
     "ai_usage",
     "conversations",
     "messages",
+    "flashcard_decks",
+    "flashcards",
 }
 
 

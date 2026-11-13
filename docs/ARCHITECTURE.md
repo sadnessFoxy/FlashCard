@@ -73,6 +73,7 @@ study-assistant/
 │   │   ├── db/                        # session, base, migrations/
 │   │   ├── modules/
 │   │   │   ├── auth/  users/  spaces/  documents/  chat/  study/  usage/  admin/
+│   │   │   │   (study/ chia gói con: flashcards/, reviews/, quizzes/)
 │   │   │   │   (mỗi module: router, schemas, models, service, repository, dependencies)
 │   │   │   └── ai/
 │   │   │       ├── providers/  ingestion/  retrieval/   # providers/gemini.py là nhà cung cấp mặc định

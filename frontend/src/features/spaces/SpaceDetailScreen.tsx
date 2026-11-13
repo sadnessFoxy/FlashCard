@@ -14,6 +14,7 @@ import { Button } from "../../components/ui/Button";
 import { colors, fontSize, radius, spacing } from "../../theme/tokens";
 import { ChatTab } from "../chat/ChatTab";
 import { DocumentsTab } from "../documents/DocumentsTab";
+import { DecksTab } from "../flashcards/DecksTab";
 import { useDeleteSpace, useRenameSpace, useSpace } from "./hooks";
 import { DeleteSpaceDialog, SpaceNameDialog } from "./SpaceDialogs";
 
@@ -124,8 +125,10 @@ export function SpaceDetailScreen({ id, initialTab, conversationId }: Props) {
           spaceId={id}
           initialConversationId={conversationId}
         />
+      ) : tab === "cards" ? (
+        <DecksTab spaceId={id} />
       ) : (
-        // Cards (F9) and quizzes (F11) arrive in later slices.
+        // Quizzes arrive in F11.
         <View style={styles.placeholder} testID={`space-tab-${tab}`}>
           <Text style={styles.muted}>{t("spaces.comingSoon")}</Text>
         </View>

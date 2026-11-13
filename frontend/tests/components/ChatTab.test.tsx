@@ -133,6 +133,12 @@ beforeEach(async () => {
     used_today: 2,
     remaining: 28,
     resets_at: "2026-11-13T17:00:00Z",
+    card_suggestions: {
+      daily_limit: 10,
+      used_today: 0,
+      remaining: 10,
+      resets_at: "2026-11-13T17:00:00Z",
+    },
   });
   list.mockResolvedValue({ items: [] });
   create.mockResolvedValue(conversation);

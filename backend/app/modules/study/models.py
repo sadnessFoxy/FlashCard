@@ -1,6 +1,7 @@
-"""SQLAlchemy models cho module study."""
+"""All study models, imported by app/db/all_models.py."""
 
 from __future__ import annotations
 
+from app.modules.study.flashcards.models import Flashcard, FlashcardDeck
 
-# TODO(F slices): implement models for the study module
+__all__ = ["Flashcard", "FlashcardDeck"]

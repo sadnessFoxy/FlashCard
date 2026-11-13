@@ -255,3 +255,20 @@ class DocumentNotRetryableError(AppError):
             409,
             {"status": status},
         )
+
+
+# ------- Flashcards (docs/specs/f9-flashcards.md) -------
+
+
+class DeckFullError(AppError):
+    def __init__(self, limit: int) -> None:
+        super().__init__(
+            "DECK_FULL", "This deck has reached its card limit", 409, {"max_cards": limit}
+        )
+
+
+class SourceEmptyError(AppError):
+    """The chosen source has no text to make cards from."""
+
+    def __init__(self) -> None:
+        super().__init__("SOURCE_EMPTY", "The selected source has no text", 422)

@@ -20,10 +20,15 @@ interface AnswerProps {
   text: string;
   citations: Citation[];
   onOpenCitation: (c: Citation) => void;
+  /** Offered on finished answers: make flashcards from this answer. */
+  onMakeCards?: (() => void) | undefined;
 }
 
 export function AnswerBubble(props: AnswerProps) {
+  const { t } = useTranslation();
   const showChips = props.mode === "answer" && props.citations.length > 0;
+  const canMakeCards =
+    props.onMakeCards && props.mode === "answer" && props.status === "complete";
   return (
     <View style={[styles.bubble, styles.answer]} testID="chat-answer">
       <AnswerBody {...props} />
@@ -32,6 +37,18 @@ export function AnswerBubble(props: AnswerProps) {
           citations={props.citations}
           onOpen={props.onOpenCitation}
         />
+      ) : null}
+      {canMakeCards ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={props.onMakeCards}
+          style={styles.makeCards}
+          testID="answer-make-cards"
+        >
+          <Text style={styles.makeCardsText}>
+            {t("cards.fromAnswerAction")}
+          </Text>
+        </Pressable>
       ) : null}
     </View>
   );
@@ -158,4 +175,10 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   chipText: { color: colors.primary, fontSize: fontSize.sm },
+  makeCards: { alignSelf: "flex-end" },
+  makeCardsText: {
+    color: colors.primary,
+    fontSize: fontSize.sm,
+    fontWeight: "600",
+  },
 });

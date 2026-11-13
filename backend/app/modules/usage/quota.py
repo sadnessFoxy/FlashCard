@@ -1,5 +1,6 @@
 """
-Per-user daily question quota in Redis (docs/QUOTA_AND_RESILIENCE.md, tier 2).
+Per-user daily AI quotas in Redis (docs/QUOTA_AND_RESILIENCE.md, tier 2): one counter per
+kind (questions, card suggestions), so each feature has its own budget.
 Days follow local time (QUOTA_UTC_OFFSET_HOURS). Redis failures fail open and are logged.
 """
 
@@ -40,8 +41,12 @@ def _today_and_reset(now: datetime | None = None) -> tuple[str, datetime]:
     return local.strftime("%Y%m%d"), midnight.astimezone(UTC)
 
 
-class QuestionQuota:
-    def __init__(self, redis: Redis | None = None, now: datetime | None = None) -> None:
+class DailyQuota:
+    def __init__(
+        self, kind: str, limit: int, redis: Redis | None = None, now: datetime | None = None
+    ) -> None:
+        self._kind = kind
+        self._limit = limit
         self._redis = redis
         self._now = now
 
@@ -51,7 +56,7 @@ class QuestionQuota:
 
     def _key(self, user_id: uuid.UUID) -> tuple[str, datetime]:
         day, reset = _today_and_reset(self._now)
-        return f"quota:questions:{user_id}:{day}", reset
+        return f"quota:{self._kind}:{user_id}:{day}", reset
 
     async def status(self, user_id: uuid.UUID) -> QuotaStatus:
         key, reset = self._key(user_id)
@@ -60,7 +65,7 @@ class QuestionQuota:
         except RedisError as exc:
             logger.warning("Quota read failed, allowing (%s)", type(exc).__name__)
             used = 0
-        return QuotaStatus(settings.USER_DAILY_QUERY_LIMIT, used, reset)
+        return QuotaStatus(self._limit, used, reset)
 
     async def reserve(self, user_id: uuid.UUID) -> bool:
         """Take one question atomically; False when the limit is already reached."""
@@ -70,7 +75,7 @@ class QuestionQuota:
                 pipe.incr(key)
                 pipe.expireat(key, reset + timedelta(hours=1))
                 used, _ = await pipe.execute()
-            if int(used) > settings.USER_DAILY_QUERY_LIMIT:
+            if int(used) > self._limit:
                 await self.redis.decr(key)
                 return False
             return True
@@ -87,5 +92,23 @@ class QuestionQuota:
             logger.warning("Quota refund failed (%s)", type(exc).__name__)
 
 
+class QuestionQuota(DailyQuota):
+    """Q&A questions (docs/specs/f7-qa.md)."""
+
+    def __init__(self, redis: Redis | None = None, now: datetime | None = None) -> None:
+        super().__init__("questions", settings.USER_DAILY_QUERY_LIMIT, redis, now)
+
+
+class CardSuggestionQuota(DailyQuota):
+    """AI flashcard suggestion requests, counted apart from questions (U11)."""
+
+    def __init__(self, redis: Redis | None = None, now: datetime | None = None) -> None:
+        super().__init__("card-suggestions", settings.CARD_SUGGESTION_DAILY_LIMIT, redis, now)
+
+
 def get_question_quota() -> QuestionQuota:
     return QuestionQuota()
+
+
+def get_card_suggestion_quota() -> CardSuggestionQuota:
+    return CardSuggestionQuota()

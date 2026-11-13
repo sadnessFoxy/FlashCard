@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import uuid
 
+from app.modules.ai.language import detect_language
 from app.modules.chat.prompts import (
     build_user_turn,
     cited_indexes,
     could_be_not_found,
     is_not_found,
-    question_language,
 )
 from app.modules.documents.retrieval import RetrievedChunk, select_sources
 
@@ -50,8 +50,8 @@ def test_source_text_cannot_close_the_source_tag() -> None:
 
 
 def test_question_language_and_reminder() -> None:
-    assert question_language("Đạo hàm là gì?") == "Vietnamese"
-    assert question_language("What is a derivative?") == "English"
+    assert detect_language("Đạo hàm là gì?") == "Vietnamese"
+    assert detect_language("What is a derivative?") == "English"
     turn = build_user_turn("What is a derivative?", [chunk(A, 0.1, "Đạo hàm là...")])
     assert turn.rstrip().endswith("Cite the sources as [n].")
     assert "Answer in English" in turn

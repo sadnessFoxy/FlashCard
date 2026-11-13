@@ -206,8 +206,8 @@ describe("SpaceDetailScreen", () => {
     renderWithQuery(<SpaceDetailScreen id="a" />);
 
     expect(await screen.findByTestId("space-title")).toBeTruthy();
-    fireEvent.press(screen.getByText("Thẻ"));
-    expect(screen.getByTestId("space-tab-cards")).toBeTruthy();
+    fireEvent.press(screen.getByText("Trắc nghiệm"));
+    expect(screen.getByTestId("space-tab-quizzes")).toBeTruthy();
   });
 
   it("handles a missing or foreign space", async () => {

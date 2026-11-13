@@ -391,6 +391,107 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/decks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The caller's decks in a space, most recently updated first */
+        get: operations["listDecks"];
+        put?: never;
+        /** Create a deck in a space */
+        post: operations["createDeck"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/decks/{deck_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deck_id: string;
+            };
+            cookie?: never;
+        };
+        /** A deck with its cards, oldest first */
+        get: operations["getDeck"];
+        put?: never;
+        post?: never;
+        /** Delete a deck and its cards */
+        delete: operations["deleteDeck"];
+        options?: never;
+        head?: never;
+        /** Rename a deck */
+        patch: operations["renameDeck"];
+        trace?: never;
+    };
+    "/v1/flashcards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Save cards into a deck (written by hand or picked from AI suggestions)
+         * @description A `source.document_id` that is not one of the caller's documents is dropped silently,
+         *     as is a page beyond the document's page count.
+         */
+        post: operations["createFlashcards"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/flashcards/suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ask the AI to propose cards from a document (or page range) or a Q&A answer
+         * @description Nothing is saved. Uses the separate daily card-suggestion quota (see `Usage.card_suggestions`);
+         *     a failed AI call does not use it.
+         */
+        post: operations["suggestFlashcards"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/flashcards/{card_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                card_id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a card */
+        delete: operations["deleteFlashcard"];
+        options?: never;
+        head?: never;
+        /** Edit a card's front or back */
+        patch: operations["updateFlashcard"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -422,6 +523,8 @@ export interface components {
             max_size_mb?: number;
             /** @description Set with `DOCUMENT_NOT_RETRYABLE`: the document's current status. */
             status?: string;
+            /** @description Set with `DECK_FULL`. */
+            max_cards?: number;
             /** @description Set with `USER_QUOTA_EXCEEDED`. */
             quota_remaining?: number;
             /**
@@ -437,12 +540,21 @@ export interface components {
                 type: string;
             }[];
         };
+        UsageCounter: {
+            daily_limit: number;
+            used_today: number;
+            remaining: number;
+            /** Format: date-time */
+            resets_at: string;
+        };
+        /** @description Top-level fields are the daily question quota; each other AI feature has its own counter. */
         Usage: {
             daily_limit: number;
             used_today: number;
             remaining: number;
             /** Format: date-time */
             resets_at: string;
+            card_suggestions: components["schemas"]["UsageCounter"];
         };
         CreateConversationRequest: {
             /** Format: uuid */
@@ -561,6 +673,131 @@ export interface components {
             page_count: number;
             /** @description Page text in reading order; empty when the page has no text layer. */
             paragraphs: string[];
+        };
+        DeckNameRequest: {
+            /** @description Trimmed and whitespace-collapsed by the server; must then be 1-100 characters. */
+            name: string;
+        };
+        CreateDeckRequest: {
+            /** Format: uuid */
+            space_id: string;
+            /** @description Trimmed and whitespace-collapsed by the server; must then be 1-100 characters. */
+            name: string;
+        };
+        Deck: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            space_id: string;
+            name: string;
+            card_count: number;
+            /** @description Cards due for review now. */
+            due_count: number;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        DeckList: {
+            items: components["schemas"]["Deck"][];
+        };
+        DeckDetail: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            space_id: string;
+            name: string;
+            card_count: number;
+            /** @description Cards due for review now. */
+            due_count: number;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            cards: components["schemas"]["Flashcard"][];
+        };
+        /** @description Where a card comes from; a snapshot that survives document deletion. */
+        CardSource: {
+            /**
+             * Format: uuid
+             * @description Null once the document has been deleted.
+             */
+            document_id: string | null;
+            document_name: string;
+            page: number | null;
+        } | null;
+        Flashcard: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            deck_id: string;
+            front: string;
+            back: string;
+            /** @enum {string} */
+            origin: "ai" | "manual";
+            source: components["schemas"]["CardSource"];
+            /** Format: date-time */
+            due_at: string;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        FlashcardList: {
+            items: components["schemas"]["Flashcard"][];
+        };
+        NewFlashcard: {
+            front: string;
+            back: string;
+            /**
+             * @default manual
+             * @enum {string}
+             */
+            origin: "ai" | "manual";
+            source?: {
+                /** Format: uuid */
+                document_id: string;
+                page?: number | null;
+            } | null;
+        };
+        CreateFlashcardsRequest: {
+            /** Format: uuid */
+            deck_id: string;
+            cards: components["schemas"]["NewFlashcard"][];
+        };
+        UpdateFlashcardRequest: {
+            front?: string | null;
+            back?: string | null;
+        };
+        SuggestionRequest: {
+            /** Format: uuid */
+            space_id: string;
+            /** @default 10 */
+            count: number;
+            source: {
+                /** @constant */
+                type: "document";
+                /** Format: uuid */
+                document_id: string;
+                page_start?: number | null;
+                page_end?: number | null;
+            } | {
+                /** @constant */
+                type: "message";
+                /**
+                 * Format: uuid
+                 * @description An assistant message in a conversation of this space.
+                 */
+                message_id: string;
+            };
+        };
+        Suggestion: {
+            front: string;
+            back: string;
+            source: components["schemas"]["CardSource"];
+        };
+        SuggestionList: {
+            items: components["schemas"]["Suggestion"][];
         };
         /** @enum {string} */
         Locale: "vi" | "en";
@@ -1651,6 +1888,276 @@ export interface operations {
             422: components["responses"]["ValidationError"];
             429: components["responses"]["UserQuotaExceeded"];
             503: components["responses"]["AiUnavailable"];
+        };
+    };
+    listDecks: {
+        parameters: {
+            query: {
+                space_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Decks with card and due counts */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeckList"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    createDeck: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateDeckRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Deck"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["CsrfRejected"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    getDeck: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deck_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The deck */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DeckDetail"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    deleteDeck: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deck_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["CsrfRejected"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    renameDeck: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                deck_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DeckNameRequest"];
+            };
+        };
+        responses: {
+            /** @description Renamed */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Deck"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["CsrfRejected"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    createFlashcards: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateFlashcardsRequest"];
+            };
+        };
+        responses: {
+            /** @description Created, in request order */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["FlashcardList"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["CsrfRejected"];
+            404: components["responses"]["NotFound"];
+            /** @description `DECK_FULL`: the deck would exceed `max_cards` */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    suggestFlashcards: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SuggestionRequest"];
+            };
+        };
+        responses: {
+            /** @description Proposed cards */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuggestionList"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["CsrfRejected"];
+            404: components["responses"]["NotFound"];
+            /** @description `DOCUMENT_NOT_READY`: the document is not READY */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description `VALIDATION_ERROR`, or `SOURCE_EMPTY` when the source has no text */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            429: components["responses"]["UserQuotaExceeded"];
+            503: components["responses"]["AiUnavailable"];
+        };
+    };
+    deleteFlashcard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                card_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["CsrfRejected"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    updateFlashcard: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                card_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateFlashcardRequest"];
+            };
+        };
+        responses: {
+            /** @description Updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Flashcard"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["CsrfRejected"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
         };
     };
 }

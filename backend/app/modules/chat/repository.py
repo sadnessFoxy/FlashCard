@@ -75,3 +75,20 @@ class ChatRepository:
     async def add(self, obj: Conversation | Message) -> None:
         self._session.add(obj)
         await self._session.flush()
+
+    async def get_answer_in_space(
+        self, owner_id: uuid.UUID, message_id: uuid.UUID, space_id: uuid.UUID
+    ) -> Message | None:
+        """An assistant message of the owner, from a conversation in this space."""
+        result = await self._session.execute(
+            select(Message)
+            .join(Conversation, Conversation.id == Message.conversation_id)
+            .where(
+                Message.id == message_id,
+                Message.owner_id == owner_id,
+                Message.role == "assistant",
+                Conversation.owner_id == owner_id,
+                Conversation.space_id == space_id,
+            )
+        )
+        return result.scalar_one_or_none()
