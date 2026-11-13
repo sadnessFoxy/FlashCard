@@ -197,6 +197,49 @@ export interface paths {
         get: operations["getDocument"];
         put?: never;
         post?: never;
+        /**
+         * Delete a document
+         * @description The document becomes DELETING at once (hidden from lists and search); the file, chunks,
+         *     vectors and jobs are removed in the background (spec: docs/specs/f6-document-management.md).
+         */
+        delete: operations["deleteDocument"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/documents/{document_id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Queue a FAILED or PAUSED_QUOTA document again */
+        post: operations["retryDocument"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/documents/{document_id}/move": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Move a document to another of the caller's spaces */
+        post: operations["moveDocument"];
         delete?: never;
         options?: never;
         head?: never;
@@ -271,6 +314,8 @@ export interface components {
             max_pages?: number;
             /** @description Set with `FILE_TOO_LARGE`. */
             max_size_mb?: number;
+            /** @description Set with `DOCUMENT_NOT_RETRYABLE`: the document's current status. */
+            status?: string;
             /** @description Set with `VALIDATION_ERROR`: which fields are invalid. */
             errors?: {
                 /** @example email */
@@ -320,6 +365,10 @@ export interface components {
             created_at: string;
             /** Format: date-time */
             updated_at: string;
+        };
+        MoveDocumentRequest: {
+            /** Format: uuid */
+            space_id: string;
         };
         DocumentList: {
             items: components["schemas"]["Document"][];
@@ -934,6 +983,95 @@ export interface operations {
                 };
             };
             401: components["responses"]["UnauthorizedError"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    deleteDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deletion started */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["CsrfRejected"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    retryDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Queued again */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Document"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["CsrfRejected"];
+            404: components["responses"]["NotFound"];
+            /** @description `DOCUMENT_NOT_RETRYABLE` (with the current `status`) */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    moveDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MoveDocumentRequest"];
+            };
+        };
+        responses: {
+            /** @description Moved */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Document"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["CsrfRejected"];
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationError"];
         };

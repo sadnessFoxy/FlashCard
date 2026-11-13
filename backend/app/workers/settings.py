@@ -7,6 +7,7 @@ from arq.connections import RedisSettings
 from app.core.config import settings
 
 INGEST_FUNCTION = "process_document"
+PURGE_FUNCTION = "purge_document"
 
 
 def redis_settings() -> RedisSettings:

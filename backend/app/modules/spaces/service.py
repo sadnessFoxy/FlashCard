@@ -52,8 +52,7 @@ class SpaceService:
         return space
 
     async def delete(self, owner_id: uuid.UUID, space_id: uuid.UUID) -> None:
-        # F4b: spaces are still empty. From F5 this must run the document deletion flow
-        # (DELETING, file/vector cleanup) for everything inside before removing the row.
+        # Callers with documents use DocumentService.delete_space, which purges files first.
         space = await self.get(owner_id, space_id)
         await self._repo.delete(space)
         logger.info("Space deleted (space_id=%s, user_id=%s)", space_id, owner_id)

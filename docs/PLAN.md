@@ -18,12 +18,12 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 | 1 | Khởi tạo dự án | 15/19 | Đang làm | Tuần 1 | 2026-11-07 |
 | 2 | CI/CD | 0/9 | Tạm hoãn | Người dùng hoãn 2026-11-10 | |
 | 3 | Kết nối & đồng bộ dữ liệu | 2/16 | Đang làm | Tuần 2 đến 4 | |
-| 4 | Bảo mật | 4/28 | Đang làm | Tuần 2 đến 4, rà soát lại trước beta | |
+| 4 | Bảo mật | 5/28 | Đang làm | Tuần 2 đến 4, rà soát lại trước beta | |
 | 5 | Sức tải, hiệu năng & chi phí AI | 2/19 | Đang làm | Trước production | |
 | 6 | Beta & chuẩn bị production | 0/10 | Chưa bắt đầu | | |
 | 7 | Ra mắt & vận hành | 0/6 | Chưa bắt đầu | | |
-| F | Lát chức năng bản 1 | 4/17 | Đang làm | Song song với giai đoạn 1 đến 6 | 2026-11-08 |
-| | **Tổng** | **39/140** | | | |
+| F | Lát chức năng bản 1 | 5/17 | Đang làm | Song song với giai đoạn 1 đến 6 | 2026-11-08 |
+| | **Tổng** | **41/140** | | | |
 
 ---
 
@@ -176,7 +176,7 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 - [ ] Phân quyền quản trị: vai trò admin kiểm tra ở backend, API `/v1/admin/*`, quản trị viên không xem nội dung người dùng, mọi thao tác ghi nhật ký kiểm toán (xem docs/SECURITY.md)
 - [ ] Bật PostgreSQL Row-Level Security như lớp phòng thủ bổ sung (không thay thế kiểm tra quyền trong ứng dụng)
 - [ ] Khóa cache theo người dùng, không dùng chung kết quả cache giữa các người dùng (docs/SECURITY.md)
-- [ ] Triển khai chính sách xóa tài liệu: file gốc, chunk, vector và job đang chờ; tài liệu đang xóa không còn xuất hiện trong tìm kiếm
+- [x] Triển khai chính sách xóa tài liệu: file gốc, chunk, vector và job đang chờ; tài liệu đang xóa không còn xuất hiện trong tìm kiếm (F6: `DELETING` rồi job dọn nền, tác vụ định kỳ dọn lại)
 
 *Backend và hạ tầng*
 - [ ] Validate mọi input; dùng ORM hoặc query tham số hóa chống SQL injection
@@ -279,7 +279,7 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 - [ ] F4. Xác minh email và quên, đặt lại mật khẩu (U2, U3; màn hình 2, 3)
 - [x] F4b. Không gian học tập: tạo, đổi tên, xóa, không gian mặc định (U16; màn hình 5; docs/specs/f4b-spaces.md). Hàm tạo không gian mặc định đã có, được gọi từ luồng tải lên ở F5
 - [x] F5. Tải tài liệu PDF và xử lý nền đến `READY`: trích văn bản, chia đoạn, embedding, trạng thái (U5; màn hình 5, 6) (docs/specs/f5-document-upload.md)
-- [ ] F6. Quản lý tài liệu: danh sách, chi tiết, thử lại, xóa (U6; màn hình 5, 7)
+- [x] F6. Quản lý tài liệu: danh sách, chi tiết, thử lại, xóa (U6; màn hình 5, 7) (docs/specs/f6-document-management.md)
 - [ ] F7. Hỏi đáp trên nhiều tài liệu, có trích dẫn, trả lời dần (U7; màn hình 9)
 - [ ] F8. Xem trích dẫn và lịch sử hội thoại (U7; màn hình 10, 11)
 - [ ] F9. Flashcard: bộ thẻ, AI đề xuất và người học duyệt, tạo tay, sửa, xóa (U11; màn hình 12, 13, 14)
@@ -330,3 +330,4 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 | 2026-11-10 | Hoãn giai đoạn 2 (CI/CD) theo yêu cầu người dùng: workflow chỉ chạy tay; chuyển toàn bộ comment trong code sang tiếng Anh |
 | 2026-11-10 | Lát F4b xong (docs/specs/f4b-spaces.md): module `spaces` (CRUD, tên chuẩn hóa NFC, không trùng tên trong tài khoản theo index `lower(name)`, Không gian của người khác trả 404), migration thứ hai, màn hình danh sách và chi tiết có hộp xác nhận xóa chạy được trên web. Test: backend 125, frontend 34; thử qua HTTP thật đủ luồng. Sửa thêm: lỗi của framework (JSON hỏng, đường dẫn không tồn tại, sai phương thức) trước đây trả `{detail}` thay vì `ErrorResponse` của contract |
 | 2026-11-12 | Lát F5 xong (docs/specs/f5-document-upload.md): tải PDF (kiểm tra nội dung thật, 20 MB, 200 trang, 10 tài liệu, PDF có mật khẩu), Idempotency-Key, đồng ý dữ liệu theo phiên bản, Không gian mặc định, kho file S3 (boto3), worker ARQ trích văn bản theo trang, chia đoạn theo cấu trúc (chương, trang), embedding Gemini 768 chiều lưu pgvector có index HNSW, `PAUSED_QUOTA` và tự chạy lại, ghi `ai_usage`. Gateway phân biệt giới hạn tốc độ (chờ rồi thử lại) với hết hạn mức (không thử lại). Thử thật với Gemini trên giáo trình tiếng Việt mẫu: READY sau 2 giây, 3 câu hỏi đều trỏ đúng trang. Test: backend 197, frontend 44. Sửa: SeaweedFS cấu hình quá ít volume nên không ghi được file; worker thiếu model khi chạy riêng (thêm `app/db/all_models.py` và test chạy worker ở tiến trình riêng) |
+| 2026-11-13 | Lát F6 xong (docs/specs/f6-document-management.md): chi tiết tài liệu, thử lại (`FAILED`, `PAUSED_QUOTA`), xóa theo máy trạng thái với job dọn nền mang sẵn khóa lưu trữ, chuyển Không gian; xóa Không gian giờ dọn cả file tài liệu bên trong; tác vụ định kỳ dọn lại các xóa bị kẹt. Thử thật qua worker và SeaweedFS: không còn file, không còn bản ghi. Test: backend 206, frontend 50 |

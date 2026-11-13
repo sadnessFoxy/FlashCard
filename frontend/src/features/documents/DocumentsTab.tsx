@@ -1,32 +1,30 @@
 import * as DocumentPicker from "expo-document-picker";
 import { useState } from "react";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { useRouter } from "expo-router";
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { useTranslation } from "react-i18next";
 
 import { Dialog } from "../../components/feedback/Dialog";
 import { Button } from "../../components/ui/Button";
 import { colors, fontSize, radius, spacing } from "../../theme/tokens";
 import { uuidv4 } from "../../utils/uuid";
-import type { DocumentItem, DocumentStatus, PickedFile } from "./api";
+import type { DocumentItem, PickedFile } from "./api";
 import {
   useAiConsent,
   useDocuments,
   useGiveAiConsent,
   useUploadDocument,
 } from "./hooks";
+import { StatusBadge } from "./StatusBadge";
 import { uploadErrorMessage } from "./uploadError";
 
 const MAX_MB = 20;
-
-const BADGE: Record<DocumentStatus, { fg: string; bg: string }> = {
-  UPLOADED: { fg: "#1e40af", bg: "#dbeafe" },
-  QUEUED: { fg: "#1e40af", bg: "#dbeafe" },
-  PROCESSING: { fg: "#1e40af", bg: "#dbeafe" },
-  READY: { fg: "#166534", bg: "#dcfce7" },
-  FAILED: { fg: "#991b1b", bg: "#fee2e2" },
-  PAUSED_QUOTA: { fg: "#92400e", bg: "#fef3c7" },
-  DELETING: { fg: "#4b5563", bg: "#f3f4f6" },
-};
 
 interface PendingUpload {
   file: PickedFile;
@@ -35,9 +33,19 @@ interface PendingUpload {
 
 function DocumentRow({ doc }: { doc: DocumentItem }) {
   const { t, i18n } = useTranslation();
-  const badge = BADGE[doc.status];
+  const router = useRouter();
   return (
-    <View style={styles.row} testID={`document-${doc.id}`}>
+    <Pressable
+      accessibilityRole="link"
+      onPress={() =>
+        router.push({
+          pathname: "/spaces/documents/[documentId]",
+          params: { documentId: doc.id },
+        })
+      }
+      style={styles.row}
+      testID={`document-${doc.id}`}
+    >
       <View style={styles.rowText}>
         <Text style={styles.rowTitle} numberOfLines={2}>
           {doc.filename}
@@ -57,12 +65,8 @@ function DocumentRow({ doc }: { doc: DocumentItem }) {
           <Text style={styles.muted}>{t("documents.pausedHint")}</Text>
         )}
       </View>
-      <View style={[styles.badge, { backgroundColor: badge.bg }]}>
-        <Text style={[styles.badgeText, { color: badge.fg }]}>
-          {t(`documents.status.${doc.status}`)}
-        </Text>
-      </View>
-    </View>
+      <StatusBadge status={doc.status} />
+    </Pressable>
   );
 }
 
@@ -251,8 +255,6 @@ const styles = StyleSheet.create({
   },
   rowText: { flex: 1, gap: spacing.xs },
   rowTitle: { color: colors.text, fontSize: fontSize.md, fontWeight: "600" },
-  badge: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
-  badgeText: { fontSize: fontSize.sm, fontWeight: "600" },
   errorBox: {
     backgroundColor: colors.dangerBg,
     borderRadius: radius.md,

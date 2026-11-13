@@ -18,8 +18,8 @@ from app.integrations.object_storage import object_storage
 from app.modules.ai.providers.gemini import GeminiProvider
 from app.modules.documents.ingestion import IngestionPipeline
 from app.modules.documents.queue import ArqJobQueue
-from app.workers.document_tasks import process_document, resume_stalled_documents
-from app.workers.settings import INGEST_FUNCTION, redis_settings
+from app.workers.document_tasks import process_document, purge_document, resume_stalled_documents
+from app.workers.settings import INGEST_FUNCTION, PURGE_FUNCTION, redis_settings
 
 logger = get_logger(__name__)
 
@@ -45,7 +45,10 @@ async def shutdown(ctx: dict[str, Any]) -> None:
 
 class WorkerSettings:
     redis_settings = redis_settings()
-    functions: ClassVar = [func(process_document, name=INGEST_FUNCTION, keep_result=0)]
+    functions: ClassVar = [
+        func(process_document, name=INGEST_FUNCTION, keep_result=0),
+        func(purge_document, name=PURGE_FUNCTION, keep_result=0, max_tries=10),
+    ]
     cron_jobs: ClassVar = [
         cron(
             resume_stalled_documents,

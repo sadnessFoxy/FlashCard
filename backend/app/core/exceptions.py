@@ -245,3 +245,13 @@ class IdempotencyKeyReusedError(AppError):
 class EmailNotVerifiedError(AppError):
     def __init__(self) -> None:
         super().__init__("EMAIL_NOT_VERIFIED", "Verify your email before uploading", 403)
+
+
+class DocumentNotRetryableError(AppError):
+    def __init__(self, status: str) -> None:
+        super().__init__(
+            "DOCUMENT_NOT_RETRYABLE",
+            "Only failed or paused documents can be retried",
+            409,
+            {"status": status},
+        )

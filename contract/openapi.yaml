@@ -394,6 +394,90 @@ paths:
           $ref: "#/components/responses/NotFound"
         "422":
           $ref: "#/components/responses/ValidationError"
+    delete:
+      tags: [documents]
+      operationId: deleteDocument
+      summary: Delete a document
+      description: |
+        The document becomes DELETING at once (hidden from lists and search); the file, chunks,
+        vectors and jobs are removed in the background (spec: docs/specs/f6-document-management.md).
+      responses:
+        "204":
+          description: Deletion started
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/CsrfRejected"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /v1/documents/{document_id}/retry:
+    parameters:
+      - name: document_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags: [documents]
+      operationId: retryDocument
+      summary: Queue a FAILED or PAUSED_QUOTA document again
+      responses:
+        "200":
+          description: Queued again
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/CsrfRejected"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: "`DOCUMENT_NOT_RETRYABLE` (with the current `status`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /v1/documents/{document_id}/move:
+    parameters:
+      - name: document_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags: [documents]
+      operationId: moveDocument
+      summary: Move a document to another of the caller's spaces
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MoveDocumentRequest"
+      responses:
+        "200":
+          description: Moved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/CsrfRejected"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
   /v1/spaces:
     get:
       tags: [spaces]
@@ -558,6 +642,9 @@ components:
         max_size_mb:
           type: integer
           description: "Set with `FILE_TOO_LARGE`."
+        status:
+          type: string
+          description: "Set with `DOCUMENT_NOT_RETRYABLE`: the document's current status."
         errors:
           type: array
           description: "Set with `VALIDATION_ERROR`: which fields are invalid."
@@ -645,6 +732,14 @@ components:
         updated_at:
           type: string
           format: date-time
+    MoveDocumentRequest:
+      type: object
+      additionalProperties: false
+      required: [space_id]
+      properties:
+        space_id:
+          type: string
+          format: uuid
     DocumentList:
       type: object
       additionalProperties: false

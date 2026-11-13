@@ -9,7 +9,10 @@ from fastapi import APIRouter, Depends, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
+from app.integrations.object_storage import ObjectStorage, get_storage
 from app.modules.auth.dependencies import get_current_user
+from app.modules.documents.queue import JobQueue, get_job_queue
+from app.modules.documents.service import DocumentService
 from app.modules.spaces.schemas import SpaceListOut, SpaceNameRequest, SpaceOut
 from app.modules.spaces.service import SpaceService
 from app.modules.users.models import User
@@ -49,6 +52,13 @@ async def rename_space(
 
 
 @router.delete("/{space_id}", status_code=status.HTTP_204_NO_CONTENT, operation_id="deleteSpace")
-async def delete_space(space_id: uuid.UUID, user: CurrentUser, db: Db) -> Response:
-    await SpaceService(db).delete(user.id, space_id)
+async def delete_space(
+    space_id: uuid.UUID,
+    user: CurrentUser,
+    db: Db,
+    queue: Annotated[JobQueue, Depends(get_job_queue)],
+    storage: Annotated[ObjectStorage, Depends(get_storage)],
+) -> Response:
+    # Purges the documents' files too (spec f6), then removes the space.
+    await DocumentService(db, storage, queue).delete_space(user.id, space_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

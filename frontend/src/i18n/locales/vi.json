@@ -151,6 +151,21 @@
       "limit": "Bạn đã có {{max}} tài liệu, là mức tối đa. Hãy xóa bớt để tải thêm.",
       "consent": "Bạn cần đồng ý với thông báo xử lý dữ liệu trước khi tải.",
       "network": "Mất kết nối khi tải lên. Bấm Thử lại, tài liệu sẽ không bị tạo trùng."
+    },
+    "notFound": "Tài liệu này không tồn tại hoặc đã bị xóa.",
+    "backToSpace": "Về không gian",
+    "retry": "Thử lại",
+    "move": "Chuyển không gian",
+    "moveTitle": "Chuyển sang không gian",
+    "moveNoSpaces": "Bạn chưa có không gian nào khác. Hãy tạo thêm một không gian trước.",
+    "deleteTitle": "Xóa \"{{name}}\"?",
+    "deleteWarning": "Tài liệu, các đoạn văn và dữ liệu tìm kiếm của nó sẽ bị xóa vĩnh viễn. Lịch sử hỏi đáp vẫn được giữ, trích dẫn sẽ hiện \"tài liệu đã xóa\".",
+    "shortcutsSoon": "Hỏi đáp và tạo thẻ từ tài liệu này sẽ có ở bản cập nhật tới.",
+    "detail": {
+      "pages_one": "{{count}} trang",
+      "pages_other": "{{count}} trang",
+      "size": "Dung lượng: {{size}}",
+      "uploaded": "Tải lên: {{date}}"
     }
   }
 }

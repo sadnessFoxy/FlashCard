@@ -6,7 +6,7 @@ import uuid
 from collections.abc import Sequence
 from datetime import datetime
 
-from sqlalchemy import func, select, text, update
+from sqlalchemy import delete, func, select, text, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.documents.models import Document, DocumentChunk, DocumentJob
@@ -91,6 +91,33 @@ class DocumentRepository:
             select(Document.id).where(Document.status == status, Document.updated_at < older_than)
         )
         return list(result.scalars())
+
+    async def in_space_for_owner(
+        self, owner_id: uuid.UUID, space_id: uuid.UUID
+    ) -> list[tuple[uuid.UUID, str]]:
+        """(id, storage_key) of every document in the space, DELETING ones included."""
+        result = await self._session.execute(
+            select(Document.id, Document.storage_key).where(
+                Document.owner_id == owner_id, Document.space_id == space_id
+            )
+        )
+        return [(row[0], row[1]) for row in result.all()]
+
+    async def delete_if_deleting(self, document_id: uuid.UUID) -> bool:
+        result = await self._session.execute(
+            delete(Document)
+            .where(Document.id == document_id, Document.status == "DELETING")
+            .execution_options(synchronize_session=False)
+        )
+        return bool(result.rowcount)  # type: ignore[attr-defined]
+
+    async def stale_deleting(self, older_than: datetime) -> list[tuple[uuid.UUID, str]]:
+        result = await self._session.execute(
+            select(Document.id, Document.storage_key).where(
+                Document.status == "DELETING", Document.updated_at < older_than
+            )
+        )
+        return [(row[0], row[1]) for row in result.all()]
 
     # --------------------------------------------------------------- chunks
 

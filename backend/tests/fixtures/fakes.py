@@ -30,6 +30,10 @@ class InMemoryStorage:
 class RecordingQueue:
     def __init__(self) -> None:
         self.jobs: list[tuple[uuid.UUID, float]] = []
+        self.purges: list[tuple[uuid.UUID, str]] = []
 
     async def enqueue_ingest(self, document_id: uuid.UUID, defer_seconds: float = 0) -> None:
         self.jobs.append((document_id, defer_seconds))
+
+    async def enqueue_purge(self, document_id: uuid.UUID, storage_key: str) -> None:
+        self.purges.append((document_id, storage_key))

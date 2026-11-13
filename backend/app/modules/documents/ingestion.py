@@ -224,6 +224,22 @@ class IngestionPipeline:
         if document is None or document.status != PROCESSING:
             raise _StoppedError
 
+    # --------------------------------------------------------------- purge
+
+    async def purge(self, document_id: uuid.UUID, storage_key: str) -> bool:
+        """Delete the stored file, then the row if it is still DELETING. Idempotent.
+        False when storage failed (the caller retries later)."""
+        try:
+            await self._storage.delete_file(storage_key)
+        except StorageError:
+            logger.warning("Purge: storage delete failed (document_id=%s)", document_id)
+            return False
+        async with self._sessions() as session:
+            removed = await DocumentRepository(session).delete_if_deleting(document_id)
+            await session.commit()
+        logger.info("Document purged (document_id=%s, row_removed=%s)", document_id, removed)
+        return True
+
     # ------------------------------------------------------------ recovery
 
     async def resume_stalled(self) -> list[uuid.UUID]:
@@ -244,8 +260,11 @@ class IngestionPipeline:
                 if current.status == QUEUED or await repo.transition(document_id, QUEUED):
                     resumed.append(document_id)
             await session.commit()
+            stale_deleting = await repo.stale_deleting(now - timedelta(minutes=10))
         for document_id in resumed:
             await self._queue.enqueue_ingest(document_id)
+        for document_id, key in stale_deleting:
+            await self._queue.enqueue_purge(document_id, key)
         if resumed:
             logger.info("Resumed %d documents", len(resumed))
         return resumed

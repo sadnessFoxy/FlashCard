@@ -34,3 +34,9 @@ class DocumentListOut(BaseModel):
     items: list[DocumentOut]
     total_documents: int
     max_documents: int
+
+
+class MoveDocumentRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    space_id: uuid.UUID

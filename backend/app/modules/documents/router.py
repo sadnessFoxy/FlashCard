@@ -14,7 +14,7 @@ from app.db.session import get_db
 from app.integrations.object_storage import ObjectStorage, get_storage
 from app.modules.auth.dependencies import get_current_user
 from app.modules.documents.queue import JobQueue, get_job_queue
-from app.modules.documents.schemas import DocumentListOut, DocumentOut
+from app.modules.documents.schemas import DocumentListOut, DocumentOut, MoveDocumentRequest
 from app.modules.documents.service import DocumentService
 from app.modules.users.models import User
 
@@ -81,3 +81,34 @@ async def get_document(
 ) -> DocumentOut:
     service = DocumentService(db, storage, queue)
     return DocumentOut.model_validate(await service.get(user.id, document_id))
+
+
+@router.post("/{document_id}/retry", response_model=DocumentOut, operation_id="retryDocument")
+async def retry_document(
+    document_id: uuid.UUID, user: CurrentUser, db: Db, queue: Queue, storage: Storage
+) -> DocumentOut:
+    service = DocumentService(db, storage, queue)
+    return DocumentOut.model_validate(await service.retry(user.id, document_id))
+
+
+@router.delete(
+    "/{document_id}", status_code=status.HTTP_204_NO_CONTENT, operation_id="deleteDocument"
+)
+async def delete_document(
+    document_id: uuid.UUID, user: CurrentUser, db: Db, queue: Queue, storage: Storage
+) -> Response:
+    await DocumentService(db, storage, queue).delete(user.id, document_id)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post("/{document_id}/move", response_model=DocumentOut, operation_id="moveDocument")
+async def move_document(
+    document_id: uuid.UUID,
+    body: MoveDocumentRequest,
+    user: CurrentUser,
+    db: Db,
+    queue: Queue,
+    storage: Storage,
+) -> DocumentOut:
+    service = DocumentService(db, storage, queue)
+    return DocumentOut.model_validate(await service.move(user.id, document_id, body.space_id))

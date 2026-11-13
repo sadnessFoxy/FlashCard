@@ -72,3 +72,35 @@ export function giveAiConsent(version: string): Promise<Consent> {
     version,
   });
 }
+
+export function getDocument(
+  id: string,
+  signal?: AbortSignal,
+): Promise<DocumentItem> {
+  return api.get<DocumentItem>(
+    `/v1/documents/${encodeURIComponent(id)}`,
+    signal ? { signal } : {},
+  );
+}
+
+export function retryDocument(id: string): Promise<DocumentItem> {
+  return api.post<DocumentItem>(
+    `/v1/documents/${encodeURIComponent(id)}/retry`,
+  );
+}
+
+export function deleteDocument(id: string): Promise<void> {
+  return api.delete<void>(`/v1/documents/${encodeURIComponent(id)}`);
+}
+
+export function moveDocument(
+  id: string,
+  spaceId: string,
+): Promise<DocumentItem> {
+  return api.post<DocumentItem>(
+    `/v1/documents/${encodeURIComponent(id)}/move`,
+    {
+      space_id: spaceId,
+    },
+  );
+}

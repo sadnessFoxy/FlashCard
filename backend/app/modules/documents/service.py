@@ -12,6 +12,7 @@ from app.core.config import settings
 from app.core.exceptions import (
     ConsentRequiredError,
     DocumentLimitReachedError,
+    DocumentNotRetryableError,
     EmailNotVerifiedError,
     FileTooLargeError,
     FileTypeNotSupportedError,
@@ -28,7 +29,7 @@ from app.modules.documents.models import Document, DocumentJob
 from app.modules.documents.pdf import NotAPdfError, inspect_pdf
 from app.modules.documents.queue import JobQueue
 from app.modules.documents.repository import DocumentRepository
-from app.modules.documents.states import QUEUED, UPLOADED
+from app.modules.documents.states import DELETING, FAILED, PAUSED_QUOTA, QUEUED, UPLOADED
 from app.modules.spaces.models import Space
 from app.modules.spaces.service import SpaceService
 from app.modules.users.models import User
@@ -135,6 +136,49 @@ class DocumentService:
         if document is None or document.status == "DELETING":
             raise NotFoundError("Document")
         return document
+
+    async def retry(self, owner_id: uuid.UUID, document_id: uuid.UUID) -> Document:
+        """FAILED or PAUSED_QUOTA -> QUEUED with a fresh job (chunks already embedded are kept)."""
+        document = await self.get(owner_id, document_id)
+        if not await self._repo.transition(document.id, QUEUED, sources=[FAILED, PAUSED_QUOTA]):
+            raise DocumentNotRetryableError(document.status)
+        await self._repo.add_job(DocumentJob(document_id=document.id))
+        await self._session.commit()
+        await self._session.refresh(document)
+        await self._queue.enqueue_ingest(document.id)
+        logger.info("Document retry requested (document_id=%s)", document.id)
+        return document
+
+    async def delete(self, owner_id: uuid.UUID, document_id: uuid.UUID) -> None:
+        """Hide now (DELETING), purge file and rows in the background."""
+        document = await self.get(owner_id, document_id)
+        if not await self._repo.transition(document.id, DELETING):
+            raise NotFoundError("Document")  # deleted concurrently
+        await self._session.commit()
+        await self._queue.enqueue_purge(document.id, document.storage_key)
+        logger.info("Document deletion requested (document_id=%s)", document.id)
+
+    async def move(
+        self, owner_id: uuid.UUID, document_id: uuid.UUID, space_id: uuid.UUID
+    ) -> Document:
+        document = await self.get(owner_id, document_id)
+        target = await self._spaces.get(owner_id, space_id)  # 404 for someone else's space
+        document.space_id = target.id
+        await self._session.flush()
+        await self._session.refresh(document)
+        return document
+
+    async def delete_space(self, owner_id: uuid.UUID, space_id: uuid.UUID) -> None:
+        """Delete a space and everything in it: documents go through the purge flow so their
+        files are removed; rows are removed with the space (FK cascade)."""
+        await self._spaces.get(owner_id, space_id)
+        documents = await self._repo.in_space_for_owner(owner_id, space_id)
+        for document_id, _key in documents:
+            await self._repo.transition(document_id, DELETING)
+        await self._spaces.delete(owner_id, space_id)
+        await self._session.commit()
+        for document_id, key in documents:
+            await self._queue.enqueue_purge(document_id, key)
 
     # -------------------------------------------------------------- helpers
 

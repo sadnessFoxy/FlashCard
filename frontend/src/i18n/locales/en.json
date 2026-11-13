@@ -151,6 +151,21 @@
       "limit": "You have {{max}} documents, the maximum. Delete some to upload more.",
       "consent": "Please accept the data processing notice before uploading.",
       "network": "Connection lost during upload. Press Retry; no duplicate will be created."
+    },
+    "notFound": "This document doesn't exist or was deleted.",
+    "backToSpace": "Back to space",
+    "retry": "Retry",
+    "move": "Move to space",
+    "moveTitle": "Move to space",
+    "moveNoSpaces": "You have no other space yet. Create one first.",
+    "deleteTitle": "Delete \"{{name}}\"?",
+    "deleteWarning": "The document, its passages and search data will be permanently deleted. Q&A history is kept; citations will show \"deleted document\".",
+    "shortcutsSoon": "Q&A and flashcards from this document are coming in a later update.",
+    "detail": {
+      "pages_one": "{{count}} page",
+      "pages_other": "{{count}} pages",
+      "size": "Size: {{size}}",
+      "uploaded": "Uploaded: {{date}}"
     }
   }
 }
