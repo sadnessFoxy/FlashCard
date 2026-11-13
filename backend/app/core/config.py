@@ -169,6 +169,11 @@ class Settings(BaseSettings):
     CHAT_MAX_OUTPUT_TOKENS: int = Field(default=1024)
     CHAT_QUESTION_MAX_CHARS: int = Field(default=2000)
 
+    # ------- Citation page view (docs/specs/f8-citations-history.md) -------
+    DOCUMENT_PAGE_CACHE_SECONDS: int = Field(
+        default=3600, description="How long extracted page text stays cached in Redis"
+    )
+
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def parse_cors_origins(cls, v: str | list[str]) -> list[str]:

@@ -51,6 +51,15 @@ def extract_pages(data: bytes) -> list[str]:
         raise NotAPdfError from exc
 
 
+def extract_page(data: bytes, page_number: int) -> str:
+    """Text of one 1-based page; only that page is parsed."""
+    try:
+        reader = PdfReader(io.BytesIO(data))
+        return reader.pages[page_number - 1].extract_text() or ""
+    except (PdfReadError, ValueError, KeyError, TypeError, IndexError) as exc:
+        raise NotAPdfError from exc
+
+
 def looks_scanned(pages: list[str], min_chars_per_page: int) -> bool:
     """No usable text layer: average visible characters per page below the threshold."""
     if not pages:

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import {
   deleteDocument,
+  getDocumentPage,
   getDocument,
   giveAiConsent,
   hasCurrentAiConsent,
@@ -127,5 +128,14 @@ export function useDeleteDocument(id: string) {
       qc.removeQueries({ queryKey: documentDetailKey(id) });
       void qc.invalidateQueries({ queryKey: ["documents"] });
     },
+  });
+}
+
+export function useDocumentPage(id: string, page: number) {
+  return useQuery({
+    queryKey: ["document-page", id, page] as const,
+    queryFn: ({ signal }) => getDocumentPage(id, page, signal),
+    retry: false,
+    placeholderData: (previous) => previous, // keep the old page while the next loads
   });
 }

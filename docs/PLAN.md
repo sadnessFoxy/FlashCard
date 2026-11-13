@@ -22,8 +22,8 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 | 5 | Sức tải, hiệu năng & chi phí AI | 3/19 | Đang làm | Trước production | |
 | 6 | Beta & chuẩn bị production | 0/10 | Chưa bắt đầu | | |
 | 7 | Ra mắt & vận hành | 0/6 | Chưa bắt đầu | | |
-| F | Lát chức năng bản 1 | 6/17 | Đang làm | Song song với giai đoạn 1 đến 6 | 2026-11-08 |
-| | **Tổng** | **44/140** | | | |
+| F | Lát chức năng bản 1 | 7/17 | Đang làm | Song song với giai đoạn 1 đến 6 | 2026-11-08 |
+| | **Tổng** | **45/140** | | | |
 
 ---
 
@@ -281,7 +281,7 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 - [x] F5. Tải tài liệu PDF và xử lý nền đến `READY`: trích văn bản, chia đoạn, embedding, trạng thái (U5; màn hình 5, 6) (docs/specs/f5-document-upload.md)
 - [x] F6. Quản lý tài liệu: danh sách, chi tiết, thử lại, xóa (U6; màn hình 5, 7) (docs/specs/f6-document-management.md)
 - [x] F7. Hỏi đáp trên nhiều tài liệu, có trích dẫn, trả lời dần (U7; màn hình 9) (docs/specs/f7-qa.md)
-- [ ] F8. Xem trích dẫn và lịch sử hội thoại (U7; màn hình 10, 11)
+- [x] F8. Xem trích dẫn và lịch sử hội thoại (U7; màn hình 10, 11) (docs/specs/f8-citations-history.md)
 - [ ] F9. Flashcard: bộ thẻ, AI đề xuất và người học duyệt, tạo tay, sửa, xóa (U11; màn hình 12, 13, 14)
 - [ ] F10. Ôn tập lặp lại ngắt quãng theo SM-2 và kết quả ôn tập (U12; màn hình 15, 16)
 - [ ] F11. Câu hỏi trắc nghiệm: tạo, làm bài, chấm bằng code, xem lại câu sai kèm nguồn (U13; màn hình 17, 18, 19)
@@ -332,3 +332,4 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 | 2026-11-12 | Lát F5 xong (docs/specs/f5-document-upload.md): tải PDF (kiểm tra nội dung thật, 20 MB, 200 trang, 10 tài liệu, PDF có mật khẩu), Idempotency-Key, đồng ý dữ liệu theo phiên bản, Không gian mặc định, kho file S3 (boto3), worker ARQ trích văn bản theo trang, chia đoạn theo cấu trúc (chương, trang), embedding Gemini 768 chiều lưu pgvector có index HNSW, `PAUSED_QUOTA` và tự chạy lại, ghi `ai_usage`. Gateway phân biệt giới hạn tốc độ (chờ rồi thử lại) với hết hạn mức (không thử lại). Thử thật với Gemini trên giáo trình tiếng Việt mẫu: READY sau 2 giây, 3 câu hỏi đều trỏ đúng trang. Test: backend 197, frontend 44. Sửa: SeaweedFS cấu hình quá ít volume nên không ghi được file; worker thiếu model khi chạy riêng (thêm `app/db/all_models.py` và test chạy worker ở tiến trình riêng) |
 | 2026-11-13 | Lát F6 xong (docs/specs/f6-document-management.md): chi tiết tài liệu, thử lại (`FAILED`, `PAUSED_QUOTA`), xóa theo máy trạng thái với job dọn nền mang sẵn khóa lưu trữ, chuyển Không gian; xóa Không gian giờ dọn cả file tài liệu bên trong; tác vụ định kỳ dọn lại các xóa bị kẹt. Thử thật qua worker và SeaweedFS: không còn file, không còn bản ghi. Test: backend 206, frontend 50 |
 | 2026-11-13 | Lát F7 xong (docs/specs/f7-qa.md): hội thoại theo Không gian, câu trả lời trả dần qua SSE (start, citations, delta, done, error), truy xuất lọc theo chủ sở hữu, Không gian, tài liệu `READY` và tập đã chọn trước khi xếp hạng; trích dẫn lưu dạng bản ghi nhanh nên vẫn hiện khi tài liệu bị xóa; hạn mức 30 câu/ngày theo giờ Việt Nam bằng Redis (không tìm thấy và chế độ chỉ tìm đoạn không trừ lượt); AI ngừng thì chuyển sang chỉ tìm đoạn, kể cả khi không tạo được embedding (tìm theo từ khóa). Tab Hỏi đáp: chip chọn tài liệu, trả lời hiện dần (mobile dùng `expo/fetch`), chip trích dẫn, đếm lượt, giữ câu hỏi khi lỗi. Thử thật với Gemini: chữ đầu tiên sau khoảng 1,5 giây, trích dẫn đúng trang, câu ngoài tài liệu trả "không tìm thấy". Test: backend 226, frontend 63. Sửa lỗi có từ trước: phiên database commit **sau** khi phản hồi đã gửi, nên yêu cầu kế tiếp có thể chưa thấy dữ liệu (401 ngay sau đăng ký, 404 ngay sau tạo); giờ commit trước khi gửi phản hồi, có test chặn tái diễn |
+| 2026-11-13 | Lát F8 xong (docs/specs/f8-citations-history.md): xem trang được trích dạng văn bản đọc lại từ PDF gốc, đoạn trích được tô nổi bật, chuyển trang, cache Redis theo người dùng; lịch sử hội thoại theo Không gian, mở lại, xóa có xác nhận. Theo yêu cầu người dùng về code dễ đọc, dễ bảo trì: tách module chat backend (nguồn trích, trích dẫn, luồng trả lời, trình bày) và tab Hỏi đáp frontend (hook gửi câu hỏi, bong bóng tin nhắn, hộp trích dẫn, chip tài liệu, ô nhập); gom helper test dùng chung. Sửa nhờ thử thật với Gemini: câu hỏi tiếng Anh trên giáo trình tiếng Việt bị trả lời bằng tiếng Việt (giờ ghi rõ ngôn ngữ cần trả lời cạnh câu hỏi, đúng 3/3 lần thử), câu trả lời có ký hiệu LaTeX, câu hỏi không có câu trả lời trong lịch sử làm lệch câu kế tiếp. Test: backend 233, frontend 74 |

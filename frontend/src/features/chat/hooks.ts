@@ -1,6 +1,11 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { getConversation, getUsage, listConversations } from "./api";
+import {
+  deleteConversation,
+  getConversation,
+  getUsage,
+  listConversations,
+} from "./api";
 
 export const chatKeys = {
   usage: ["usage", "me"] as const,
@@ -27,5 +32,16 @@ export function useConversation(id: string | null) {
     queryKey: chatKeys.detail(id ?? "none"),
     queryFn: ({ signal }) => getConversation(id as string, signal),
     enabled: id !== null,
+  });
+}
+
+export function useDeleteConversation(spaceId: string) {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => deleteConversation(id),
+    onSuccess: (_r, id) => {
+      qc.removeQueries({ queryKey: chatKeys.detail(id) });
+      void qc.invalidateQueries({ queryKey: chatKeys.list(spaceId) });
+    },
   });
 }

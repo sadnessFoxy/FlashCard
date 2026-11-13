@@ -1,5 +1,5 @@
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -18,15 +18,30 @@ import { useDeleteSpace, useRenameSpace, useSpace } from "./hooks";
 import { DeleteSpaceDialog, SpaceNameDialog } from "./SpaceDialogs";
 
 const TABS = ["documents", "chat", "cards", "quizzes"] as const;
-type Tab = (typeof TABS)[number];
+export type SpaceTab = (typeof TABS)[number];
 
-export function SpaceDetailScreen({ id }: { id: string }) {
+export function isSpaceTab(value: unknown): value is SpaceTab {
+  return TABS.includes(value as SpaceTab);
+}
+
+interface Props {
+  id: string;
+  initialTab?: SpaceTab | undefined;
+  /** Conversation to open in the chat tab (from the history screen). */
+  conversationId?: string | undefined;
+}
+
+export function SpaceDetailScreen({ id, initialTab, conversationId }: Props) {
   const { t } = useTranslation();
   const router = useRouter();
   const space = useSpace(id);
   const rename = useRenameSpace();
   const remove = useDeleteSpace();
-  const [tab, setTab] = useState<Tab>("documents");
+  const [tab, setTab] = useState<SpaceTab>(initialTab ?? "documents");
+  // The history screen navigates back here with new params; follow them.
+  useEffect(() => {
+    if (initialTab) setTab(initialTab);
+  }, [initialTab, conversationId]);
   const [renaming, setRenaming] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -104,7 +119,11 @@ export function SpaceDetailScreen({ id }: { id: string }) {
       {tab === "documents" ? (
         <DocumentsTab spaceId={id} />
       ) : tab === "chat" ? (
-        <ChatTab spaceId={id} />
+        <ChatTab
+          key={conversationId ?? "latest"}
+          spaceId={id}
+          initialConversationId={conversationId}
+        />
       ) : (
         // Cards (F9) and quizzes (F11) arrive in later slices.
         <View style={styles.placeholder} testID={`space-tab-${tab}`}>

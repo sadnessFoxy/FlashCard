@@ -227,6 +227,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/documents/{document_id}/pages/{page}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+                page: number;
+            };
+            cookie?: never;
+        };
+        /** The text of one page, split into paragraphs (citation view) */
+        get: operations["getDocumentPage"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/documents/{document_id}/move": {
         parameters: {
             query?: never;
@@ -309,7 +329,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** The caller's conversations in a space, most recently updated first (latest 20) */
+        /** The caller's conversations in a space, most recently updated first */
         get: operations["listConversations"];
         put?: never;
         /** Start a conversation in a space */
@@ -333,7 +353,8 @@ export interface paths {
         get: operations["getConversation"];
         put?: never;
         post?: never;
-        delete?: never;
+        /** Delete a conversation and its messages */
+        delete: operations["deleteConversation"];
         options?: never;
         head?: never;
         patch?: never;
@@ -531,6 +552,15 @@ export interface components {
             message: string;
             /** Format: date-time */
             quota_reset_at?: string;
+        };
+        DocumentPage: {
+            /** Format: uuid */
+            document_id: string;
+            filename: string;
+            page: number;
+            page_count: number;
+            /** @description Page text in reading order; empty when the page has no text layer. */
+            paragraphs: string[];
         };
         /** @enum {string} */
         Locale: "vi" | "en";
@@ -1273,6 +1303,41 @@ export interface operations {
             422: components["responses"]["ValidationError"];
         };
     };
+    getDocumentPage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+                page: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The page */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentPage"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            404: components["responses"]["NotFound"];
+            /** @description `DOCUMENT_NOT_READY`: the document is not READY */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            422: components["responses"]["ValidationError"];
+        };
+    };
     moveDocument: {
         parameters: {
             query?: never;
@@ -1457,6 +1522,7 @@ export interface operations {
         parameters: {
             query: {
                 space_id: string;
+                limit?: number;
             };
             header?: never;
             path?: never;
@@ -1527,6 +1593,30 @@ export interface operations {
                 };
             };
             401: components["responses"]["UnauthorizedError"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    deleteConversation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                conversation_id: components["parameters"]["ConversationId"];
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["CsrfRejected"];
             404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationError"];
         };

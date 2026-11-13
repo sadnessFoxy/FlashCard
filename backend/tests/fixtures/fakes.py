@@ -11,6 +11,7 @@ class InMemoryStorage:
     def __init__(self) -> None:
         self.objects: dict[str, bytes] = {}
         self.fail = False
+        self.downloads = 0
 
     async def upload_file(self, key: str, data: bytes, content_type: str = "") -> str:
         if self.fail:
@@ -19,6 +20,7 @@ class InMemoryStorage:
         return key
 
     async def download_file(self, key: str) -> bytes:
+        self.downloads += 1
         if self.fail or key not in self.objects:
             raise StorageError()
         return self.objects[key]

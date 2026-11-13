@@ -193,6 +193,26 @@
       "notFound": "Hội thoại này không còn tồn tại.",
       "invalid": "Câu hỏi không hợp lệ (tối đa 2.000 ký tự).",
       "generic": "Đã có lỗi xảy ra. Hãy gửi lại câu hỏi."
-    }
+    },
+    "history": "Lịch sử",
+    "viewPage": "Xem trang"
+  },
+  "history": {
+    "title": "Lịch sử hỏi đáp",
+    "back": "Quay lại hỏi đáp",
+    "empty": "Chưa có hội thoại nào trong không gian này.",
+    "loadError": "Không tải được lịch sử.",
+    "untitled": "Hội thoại chưa có câu hỏi",
+    "deleteTitle": "Xóa hội thoại?",
+    "deleteWarning": "Toàn bộ câu hỏi và câu trả lời trong hội thoại này sẽ bị xóa vĩnh viễn."
+  },
+  "citationPage": {
+    "pageOf": "Trang {{page}}/{{total}}",
+    "previous": "Trang trước",
+    "next": "Trang sau",
+    "noText": "Trang này không có chữ (có thể là hình ảnh).",
+    "notFound": "Không tìm thấy trang này, hoặc tài liệu đã bị xóa.",
+    "notReady": "Tài liệu đang được xử lý, hãy thử lại sau.",
+    "loadError": "Không tải được trang tài liệu."
   }
 }

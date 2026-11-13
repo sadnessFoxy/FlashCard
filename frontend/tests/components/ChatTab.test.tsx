@@ -34,6 +34,10 @@ jest.mock("../../src/features/chat/api", () => ({
 jest.mock("../../src/features/documents/api", () => ({
   listDocuments: jest.fn(),
 }));
+const mockPush = jest.fn();
+jest.mock("expo-router", () => ({
+  useRouter: () => ({ push: mockPush, replace: jest.fn() }),
+}));
 
 const docs = listDocuments as jest.MockedFunction<typeof listDocuments>;
 const usage = getUsage as jest.MockedFunction<typeof getUsage>;
@@ -331,4 +335,33 @@ it("renders in English", async () => {
   await i18n.changeLanguage("en");
   renderTab();
   expect(await screen.findByText("28/30 questions left today")).toBeTruthy();
+});
+
+it("opens the cited page from a citation", async () => {
+  list.mockResolvedValue({ items: [conversation] });
+  detail.mockResolvedValue({
+    ...conversation,
+    messages: [
+      question,
+      message({ id: "a1", content: "Trả lời [1].", citations: [citation] }),
+    ],
+  });
+  renderTab();
+
+  fireEvent.press(await screen.findByTestId("citation-1"));
+  fireEvent.press(await screen.findByTestId("citation-view-page"));
+
+  expect(mockPush).toHaveBeenCalledWith({
+    pathname: "/spaces/citation",
+    params: { documentId: "d1", page: "2", highlight: citation.snippet },
+  });
+});
+
+it("opens the history", async () => {
+  renderTab();
+  fireEvent.press(await screen.findByTestId("chat-history"));
+  expect(mockPush).toHaveBeenCalledWith({
+    pathname: "/spaces/history/[spaceId]",
+    params: { spaceId: "s1" },
+  });
 });

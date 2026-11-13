@@ -10,6 +10,7 @@ export const colors = {
   background: "#f9fafb",
   danger: "#b91c1c",
   dangerBg: "#fee2e2",
+  highlight: "#fef08a",
 } as const;
 
 export const spacing = {

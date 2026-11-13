@@ -193,6 +193,26 @@
       "notFound": "This conversation no longer exists.",
       "invalid": "Invalid question (max 2,000 characters).",
       "generic": "Something went wrong. Please send your question again."
-    }
+    },
+    "history": "History",
+    "viewPage": "View page"
+  },
+  "history": {
+    "title": "Q&A history",
+    "back": "Back to Q&A",
+    "empty": "No conversations in this space yet.",
+    "loadError": "Couldn't load the history.",
+    "untitled": "Conversation without questions",
+    "deleteTitle": "Delete conversation?",
+    "deleteWarning": "All questions and answers in this conversation will be permanently deleted."
+  },
+  "citationPage": {
+    "pageOf": "Page {{page}}/{{total}}",
+    "previous": "Previous page",
+    "next": "Next page",
+    "noText": "This page has no text (it may be an image).",
+    "notFound": "This page doesn't exist, or the document was deleted.",
+    "notReady": "The document is still being processed, try again later.",
+    "loadError": "Couldn't load the document page."
   }
 }

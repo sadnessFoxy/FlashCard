@@ -451,6 +451,43 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "422":
           $ref: "#/components/responses/ValidationError"
+  /v1/documents/{document_id}/pages/{page}:
+    parameters:
+      - name: document_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: page
+        in: path
+        required: true
+        schema:
+          type: integer
+          minimum: 1
+    get:
+      tags: [documents]
+      operationId: getDocumentPage
+      summary: The text of one page, split into paragraphs (citation view)
+      responses:
+        "200":
+          description: The page
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentPage"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: "`DOCUMENT_NOT_READY`: the document is not READY"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          $ref: "#/components/responses/ValidationError"
   /v1/documents/{document_id}/move:
     parameters:
       - name: document_id
@@ -603,7 +640,7 @@ paths:
     get:
       tags: [chat]
       operationId: listConversations
-      summary: The caller's conversations in a space, most recently updated first (latest 20)
+      summary: The caller's conversations in a space, most recently updated first
       parameters:
         - name: space_id
           in: query
@@ -611,6 +648,14 @@ paths:
           schema:
             type: string
             format: uuid
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 20
       responses:
         "200":
           description: Conversations
@@ -665,6 +710,21 @@ paths:
                 $ref: "#/components/schemas/ConversationDetail"
         "401":
           $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+    delete:
+      tags: [chat]
+      operationId: deleteConversation
+      summary: Delete a conversation and its messages
+      responses:
+        "204":
+          description: Deleted
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/CsrfRejected"
         "404":
           $ref: "#/components/responses/NotFound"
         "422":
@@ -1020,6 +1080,27 @@ components:
         quota_reset_at:
           type: string
           format: date-time
+    DocumentPage:
+      type: object
+      additionalProperties: false
+      required: [document_id, filename, page, page_count, paragraphs]
+      properties:
+        document_id:
+          type: string
+          format: uuid
+        filename:
+          type: string
+        page:
+          type: integer
+          minimum: 1
+        page_count:
+          type: integer
+          minimum: 1
+        paragraphs:
+          type: array
+          description: Page text in reading order; empty when the page has no text layer.
+          items:
+            type: string
     Locale:
       type: string
       enum: [vi, en]

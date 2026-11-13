@@ -5,7 +5,18 @@ from __future__ import annotations
 import uuid
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, Form, Header, Query, Response, UploadFile, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    File,
+    Form,
+    Header,
+    Path,
+    Query,
+    Response,
+    UploadFile,
+    status,
+)
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -13,8 +24,14 @@ from app.core.exceptions import FileTooLargeError
 from app.db.session import get_db
 from app.integrations.object_storage import ObjectStorage, get_storage
 from app.modules.auth.dependencies import get_current_user
+from app.modules.documents.pages import PageReader
 from app.modules.documents.queue import JobQueue, get_job_queue
-from app.modules.documents.schemas import DocumentListOut, DocumentOut, MoveDocumentRequest
+from app.modules.documents.schemas import (
+    DocumentListOut,
+    DocumentOut,
+    DocumentPageOut,
+    MoveDocumentRequest,
+)
 from app.modules.documents.service import DocumentService
 from app.modules.users.models import User
 
@@ -112,3 +129,23 @@ async def move_document(
 ) -> DocumentOut:
     service = DocumentService(db, storage, queue)
     return DocumentOut.model_validate(await service.move(user.id, document_id, body.space_id))
+
+
+@router.get(
+    "/{document_id}/pages/{page}", response_model=DocumentPageOut, operation_id="getDocumentPage"
+)
+async def get_document_page(
+    document_id: uuid.UUID,
+    page: Annotated[int, Path(ge=1)],
+    user: CurrentUser,
+    db: Db,
+    storage: Storage,
+) -> DocumentPageOut:
+    result = await PageReader(db, storage).read(user.id, document_id, page)
+    return DocumentPageOut(
+        document_id=result.document.id,
+        filename=result.document.filename,
+        page=result.page,
+        page_count=result.document.page_count,
+        paragraphs=result.paragraphs,
+    )

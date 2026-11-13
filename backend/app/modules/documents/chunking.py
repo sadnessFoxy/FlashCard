@@ -48,7 +48,7 @@ def _is_heading(line: str) -> bool:
     return len(line) <= _MAX_HEADING_CHARS and bool(_HEADING.match(line))
 
 
-def _paragraphs(page_text: str) -> list[tuple[str, bool]]:
+def split_paragraphs(page_text: str) -> list[tuple[str, bool]]:
     """(paragraph, is_heading). Blank lines split paragraphs; without them (common with
     pypdf), a line ending in sentence punctuation does, and headings stand alone."""
     out: list[tuple[str, bool]] = []
@@ -109,7 +109,7 @@ def chunk_pages(
     units = [
         _Unit(page=i + 1, text=piece, heading=heading)
         for i, page in enumerate(pages)
-        for para, heading in _paragraphs(page)
+        for para, heading in split_paragraphs(page)
         for piece in _split_long(para, piece_limit)
     ]
 

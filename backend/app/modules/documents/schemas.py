@@ -40,3 +40,13 @@ class MoveDocumentRequest(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     space_id: uuid.UUID
+
+
+class DocumentPageOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    document_id: uuid.UUID
+    filename: str
+    page: int
+    page_count: int
+    paragraphs: list[str]

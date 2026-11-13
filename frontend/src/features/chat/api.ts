@@ -76,3 +76,7 @@ export async function sendMessage(
     throw new ApiError("NETWORK_ERROR", "Stream ended early");
   }
 }
+
+export function deleteConversation(id: string): Promise<void> {
+  return api.delete<void>(`/v1/conversations/${encodeURIComponent(id)}`);
+}

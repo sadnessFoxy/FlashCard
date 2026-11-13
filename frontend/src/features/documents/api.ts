@@ -104,3 +104,16 @@ export function moveDocument(
     },
   );
 }
+
+export type DocumentPage = components["schemas"]["DocumentPage"];
+
+export function getDocumentPage(
+  id: string,
+  page: number,
+  signal?: AbortSignal,
+): Promise<DocumentPage> {
+  return api.get<DocumentPage>(
+    `/v1/documents/${encodeURIComponent(id)}/pages/${page}`,
+    signal ? { signal } : {},
+  );
+}
