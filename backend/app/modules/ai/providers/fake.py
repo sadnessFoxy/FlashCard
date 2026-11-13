@@ -1,24 +1,26 @@
 """
-Fake AI provider for tests and offline development.
-Returns canned data; never calls a real API.
+Fake AI provider for tests and offline development; never calls a real API.
+Embeddings are deterministic per text, and failures can be scripted per call.
 """
 
 from __future__ import annotations
 
-import asyncio
+import hashlib
+import math
 import random
 from collections.abc import AsyncGenerator
 from typing import Any
 
 from app.core.config import settings
-from app.modules.ai.providers.base import LLMProvider
+from app.core.exceptions import AppError
+from app.modules.ai.providers.base import EmbedTask, LLMProvider
 
 
 class FakeProvider(LLMProvider):
-    """
-    Test double for LLMProvider.
-    Output has the right shape but no meaning.
-    """
+    def __init__(self) -> None:
+        # Errors raised by the next embed calls, in order; None means succeed.
+        self.embed_script: list[AppError | None] = []
+        self.embed_calls: list[list[str]] = []
 
     @property
     def embedding_dimensions(self) -> int:
@@ -28,17 +30,19 @@ class FakeProvider(LLMProvider):
     def provider_name(self) -> str:
         return "fake"
 
-    async def embed(self, texts: list[str]) -> list[list[float]]:
-        """Random embeddings of the configured size."""
-        await asyncio.sleep(0.01)  # simulate latency
-        embeddings = []
-        for _ in texts:
-            vec = [random.gauss(0, 1) for _ in range(self.embedding_dimensions)]
-            # Normalize vector (cosine similarity)
-            magnitude = sum(x**2 for x in vec) ** 0.5
-            normalized = [x / magnitude for x in vec]
-            embeddings.append(normalized)
-        return embeddings
+    def _vector(self, text: str) -> list[float]:
+        rng = random.Random(hashlib.sha256(text.encode()).digest())  # noqa: S311 - test data
+        vec = [rng.gauss(0, 1) for _ in range(self.embedding_dimensions)]
+        norm = math.sqrt(sum(x * x for x in vec))
+        return [x / norm for x in vec]
+
+    async def embed(self, texts: list[str], task: EmbedTask = "document") -> list[list[float]]:
+        if self.embed_script:
+            failure = self.embed_script.pop(0)
+            if failure is not None:
+                raise failure
+        self.embed_calls.append(list(texts))
+        return [self._vector(t) for t in texts]
 
     async def chat_stream(
         self,
@@ -47,16 +51,7 @@ class FakeProvider(LLMProvider):
         max_tokens: int | None = None,
         temperature: float = 0.7,
     ) -> AsyncGenerator[str, None]:
-        """Stream a canned answer word by word."""
-        last_message = messages[-1]["content"] if messages else ""
-        response = (
-            f"[FAKE] Canned answer for: '{last_message[:50]}'. "
-            "Use a real provider for real answers."
-        )
-
-        words = response.split()
-        for word in words:
-            await asyncio.sleep(0.05)  # simulate streaming delay
+        for word in "[FAKE] Canned answer. Use a real provider for real answers.".split():
             yield word + " "
 
     async def generate(
@@ -67,13 +62,6 @@ class FakeProvider(LLMProvider):
         temperature: float = 0.7,
         response_format: dict[str, Any] | None = None,
     ) -> str:
-        """Canned non-streaming response."""
-        await asyncio.sleep(0.1)
-
         if response_format and response_format.get("type") == "json_object":
-            return '{"result": "[FAKE] JSON response", "confidence": 0.9}'
-
-        return (
-            f"[FAKE] Canned response for: '{prompt[:50]}...'. "
-            "This is FakeProvider; no real API was called."
-        )
+            return '{"result": "[FAKE] JSON response"}'
+        return "[FAKE] Canned response; no real API was called."

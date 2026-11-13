@@ -17,13 +17,13 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 | 0 | Chuẩn bị & chốt quyết định | 12/16 | Đang làm | | |
 | 1 | Khởi tạo dự án | 15/19 | Đang làm | Tuần 1 | 2026-11-07 |
 | 2 | CI/CD | 0/9 | Tạm hoãn | Người dùng hoãn 2026-11-10 | |
-| 3 | Kết nối & đồng bộ dữ liệu | 0/16 | Chưa bắt đầu | Tuần 2 đến 4 | |
-| 4 | Bảo mật | 3/28 | Đang làm | Tuần 2 đến 4, rà soát lại trước beta | |
-| 5 | Sức tải, hiệu năng & chi phí AI | 0/19 | Chưa bắt đầu | Trước production | |
+| 3 | Kết nối & đồng bộ dữ liệu | 2/16 | Đang làm | Tuần 2 đến 4 | |
+| 4 | Bảo mật | 4/28 | Đang làm | Tuần 2 đến 4, rà soát lại trước beta | |
+| 5 | Sức tải, hiệu năng & chi phí AI | 2/19 | Đang làm | Trước production | |
 | 6 | Beta & chuẩn bị production | 0/10 | Chưa bắt đầu | | |
 | 7 | Ra mắt & vận hành | 0/6 | Chưa bắt đầu | | |
-| F | Lát chức năng bản 1 | 3/17 | Đang làm | Song song với giai đoạn 1 đến 6 | 2026-11-08 |
-| | **Tổng** | **33/140** | | | |
+| F | Lát chức năng bản 1 | 4/17 | Đang làm | Song song với giai đoạn 1 đến 6 | 2026-11-08 |
+| | **Tổng** | **39/140** | | | |
 
 ---
 
@@ -133,13 +133,13 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 - [ ] Optimistic update, rollback khi lỗi
 
 *Toàn vẹn dữ liệu*
-- [ ] Idempotency-Key (UUID mỗi thao tác) cho tải tài liệu và các thao tác tạo dữ liệu quan trọng, backend trả kết quả cũ nếu key trùng
+- [x] Idempotency-Key (UUID mỗi thao tác) cho tải tài liệu và các thao tác tạo dữ liệu quan trọng, backend trả kết quả cũ nếu key trùng (tải tài liệu, F5; các thao tác khác thêm theo lát)
 - [ ] Chọn chiến lược xung đột: last-write-wins hoặc optimistic locking bằng `version`/`updatedAt`
 
 *Thời gian thực và thông báo*
 - [ ] Realtime nếu cần (WebSocket/Socket.IO hoặc SSE)
 - [ ] Push notification qua Expo Notifications (FCM/APNs)
-- [ ] Hiển thị trạng thái xử lý tài liệu cho người dùng (polling hoặc thông báo) theo máy trạng thái ở docs/DATA_MODEL.md
+- [x] Hiển thị trạng thái xử lý tài liệu cho người dùng (polling hoặc thông báo) theo máy trạng thái ở docs/DATA_MODEL.md (polling 3 giây khi còn tài liệu đang xử lý, F5)
 - [ ] Khai báo mã lỗi hạn mức AI trong hợp đồng OpenAPI (`AI_TEMPORARILY_UNAVAILABLE`, `AI_RATE_LIMITED`, `USER_QUOTA_EXCEEDED`, `CONTEXT_TOO_LONG`), kể cả lỗi giữa luồng streaming (docs/QUOTA_AND_RESILIENCE.md)
 - [ ] App xử lý các mã lỗi hạn mức: thông báo thân thiện, hiện số lượt còn lại và thời điểm đặt lại, giữ lại câu hỏi đã gõ để gửi lại
 
@@ -183,7 +183,7 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 - [ ] Cấu hình CORS, Helmet, và rate limit riêng cho đăng nhập (chống brute-force)
 - [ ] Lưu secret trong Secrets Manager/Vault
 - [ ] Quản lý khóa API AI: mỗi môi trường một khóa riêng, chỉ nằm ở backend, không commit lên Git, có quy trình thu hồi và tạo khóa mới khi nghi bị lộ
-- [ ] Quy tắc dữ liệu khi dùng gói AI miễn phí: thông báo rõ và xin đồng ý của người dùng trước khi tải tài liệu (nội dung được gửi cho Google xử lý và có thể được dùng để cải thiện sản phẩm), khuyến cáo không tải tài liệu nhạy cảm, không đưa thông tin định danh không cần thiết vào prompt (docs/AI_PIPELINE.md)
+- [x] Quy tắc dữ liệu khi dùng gói AI miễn phí: thông báo rõ và xin đồng ý của người dùng trước khi tải tài liệu (nội dung được gửi cho Google xử lý và có thể được dùng để cải thiện sản phẩm), khuyến cáo không tải tài liệu nhạy cảm, không đưa thông tin định danh không cần thiết vào prompt (docs/AI_PIPELINE.md) (đồng ý theo phiên bản `user_consents`, F5)
 - [ ] Mã hóa dữ liệu nhạy cảm khi lưu và khi truyền
 - [ ] Quét lỗ hổng phụ thuộc trong CI (npm audit, pip-audit, Dependabot, Snyk)
 - [ ] Ghi log truy cập, tuyệt đối không ghi mật khẩu hoặc token
@@ -220,8 +220,8 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 
 *Chi phí AI và hạn mức (chi tiết ở docs/QUOTA_AND_RESILIENCE.md)*
 - [ ] Hạn mức ba tầng (hệ thống, người dùng, mỗi yêu cầu/tài liệu): đếm bằng Redis, ước lượng trước khi gọi và ghi số token thực tế vào `ai_usage`
-- [ ] Phân loại lỗi và circuit breaker ở `llm_gateway`: lỗi tạm thời thì thử lại có giới hạn, lỗi hết hạn mức thì không thử lại và mở cầu dao
-- [ ] Trạng thái `PAUSED_QUOTA` cho job tài liệu, lưu tiến độ theo từng đoạn, tự chạy lại khi hạn mức phục hồi
+- [x] Phân loại lỗi và circuit breaker ở `llm_gateway`: lỗi tạm thời thì thử lại có giới hạn, lỗi hết hạn mức thì không thử lại và mở cầu dao (F5: phân biệt giới hạn tốc độ, hết hạn mức ngày hoặc billing, lỗi tạm thời)
+- [x] Trạng thái `PAUSED_QUOTA` cho job tài liệu, lưu tiến độ theo từng đoạn, tự chạy lại khi hạn mức phục hồi (F5: tác vụ định kỳ 10 phút)
 - [ ] Chế độ suy giảm khi AI ngừng: hỏi đáp chuyển sang chỉ tìm đoạn liên quan, các tính năng không cần AI vẫn chạy
 - [ ] Biện pháp giảm token: giới hạn số đoạn đưa vào ngữ cảnh, tóm tắt hội thoại cũ, mô hình nhỏ cho việc đơn giản, giới hạn độ dài đầu ra
 - [ ] Cố ý chạm giới hạn tốc độ của gói miễn phí để kiểm tra retry, circuit breaker, `PAUSED_QUOTA` và thông báo trên app
@@ -278,7 +278,7 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 - [ ] F3. Đăng nhập bằng Google (U1; màn hình 1)
 - [ ] F4. Xác minh email và quên, đặt lại mật khẩu (U2, U3; màn hình 2, 3)
 - [x] F4b. Không gian học tập: tạo, đổi tên, xóa, không gian mặc định (U16; màn hình 5; docs/specs/f4b-spaces.md). Hàm tạo không gian mặc định đã có, được gọi từ luồng tải lên ở F5
-- [ ] F5. Tải tài liệu PDF và xử lý nền đến `READY`: trích văn bản, chia đoạn, embedding, trạng thái (U5; màn hình 5, 6)
+- [x] F5. Tải tài liệu PDF và xử lý nền đến `READY`: trích văn bản, chia đoạn, embedding, trạng thái (U5; màn hình 5, 6) (docs/specs/f5-document-upload.md)
 - [ ] F6. Quản lý tài liệu: danh sách, chi tiết, thử lại, xóa (U6; màn hình 5, 7)
 - [ ] F7. Hỏi đáp trên nhiều tài liệu, có trích dẫn, trả lời dần (U7; màn hình 9)
 - [ ] F8. Xem trích dẫn và lịch sử hội thoại (U7; màn hình 10, 11)
@@ -329,3 +329,4 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 | 2026-11-10 | Lát F2 xong (docs/specs/f2-email-auth.md): đăng ký, đăng nhập, refresh xoay vòng có phát hiện dùng lại, đăng xuất, `/v1/me`; mobile giữ token trong secure store, web dùng cookie httpOnly kèm chống CSRF theo Origin; giới hạn số lần thử bằng Redis; migration Alembic đầu tiên (3 bảng). Test: backend 88 (API, bảo mật, unit, migration lên/xuống), frontend 22. Thay `python-jose`/`passlib` (ngừng bảo trì) bằng `PyJWT`/`argon2-cffi`, thêm `email-validator`. Sửa thêm: SQL echo ghi email và bản băm vào log ở môi trường dev (giờ là `SQL_ECHO`, mặc định tắt), lỗi validation trả lại dữ liệu đã nhập, `SECRET_KEY` bắt buộc từ 32 ký tự. Điều hướng chính đổi theo docs/SCREENS.md (Không gian, Hồ sơ); màn hình trạng thái F1 chuyển sang `/system`. Comment trong code chuyển sang tiếng Anh theo yêu cầu người dùng |
 | 2026-11-10 | Hoãn giai đoạn 2 (CI/CD) theo yêu cầu người dùng: workflow chỉ chạy tay; chuyển toàn bộ comment trong code sang tiếng Anh |
 | 2026-11-10 | Lát F4b xong (docs/specs/f4b-spaces.md): module `spaces` (CRUD, tên chuẩn hóa NFC, không trùng tên trong tài khoản theo index `lower(name)`, Không gian của người khác trả 404), migration thứ hai, màn hình danh sách và chi tiết có hộp xác nhận xóa chạy được trên web. Test: backend 125, frontend 34; thử qua HTTP thật đủ luồng. Sửa thêm: lỗi của framework (JSON hỏng, đường dẫn không tồn tại, sai phương thức) trước đây trả `{detail}` thay vì `ErrorResponse` của contract |
+| 2026-11-12 | Lát F5 xong (docs/specs/f5-document-upload.md): tải PDF (kiểm tra nội dung thật, 20 MB, 200 trang, 10 tài liệu, PDF có mật khẩu), Idempotency-Key, đồng ý dữ liệu theo phiên bản, Không gian mặc định, kho file S3 (boto3), worker ARQ trích văn bản theo trang, chia đoạn theo cấu trúc (chương, trang), embedding Gemini 768 chiều lưu pgvector có index HNSW, `PAUSED_QUOTA` và tự chạy lại, ghi `ai_usage`. Gateway phân biệt giới hạn tốc độ (chờ rồi thử lại) với hết hạn mức (không thử lại). Thử thật với Gemini trên giáo trình tiếng Việt mẫu: READY sau 2 giây, 3 câu hỏi đều trỏ đúng trang. Test: backend 197, frontend 44. Sửa: SeaweedFS cấu hình quá ít volume nên không ghi được file; worker thiếu model khi chạy riêng (thêm `app/db/all_models.py` và test chạy worker ở tiến trình riêng) |

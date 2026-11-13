@@ -71,6 +71,7 @@ Tất cả lệnh được định nghĩa trong `Makefile` tại gốc repo.
 | `make setup` | Lần đầu: copy `.env.example` → `backend/.env`, `npm install`, `pip install`, khởi động Docker services |
 | `make dev` | Khởi động Docker services + backend + frontend song song |
 | `make dev-backend` | Chạy FastAPI dev server ở port 8000 với hot-reload |
+| `make worker` | Chạy worker ARQ xử lý tài liệu (`arq app.workers.queue.WorkerSettings`); không tự nạp lại code, sửa code thì khởi động lại |
 | `make dev-frontend` | Chạy Expo dev server |
 | `make test` | Chạy pytest (backend) và jest (frontend) |
 | `make lint` | Ruff check (backend) + ESLint (frontend) |
@@ -79,7 +80,7 @@ Tất cả lệnh được định nghĩa trong `Makefile` tại gốc repo.
 | `make migrate` | Chạy Alembic migrations: `alembic upgrade head` |
 | `make migrate-create name="tên migration"` | Tạo migration mới từ model changes |
 | `make gen-api` | Sinh TypeScript API client từ `contract/openapi.yaml` |
-| `make infra-up` | Khởi động Docker services (Postgres, Redis, Mailpit, MinIO) |
+| `make infra-up` | Khởi động Docker services (Postgres, Redis, Mailpit, SeaweedFS) |
 | `make infra-down` | Tắt Docker services |
 | `make infra-logs` | Xem logs Docker services |
 

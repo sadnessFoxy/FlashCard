@@ -138,6 +138,23 @@ class Settings(BaseSettings):
         description="Maximum AI queries per user per day",
     )
 
+    # ------- Document ingestion (docs/specs/f5-document-upload.md) -------
+    AI_CONSENT_VERSION: str = Field(
+        default="ai-processing-2026-11",
+        description="Current version of the AI data-processing notice; bump to re-ask consent",
+    )
+    REQUIRE_VERIFIED_EMAIL_FOR_UPLOAD: bool = Field(
+        default=False, description="Turn on once email verification (F4) exists"
+    )
+    CHUNK_TARGET_CHARS: int = Field(default=1200)
+    CHUNK_OVERLAP_CHARS: int = Field(default=150)
+    CHUNK_MAX_CHARS: int = Field(default=6000)
+    SCANNED_MIN_CHARS_PER_PAGE: int = Field(default=20)
+    EMBED_BATCH_SIZE: int = Field(default=32)
+    INGEST_MAX_ATTEMPTS: int = Field(default=3)
+    AI_RATE_LIMIT_MAX_WAIT_SECONDS: int = Field(default=60)
+    PAUSED_QUOTA_RESUME_MINUTES: int = Field(default=10)
+
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def parse_cors_origins(cls, v: str | list[str]) -> list[str]:

@@ -1,27 +1,21 @@
-"""
-ARQ tasks for background document processing:
-extract text, chunk, embed, update status.
-R6: status changes follow the state machine in docs/DATA_MODEL.md.
-R8: quota errors -> PAUSED_QUOTA, never FAILED.
-"""
+"""ARQ task functions for document ingestion (logic lives in documents.ingestion)."""
 
 from __future__ import annotations
 
-from app.core.logging import get_logger
+import uuid
+from typing import Any
 
-logger = get_logger(__name__)
+from app.modules.documents.ingestion import IngestionPipeline
 
 
-async def process_document(ctx: dict, document_id: str) -> None:  # type: ignore[type-arg]
-    """
-    Process a document: extract text, chunk, embed.
-    Status: QUEUED -> PROCESSING -> READY (or FAILED / PAUSED_QUOTA).
-    """
-    logger.info("Processing document document_id=%s", document_id)
-    # TODO(F5): implement the pipeline
-    # 1. Fetch the file from object storage
-    # 2. Extract text (PDF / Word / scan)
-    # 3. Chunk
-    # 4. gateway.embed(); on quota errors set PAUSED_QUOTA (R8)
-    # 5. Store vectors in pgvector
-    # 6. Set status READY
+def _pipeline(ctx: dict[str, Any]) -> IngestionPipeline:
+    pipeline: IngestionPipeline = ctx["pipeline"]
+    return pipeline
+
+
+async def process_document(ctx: dict[str, Any], document_id: str) -> str | None:
+    return await _pipeline(ctx).process(uuid.UUID(document_id))
+
+
+async def resume_stalled_documents(ctx: dict[str, Any]) -> int:
+    return len(await _pipeline(ctx).resume_stalled())

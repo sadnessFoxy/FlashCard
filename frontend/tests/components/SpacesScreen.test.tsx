@@ -29,6 +29,18 @@ jest.mock("../../src/features/spaces/api", () => ({
   deleteSpace: jest.fn(),
 }));
 
+// The detail screen embeds the documents tab; keep it offline and empty here.
+jest.mock("../../src/features/documents/api", () => ({
+  listDocuments: jest.fn(async () => ({
+    items: [],
+    total_documents: 0,
+    max_documents: 10,
+  })),
+  uploadDocument: jest.fn(),
+  hasCurrentAiConsent: jest.fn(async () => ({ ok: true, version: "v1" })),
+  giveAiConsent: jest.fn(),
+}));
+
 const mockPush = jest.fn();
 const mockReplace = jest.fn();
 jest.mock("expo-router", () => ({

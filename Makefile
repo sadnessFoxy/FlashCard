@@ -1,4 +1,4 @@
-.PHONY: setup dev dev-backend dev-frontend test test-backend test-frontend lint lint-fix typecheck migrate migrate-create gen-api infra-up infra-down infra-logs
+.PHONY: setup dev worker dev-backend dev-frontend test test-backend test-frontend lint lint-fix typecheck migrate migrate-create gen-api infra-up infra-down infra-logs
 
 # ==========================================
 # FlashCard Makefile
@@ -21,7 +21,10 @@ setup:
 
 dev:
 	$(COMPOSE) up -d
-	$(MAKE) -j2 dev-backend dev-frontend
+	$(MAKE) -j3 dev-backend worker dev-frontend
+
+worker:
+	cd backend && $(PY) -m arq app.workers.queue.WorkerSettings
 
 dev-backend:
 	cd backend && $(PY) -m uvicorn app.main:app --reload --port 8000

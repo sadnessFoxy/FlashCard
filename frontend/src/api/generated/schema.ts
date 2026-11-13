@@ -144,6 +144,65 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/me/consents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Notices the caller accepted, plus the current version of each */
+        get: operations["listMyConsents"];
+        put?: never;
+        /** Accept the current version of a notice */
+        post: operations["giveConsent"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Documents in one of the caller's spaces, newest first */
+        get: operations["listDocuments"];
+        put?: never;
+        /**
+         * Upload a PDF and queue it for processing
+         * @description Returns immediately with status QUEUED. A repeat with the same `Idempotency-Key` and the
+         *     same file returns the original document (200) instead of creating a duplicate.
+         */
+        post: operations["uploadDocument"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/documents/{document_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        /** One document (for status polling) */
+        get: operations["getDocument"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/spaces": {
         parameters: {
             query?: never;
@@ -202,6 +261,16 @@ export interface components {
             reason?: "too_short" | "too_long" | "too_common" | "same_as_email";
             /** @description Set with `TOO_MANY_ATTEMPTS`; also sent as the `Retry-After` header. */
             retry_after_seconds?: number;
+            /** @description Set with `CONSENT_REQUIRED`: the notice version to accept. */
+            version?: string;
+            /** @description Set with `VALIDATION_ERROR` from POST /v1/me/consents. */
+            current_version?: string;
+            /** @description Set with `DOCUMENT_LIMIT_REACHED`. */
+            max_documents?: number;
+            /** @description Set with `TOO_MANY_PAGES`. */
+            max_pages?: number;
+            /** @description Set with `FILE_TOO_LARGE`. */
+            max_size_mb?: number;
             /** @description Set with `VALIDATION_ERROR`: which fields are invalid. */
             errors?: {
                 /** @example email */
@@ -212,6 +281,52 @@ export interface components {
         };
         /** @enum {string} */
         Locale: "vi" | "en";
+        /** @enum {string} */
+        ConsentKind: "ai_processing";
+        ConsentRequest: {
+            kind: components["schemas"]["ConsentKind"];
+            version: string;
+        };
+        Consent: {
+            kind: components["schemas"]["ConsentKind"];
+            version: string;
+            /** Format: date-time */
+            created_at: string;
+        };
+        ConsentList: {
+            items: components["schemas"]["Consent"][];
+            /** @description Current notice version per kind; consent is valid only for the current one. */
+            current_versions: {
+                [key: string]: string;
+            };
+        };
+        /** @enum {string} */
+        DocumentStatus: "UPLOADED" | "QUEUED" | "PROCESSING" | "READY" | "FAILED" | "PAUSED_QUOTA" | "DELETING";
+        Document: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            space_id: string;
+            filename: string;
+            size_bytes: number;
+            page_count: number;
+            status: components["schemas"]["DocumentStatus"];
+            /**
+             * @description Set when status is FAILED.
+             * @enum {string|null}
+             */
+            error_code: "NO_TEXT_LAYER" | "EXTRACTION_FAILED" | "PROCESSING_FAILED" | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+        };
+        DocumentList: {
+            items: components["schemas"]["Document"][];
+            /** @description Documents counted toward the per-user limit, across all spaces. */
+            total_documents: number;
+            max_documents: number;
+        };
         SpaceNameRequest: {
             /**
              * @description Trimmed and whitespace-collapsed by the server; must then be 1-100 characters.
@@ -613,6 +728,214 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
+        };
+    };
+    listMyConsents: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Consents */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConsentList"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+        };
+    };
+    giveConsent: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConsentRequest"];
+            };
+        };
+        responses: {
+            /** @description Already recorded */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Consent"];
+                };
+            };
+            /** @description Recorded */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Consent"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["CsrfRejected"];
+            /** @description `VALIDATION_ERROR`, e.g. not the current version (`current_version` is returned) */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    listDocuments: {
+        parameters: {
+            query: {
+                space_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Documents (DELETING ones are hidden) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentList"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    uploadDocument: {
+        parameters: {
+            query?: never;
+            header: {
+                "Idempotency-Key": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    /**
+                     * Format: binary
+                     * @description PDF, at most `max_size_mb` (20) MB and 200 pages.
+                     */
+                    file: string;
+                    /**
+                     * Format: uuid
+                     * @description Required unless the caller has no space yet (then one is created from the file name).
+                     */
+                    space_id?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description Replay of an earlier upload with the same Idempotency-Key */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Document"];
+                };
+            };
+            /** @description Accepted and queued */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Document"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            /** @description `CONSENT_REQUIRED` (with `version`), `EMAIL_NOT_VERIFIED` or `CSRF_REJECTED` */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            404: components["responses"]["NotFound"];
+            /** @description `DOCUMENT_LIMIT_REACHED` (with `max_documents`) or `IDEMPOTENCY_KEY_REUSED` */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description `FILE_TOO_LARGE` (with `max_size_mb`) */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description `FILE_TYPE_NOT_SUPPORTED`: not a PDF (checked by content, not extension) */
+            415: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description `TOO_MANY_PAGES` (with `max_pages`), `PDF_ENCRYPTED`, `SPACE_REQUIRED` or `VALIDATION_ERROR` */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    getDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The document */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Document"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
         };
     };
     listSpaces: {

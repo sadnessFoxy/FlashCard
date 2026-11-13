@@ -29,6 +29,7 @@ from app.core.exceptions import AppError
 from app.core.logging import configure_logging, get_logger
 from app.core.redis import close_redis
 from app.db.session import engine
+from app.modules.documents.queue import job_queue
 
 logger = get_logger(__name__)
 
@@ -41,9 +42,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
     yield
 
-    # Close the DB pool and Redis
+    # Close the DB pool, Redis and the job queue
     await engine.dispose()
     await close_redis()
+    await job_queue.close()
     logger.info("FlashCard API shutdown complete")
 
 

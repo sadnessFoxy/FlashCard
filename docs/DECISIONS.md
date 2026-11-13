@@ -23,6 +23,9 @@
 | ORM | SQLAlchemy | Người dùng đồng ý đề xuất | 2026-10-29 | Đã chốt |
 | Trùng tên Không gian | Không cho trùng trong cùng tài khoản, so khớp không phân biệt hoa thường (409 `SPACE_NAME_TAKEN`) | Người dùng chọn (docs/specs/f4b-spaces.md Q1) | 2026-11-10 | Đã chốt |
 | Xác nhận xóa Không gian | Hộp xác nhận nêu rõ mọi thứ bên trong bị xóa vĩnh viễn | Người dùng chọn (docs/specs/f4b-spaces.md Q2) | 2026-11-10 | Đã chốt |
+| Chia đoạn tài liệu | Theo cấu trúc: tiêu đề chương, mục và sang trang mới thì bắt đầu đoạn mới; trong cùng mạch văn thì gom khoảng 1.200 ký tự, chồng lấn 150 ký tự, không chồng lấn qua chương hay trang | Thử thật: chia theo kích thước thuần làm trích dẫn sai trang; chia theo cấu trúc cho 3/3 câu hỏi trỏ đúng trang. Đổi thông số không phải tạo lại vector | 2026-11-12 | Đã chốt (tự chốt) |
+| Đọc PDF, kho file, chọn file | `pypdf`, `boto3` (chạy trong thread), `expo-document-picker` | Thư viện phổ biến, giấy phép mở; boto3 dùng được cho SeaweedFS lẫn S3 thật | 2026-11-12 | Đã chốt (tự chốt) |
+| Phân loại lỗi Gemini | Giới hạn theo phút: chờ `retryDelay` (tối đa 60 giây) rồi thử lại; hết hạn mức ngày, billing, khóa sai: không thử lại, mở circuit breaker, tài liệu `PAUSED_QUOTA`; 5xx: thử tối đa 3 lần | Bản khung coi mọi lỗi 429 là hết hạn mức, sẽ làm tài liệu dừng oan khi chạm giới hạn theo phút của gói miễn phí | 2026-11-12 | Đã chốt |
 | CI/CD | Tạm hoãn: workflow GitHub Actions chỉ chạy tay (`workflow_dispatch`); mọi kiểm tra chạy ở máy local trước khi commit | Người dùng yêu cầu bỏ qua; tài khoản GitHub đang bị khóa thanh toán nên Actions không chạy được. Bật lại bằng cách khôi phục trigger trong ci.yml | 2026-11-10 | Hoãn |
 | Nơi triển khai | Railway (API, worker, PostgreSQL có pgvector, Redis, kho file) | Dễ dùng cho dự án nhỏ; có template PostgreSQL kèm pgvector | 2026-10-29 | Đã chốt |
 | Ngân sách hosting hằng tháng | Chưa cần | Chỉ chạy trên máy cá nhân; chỉ cần quyết khi muốn đưa lên mạng (Railway không có gói miễn phí vĩnh viễn) | 2026-11-07 | Hoãn |
@@ -68,7 +71,7 @@
 
 | Mục | Mô tả | Người phụ trách | Trạng thái |
 |---|---|---|---|
-| Chất lượng embedding và OCR với tiếng Việt | Thử trên 3 đến 5 tài liệu thật trước khi chốt mô hình | | Chưa làm |
+| Chất lượng embedding và OCR với tiếng Việt | Thử trên 3 đến 5 tài liệu thật trước khi chốt mô hình. 2026-11-12: thử nhanh `gemini-embedding-2` bằng khóa thật: trả 768 chiều, vector đã chuẩn hóa, nhận `taskType`; câu hỏi tiếng Việt gần đoạn đúng (0,77) hơn đoạn sai (0,57 và 0,49). Còn phải thử trên giáo trình thật | | Đang làm |
 | Bản quyền tài liệu người dùng tải lên | Soạn điều khoản, không chia sẻ công khai ở bản đầu | | Chưa làm |
 | Chi phí AI mỗi người dùng | Đặt hạn mức, đo trong giai đoạn beta | | Chưa làm |
 | Đổi mô hình embedding phải tạo lại toàn bộ vector | Chọn mô hình cẩn thận từ đầu; lưu tên và số chiều mô hình cùng dữ liệu | | Chưa làm |

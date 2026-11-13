@@ -52,6 +52,7 @@ class FileTooLargeError(AppError):
             "FILE_TOO_LARGE",
             f"File exceeds maximum size of {max_mb}MB",
             413,
+            {"max_size_mb": max_mb},
         )
 
 
@@ -109,11 +110,31 @@ class AiTemporarilyUnavailableError(AppError):
 
 
 class AiRateLimitedError(AppError):
-    def __init__(self) -> None:
+    """Transient per-minute limit: wait `retry_after_seconds`, then retry."""
+
+    def __init__(self, retry_after_seconds: float | None = None) -> None:
+        self.retry_after_seconds = retry_after_seconds
+        details = {"retry_after_seconds": int(retry_after_seconds)} if retry_after_seconds else None
         super().__init__(
             "AI_RATE_LIMITED",
             "AI service rate limit reached, please try again later",
             429,
+            details,
+        )
+
+
+class AiCircuitOpenError(AiTemporarilyUnavailableError):
+    """The gateway is refusing calls after repeated provider failures."""
+
+
+class AiQuotaExhaustedError(AppError):
+    """Daily quota or billing exhausted: never retry (R8). API code: AI_TEMPORARILY_UNAVAILABLE."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "AI_TEMPORARILY_UNAVAILABLE",
+            "AI features are temporarily unavailable",
+            503,
         )
 
 
@@ -180,3 +201,47 @@ class InvalidRefreshTokenError(AppError):
 class SpaceNameTakenError(AppError):
     def __init__(self) -> None:
         super().__init__("SPACE_NAME_TAKEN", "A space with this name already exists", 409)
+
+
+# ------- Documents (docs/specs/f5-document-upload.md) -------
+
+
+class ConsentRequiredError(AppError):
+    def __init__(self, version: str) -> None:
+        super().__init__(
+            "CONSENT_REQUIRED", "Consent to AI processing is required", 403, {"version": version}
+        )
+
+
+class DocumentLimitReachedError(AppError):
+    def __init__(self, limit: int) -> None:
+        super().__init__(
+            "DOCUMENT_LIMIT_REACHED", "Document limit reached", 409, {"max_documents": limit}
+        )
+
+
+class TooManyPagesError(AppError):
+    def __init__(self, max_pages: int) -> None:
+        super().__init__("TOO_MANY_PAGES", "Too many pages", 422, {"max_pages": max_pages})
+
+
+class PdfEncryptedError(AppError):
+    def __init__(self) -> None:
+        super().__init__("PDF_ENCRYPTED", "Password-protected PDFs are not supported", 422)
+
+
+class SpaceRequiredError(AppError):
+    def __init__(self) -> None:
+        super().__init__("SPACE_REQUIRED", "space_id is required", 422)
+
+
+class IdempotencyKeyReusedError(AppError):
+    def __init__(self) -> None:
+        super().__init__(
+            "IDEMPOTENCY_KEY_REUSED", "Idempotency-Key was already used for another file", 409
+        )
+
+
+class EmailNotVerifiedError(AppError):
+    def __init__(self) -> None:
+        super().__init__("EMAIL_NOT_VERIFIED", "Verify your email before uploading", 403)

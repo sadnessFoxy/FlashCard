@@ -1,5 +1,5 @@
 """
-Abstract base class cho AI providers.
+Abstract base class for AI providers.
 R5: all AI calls go through this provider interface.
 """
 
@@ -7,7 +7,9 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import AsyncGenerator
-from typing import Any
+from typing import Any, Literal
+
+EmbedTask = Literal["document", "query"]
 
 
 class LLMProvider(ABC):
@@ -17,19 +19,21 @@ class LLMProvider(ABC):
     """
 
     @abstractmethod
-    async def embed(self, texts: list[str]) -> list[list[float]]:
+    async def embed(self, texts: list[str], task: EmbedTask = "document") -> list[list[float]]:
         """
         Embed a list of texts.
 
         Args:
             texts: texts to embed
+            task: "document" for stored chunks, "query" for search queries
 
         Returns:
             One vector (list[float]) per text
 
         Raises:
             AiTemporarilyUnavailableError: provider unavailable
-            AiRateLimitedError: rate limit hit
+            AiRateLimitedError: per-minute limit hit (retry later)
+            AiQuotaExhaustedError: daily quota or billing exhausted (do not retry)
         """
         ...
 

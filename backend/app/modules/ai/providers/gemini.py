@@ -14,18 +14,16 @@ from typing import Any
 import httpx
 
 from app.core.config import settings
-from app.core.exceptions import (
-    AiRateLimitedError,
-    AiTemporarilyUnavailableError,
-    ContextTooLongError,
-)
+from app.core.exceptions import AiTemporarilyUnavailableError
 from app.core.logging import get_logger
-from app.modules.ai.providers.base import LLMProvider
+from app.modules.ai.providers.base import EmbedTask, LLMProvider
+from app.modules.ai.providers.gemini_errors import classify_gemini_error
 
 logger = get_logger(__name__)
 
 GEMINI_API_BASE = "https://generativelanguage.googleapis.com"
 GEMINI_API_VERSION = "v1beta"
+_TASK_TYPES: dict[EmbedTask, str] = {"document": "RETRIEVAL_DOCUMENT", "query": "RETRIEVAL_QUERY"}
 
 
 class GeminiProvider(LLMProvider):
@@ -59,43 +57,23 @@ class GeminiProvider(LLMProvider):
     def provider_name(self) -> str:
         return "gemini"
 
-    def _handle_error_response(self, status_code: int, response_body: dict[str, Any]) -> None:
-        """Map a Gemini error response to our exceptions."""
-        error = response_body.get("error", {})
-        error_code = error.get("code", status_code)
-        error_status = error.get("status", "")
-
-        # R8: quota exhausted, do not retry
-        if error_code == 429 or error_status in ("RESOURCE_EXHAUSTED",):
-            logger.warning(
-                "Gemini API rate limit exceeded (model=%s)",
-                self._chat_model,
-            )
-            raise AiRateLimitedError()
-
-        # Context too long
-        if error_status == "INVALID_ARGUMENT" and "too long" in str(error).lower():
-            raise ContextTooLongError()
-
-        # Transient (5xx): retryable
-        if error_code >= 500:
-            logger.warning(
-                "Gemini API server error (status=%d, model=%s)",
-                error_code,
-                self._chat_model,
-            )
-            raise AiTemporarilyUnavailableError()
-
-        # Unknown error
-        logger.error(
-            "Gemini API unexpected error (status=%d, body=%s)",
-            status_code,
-            # Never log prompt or document content (R10)
-            {k: v for k, v in error.items() if k in ("code", "status", "message")},
+    def _handle_error_response(self, response: httpx.Response) -> None:
+        """Raise the classified error; logs status only, never content (R10)."""
+        try:
+            body: Any = response.json()
+        except ValueError:
+            body = {}
+        exc = classify_gemini_error(response.status_code, body)
+        error = body.get("error", {}) if isinstance(body, dict) else {}
+        logger.warning(
+            "Gemini API error (http=%d, status=%s, mapped=%s)",
+            response.status_code,
+            error.get("status", ""),
+            type(exc).__name__,
         )
-        raise AiTemporarilyUnavailableError()
+        raise exc
 
-    async def embed(self, texts: list[str]) -> list[list[float]]:
+    async def embed(self, texts: list[str], task: EmbedTask = "document") -> list[list[float]]:
         """Embed texts with the configured Gemini embedding model."""
         model_path = f"models/{self._embedding_model}"
         url = f"/{GEMINI_API_VERSION}/{model_path}:batchEmbedContents"
@@ -104,7 +82,7 @@ class GeminiProvider(LLMProvider):
             {
                 "model": model_path,
                 "content": {"parts": [{"text": text}]},
-                "taskType": "RETRIEVAL_DOCUMENT",
+                "taskType": _TASK_TYPES[task],
                 # Required: Gemini defaults to 3072 dims otherwise (R5: from config)
                 "outputDimensionality": self._embedding_dims,
             }
@@ -124,10 +102,13 @@ class GeminiProvider(LLMProvider):
             raise AiTemporarilyUnavailableError() from e
 
         if response.status_code != 200:
-            self._handle_error_response(response.status_code, response.json())
+            self._handle_error_response(response)
 
         data = response.json()
         embeddings = [embedding["values"] for embedding in data.get("embeddings", [])]
+        if len(embeddings) != len(texts) or any(len(e) != self._embedding_dims for e in embeddings):
+            logger.error("Gemini returned unexpected embedding shape (count=%d)", len(embeddings))
+            raise AiTemporarilyUnavailableError()
 
         logger.debug(
             "Embedded %d texts (model=%s, dims=%d)",
@@ -180,8 +161,8 @@ class GeminiProvider(LLMProvider):
                 params={"alt": "sse"},
             ) as response:
                 if response.status_code != 200:
-                    body = await response.aread()
-                    self._handle_error_response(response.status_code, json.loads(body))
+                    await response.aread()
+                    self._handle_error_response(response)
 
                 async for line in response.aiter_lines():
                     if line.startswith("data: "):
@@ -245,7 +226,7 @@ class GeminiProvider(LLMProvider):
             raise AiTemporarilyUnavailableError() from e
 
         if response.status_code != 200:
-            self._handle_error_response(response.status_code, response.json())
+            self._handle_error_response(response)
 
         data = response.json()
         candidates = data.get("candidates", [])

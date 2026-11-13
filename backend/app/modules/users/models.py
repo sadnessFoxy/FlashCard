@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import uuid
 from datetime import datetime
 
-from sqlalchemy import CheckConstraint, DateTime, String
+from sqlalchemy import CheckConstraint, DateTime, ForeignKey, String, UniqueConstraint
+from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -45,3 +47,18 @@ class User(Base):
     @property
     def is_active(self) -> bool:
         return self.status == "active" and self.deleted_at is None
+
+
+class UserConsent(Base):
+    """Proof that the user accepted a given version of a notice (e.g. AI data processing)."""
+
+    __tablename__ = "user_consents"
+    __table_args__ = (
+        UniqueConstraint("user_id", "kind", "version", name="uq_user_consents_user_kind_version"),
+    )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    kind: Mapped[str] = mapped_column(String(32), nullable=False)
+    version: Mapped[str] = mapped_column(String(64), nullable=False)

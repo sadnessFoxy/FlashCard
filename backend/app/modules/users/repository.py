@@ -7,7 +7,7 @@ import uuid
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.modules.users.models import User
+from app.modules.users.models import User, UserConsent
 
 
 class UserRepository:
@@ -25,3 +25,26 @@ class UserRepository:
         self._session.add(user)
         await self._session.flush()
         return user
+
+    async def consents(self, user_id: uuid.UUID) -> list[UserConsent]:
+        result = await self._session.execute(
+            select(UserConsent)
+            .where(UserConsent.user_id == user_id)
+            .order_by(UserConsent.created_at)
+        )
+        return list(result.scalars())
+
+    async def get_consent(self, user_id: uuid.UUID, kind: str, version: str) -> UserConsent | None:
+        result = await self._session.execute(
+            select(UserConsent).where(
+                UserConsent.user_id == user_id,
+                UserConsent.kind == kind,
+                UserConsent.version == version,
+            )
+        )
+        return result.scalar_one_or_none()
+
+    async def add_consent(self, consent: UserConsent) -> UserConsent:
+        self._session.add(consent)
+        await self._session.flush()
+        return consent

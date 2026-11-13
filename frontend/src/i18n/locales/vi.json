@@ -115,5 +115,42 @@
   },
   "splash": {
     "unreachable": "Không kết nối được tới máy chủ. Hãy kiểm tra mạng rồi thử lại."
+  },
+  "documents": {
+    "upload": "Tải tài liệu",
+    "count": "{{count}}/{{max}} tài liệu",
+    "meta": "{{pages}} trang · {{date}}",
+    "emptyTitle": "Chưa có tài liệu nào",
+    "emptyHint": "Tải giáo trình dạng PDF (tối đa {{mb}} MB) để bắt đầu hỏi đáp và tạo thẻ học.",
+    "loadError": "Không tải được danh sách tài liệu.",
+    "pausedHint": "AI đang tạm hết lượt; tài liệu sẽ tự xử lý tiếp khi có lượt.",
+    "status": {
+      "UPLOADED": "Đang tải lên",
+      "QUEUED": "Đang chờ",
+      "PROCESSING": "Đang xử lý",
+      "READY": "Sẵn sàng",
+      "FAILED": "Lỗi",
+      "PAUSED_QUOTA": "Tạm dừng",
+      "DELETING": "Đang xóa"
+    },
+    "failure": {
+      "NO_TEXT_LAYER": "Tài liệu scan (chỉ có ảnh) chưa được hỗ trợ.",
+      "EXTRACTION_FAILED": "Không đọc được nội dung PDF.",
+      "PROCESSING_FAILED": "Xử lý thất bại sau nhiều lần thử."
+    },
+    "consent": {
+      "title": "Trước khi tải tài liệu",
+      "body": "Nội dung tài liệu sẽ được gửi cho Google (Gemini, gói miễn phí) để xử lý, và Google có thể dùng nội dung này để cải thiện sản phẩm của họ. Đừng tải tài liệu nhạy cảm (thông tin cá nhân, y tế, tài chính, tài liệu mật). Chỉ tải tài liệu bạn có quyền sử dụng.",
+      "accept": "Tôi đồng ý"
+    },
+    "errors": {
+      "tooLarge": "File quá lớn (tối đa {{mb}} MB).",
+      "notPdf": "Chỉ hỗ trợ file PDF.",
+      "tooManyPages": "Tài liệu quá dài (tối đa {{pages}} trang).",
+      "encrypted": "PDF có mật khẩu chưa được hỗ trợ. Hãy gỡ mật khẩu rồi tải lại.",
+      "limit": "Bạn đã có {{max}} tài liệu, là mức tối đa. Hãy xóa bớt để tải thêm.",
+      "consent": "Bạn cần đồng ý với thông báo xử lý dữ liệu trước khi tải.",
+      "network": "Mất kết nối khi tải lên. Bấm Thử lại, tài liệu sẽ không bị tạo trùng."
+    }
   }
 }

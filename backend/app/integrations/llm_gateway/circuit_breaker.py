@@ -1,5 +1,5 @@
 """
-Circuit breaker cho LLM Gateway.
+Circuit breaker for the LLM gateway.
 Stops hammering the AI provider while it is failing.
 """
 
@@ -21,7 +21,7 @@ class CircuitState(Enum):
 
 class CircuitBreaker:
     """
-    Circuit breaker pattern cho AI calls.
+    Circuit breaker for AI calls.
 
     - CLOSED: normal; counts consecutive failures
     - OPEN: too many failures; reject calls until recovery_timeout
@@ -71,6 +71,14 @@ class CircuitBreaker:
                     self._failure_count,
                 )
             self._state = CircuitState.OPEN
+
+    def trip(self) -> None:
+        """Open immediately (quota or billing exhausted: more calls cannot succeed)."""
+        if self._state != CircuitState.OPEN:
+            logger.warning("Circuit breaker OPEN: provider quota exhausted")
+        self._state = CircuitState.OPEN
+        self._failure_count = max(self._failure_count, self.failure_threshold)
+        self._last_failure_time = time.monotonic()
 
     def reset(self) -> None:
         """Reset to CLOSED."""

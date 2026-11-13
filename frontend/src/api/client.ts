@@ -58,6 +58,15 @@ export async function storeSessionTokens(tokens: SessionTokens): Promise<void> {
   if (tokens.refresh_token) await saveRefreshToken(tokens.refresh_token);
 }
 
+function isFormData(body: unknown): body is FormData {
+  return typeof FormData !== "undefined" && body instanceof FormData;
+}
+
+function encodeBody(body: unknown): BodyInit | undefined {
+  if (body === undefined) return undefined;
+  return isFormData(body) ? body : JSON.stringify(body);
+}
+
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -70,7 +79,9 @@ async function buildHeaders(
     "X-Client-Platform": CLIENT_PLATFORM,
     ...options.headers,
   };
-  if (options.body !== undefined) headers["Content-Type"] = "application/json";
+  // FormData sets its own multipart boundary; only JSON bodies need the header.
+  if (options.body !== undefined && !isFormData(options.body))
+    headers["Content-Type"] = "application/json";
   if (!options.skipAuth && !IS_WEB) {
     const token = await getAccessToken();
     if (token) headers.Authorization = `Bearer ${token}`;
@@ -96,8 +107,7 @@ async function send(
     return await fetch(url, {
       method: options.method ?? "GET",
       headers: await buildHeaders(options),
-      body:
-        options.body !== undefined ? JSON.stringify(options.body) : undefined,
+      body: encodeBody(options.body),
       signal: controller.signal,
       credentials: IS_WEB ? "include" : "omit",
     });

@@ -115,5 +115,42 @@
   },
   "splash": {
     "unreachable": "Can't reach the server. Check your connection and try again."
+  },
+  "documents": {
+    "upload": "Upload document",
+    "count": "{{count}}/{{max}} documents",
+    "meta": "{{pages}} pages · {{date}}",
+    "emptyTitle": "No documents yet",
+    "emptyHint": "Upload a PDF course book (up to {{mb}} MB) to start asking questions and making flashcards.",
+    "loadError": "Couldn't load documents.",
+    "pausedHint": "AI is out of quota for now; processing resumes automatically.",
+    "status": {
+      "UPLOADED": "Uploading",
+      "QUEUED": "Waiting",
+      "PROCESSING": "Processing",
+      "READY": "Ready",
+      "FAILED": "Failed",
+      "PAUSED_QUOTA": "Paused",
+      "DELETING": "Deleting"
+    },
+    "failure": {
+      "NO_TEXT_LAYER": "Scanned (image-only) documents aren't supported yet.",
+      "EXTRACTION_FAILED": "Couldn't read the PDF content.",
+      "PROCESSING_FAILED": "Processing failed after several attempts."
+    },
+    "consent": {
+      "title": "Before you upload",
+      "body": "Document content is sent to Google (Gemini, free tier) for processing, and Google may use it to improve their products. Don't upload sensitive documents (personal, medical, financial or confidential). Only upload documents you have the right to use.",
+      "accept": "I agree"
+    },
+    "errors": {
+      "tooLarge": "File too large (max {{mb}} MB).",
+      "notPdf": "Only PDF files are supported.",
+      "tooManyPages": "Document too long (max {{pages}} pages).",
+      "encrypted": "Password-protected PDFs aren't supported. Remove the password and try again.",
+      "limit": "You have {{max}} documents, the maximum. Delete some to upload more.",
+      "consent": "Please accept the data processing notice before uploading.",
+      "network": "Connection lost during upload. Press Retry; no duplicate will be created."
+    }
   }
 }

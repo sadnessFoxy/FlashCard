@@ -21,6 +21,7 @@ os.environ.setdefault("SECRET_KEY", "test-secret-key-not-for-production")
 os.environ["ENVIRONMENT"] = "development"
 os.environ["CORS_ORIGINS"] = '["http://localhost:8081"]'
 os.environ["SQL_ECHO"] = "false"
+os.environ["S3_BUCKET_NAME"] = "flashcard-test"  # never the dev bucket
 
 from collections.abc import AsyncGenerator  # noqa: E402
 from pathlib import Path  # noqa: E402
@@ -40,7 +41,17 @@ from app.modules.ai.providers.fake import FakeProvider  # noqa: E402
 
 ALLOWED_ORIGIN = "http://localhost:8081"
 BACKEND_DIR = Path(__file__).resolve().parents[1]
-_TABLES = ("spaces", "refresh_tokens", "auth_identities", "users")
+_TABLES = (
+    "ai_usage",
+    "user_consents",
+    "document_jobs",
+    "document_chunks",
+    "documents",
+    "spaces",
+    "refresh_tokens",
+    "auth_identities",
+    "users",
+)
 
 
 def alembic_config() -> Config:

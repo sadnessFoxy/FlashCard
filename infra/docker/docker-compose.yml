@@ -54,7 +54,8 @@ services:
     image: chrislusf/seaweedfs:latest
     container_name: flashcard-s3
     restart: unless-stopped
-    command: server -dir=/data -s3 -s3.port=8333 -volume.max=5
+    # Each bucket grows 7 volumes; small volumes keep disk use low on a dev machine.
+    command: server -dir=/data -s3 -s3.port=8333 -volume.max=100 -master.volumeSizeLimitMB=64
     ports:
       - "9000:8333"   # S3 API at http://localhost:9000 (S3_ENDPOINT_URL)
     volumes:

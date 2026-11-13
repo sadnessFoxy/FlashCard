@@ -23,6 +23,7 @@ engine = create_async_engine(
     pool_pre_ping=True,  # drop dead connections before use
 )
 
+
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,
     class_=AsyncSession,

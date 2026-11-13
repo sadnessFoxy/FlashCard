@@ -17,6 +17,13 @@ export type ApiErrorCode =
   | "INVALID_REFRESH_TOKEN"
   | "CSRF_REJECTED"
   | "SPACE_NAME_TAKEN"
+  | "CONSENT_REQUIRED"
+  | "DOCUMENT_LIMIT_REACHED"
+  | "TOO_MANY_PAGES"
+  | "PDF_ENCRYPTED"
+  | "SPACE_REQUIRED"
+  | "IDEMPOTENCY_KEY_REUSED"
+  | "EMAIL_NOT_VERIFIED"
   | "AI_TEMPORARILY_UNAVAILABLE"
   | "AI_RATE_LIMITED"
   | "USER_QUOTA_EXCEEDED"
@@ -37,6 +44,9 @@ export interface ApiErrorBody {
   reason?: WeakPasswordReason;
   retry_after_seconds?: number;
   errors?: { field: string; type: string }[];
+  max_size_mb?: number;
+  max_pages?: number;
+  max_documents?: number;
   quota_remaining?: number;
   quota_reset_at?: string;
 }
@@ -45,6 +55,9 @@ export interface ApiErrorDetails {
   reason?: WeakPasswordReason;
   retryAfterSeconds?: number;
   fields?: string[];
+  maxSizeMb?: number;
+  maxPages?: number;
+  maxDocuments?: number;
   quotaRemaining?: number;
   quotaResetAt?: Date;
 }
@@ -97,6 +110,9 @@ export function parseApiError(status: number, body: unknown): ApiError {
   if (b.reason) details.reason = b.reason;
   if (b.retry_after_seconds) details.retryAfterSeconds = b.retry_after_seconds;
   if (b.errors) details.fields = b.errors.map((e) => e.field);
+  if (b.max_size_mb) details.maxSizeMb = b.max_size_mb;
+  if (b.max_pages) details.maxPages = b.max_pages;
+  if (b.max_documents) details.maxDocuments = b.max_documents;
   if (b.quota_remaining !== undefined)
     details.quotaRemaining = b.quota_remaining;
   if (b.quota_reset_at) details.quotaResetAt = new Date(b.quota_reset_at);

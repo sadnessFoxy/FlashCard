@@ -6,7 +6,7 @@ import uuid
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 from app.modules.users.models import User
 
@@ -35,3 +35,25 @@ class UserOut(BaseModel):
             role=user.role,  # type: ignore[arg-type]
             created_at=user.created_at,
         )
+
+
+class ConsentRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    kind: Literal["ai_processing"]
+    version: str = Field(max_length=64)
+
+
+class ConsentOut(BaseModel):
+    model_config = ConfigDict(extra="forbid", from_attributes=True)
+
+    kind: Literal["ai_processing"]
+    version: str
+    created_at: datetime
+
+
+class ConsentListOut(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    items: list[ConsentOut]
+    current_versions: dict[str, str]

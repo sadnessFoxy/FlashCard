@@ -18,6 +18,10 @@ tags:
       Web clients receive httpOnly cookies instead and never see tokens (R12).
   - name: users
     description: The signed-in user
+  - name: documents
+    description: |
+      PDF upload and background ingestion to READY (spec: docs/specs/f5-document-upload.md).
+      Status follows the state machine in docs/DATA_MODEL.md; clients poll while UPLOADED, QUEUED or PROCESSING.
   - name: spaces
     description: |
       Study spaces that group documents, chats, decks and quizzes (spec: docs/specs/f4b-spaces.md).
@@ -216,6 +220,180 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
+  /v1/me/consents:
+    get:
+      tags: [users]
+      operationId: listMyConsents
+      summary: Notices the caller accepted, plus the current version of each
+      responses:
+        "200":
+          description: Consents
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConsentList"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+    post:
+      tags: [users]
+      operationId: giveConsent
+      summary: Accept the current version of a notice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConsentRequest"
+      responses:
+        "201":
+          description: Recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Consent"
+        "200":
+          description: Already recorded
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Consent"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/CsrfRejected"
+        "422":
+          description: "`VALIDATION_ERROR`, e.g. not the current version (`current_version` is returned)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /v1/documents:
+    post:
+      tags: [documents]
+      operationId: uploadDocument
+      summary: Upload a PDF and queue it for processing
+      description: |
+        Returns immediately with status QUEUED. A repeat with the same `Idempotency-Key` and the
+        same file returns the original document (200) instead of creating a duplicate.
+      parameters:
+        - name: Idempotency-Key
+          in: header
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: PDF, at most `max_size_mb` (20) MB and 200 pages.
+                space_id:
+                  type: string
+                  format: uuid
+                  description: Required unless the caller has no space yet (then one is created from the file name).
+      responses:
+        "202":
+          description: Accepted and queued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+        "200":
+          description: Replay of an earlier upload with the same Idempotency-Key
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          description: "`CONSENT_REQUIRED` (with `version`), `EMAIL_NOT_VERIFIED` or `CSRF_REJECTED`"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: "`DOCUMENT_LIMIT_REACHED` (with `max_documents`) or `IDEMPOTENCY_KEY_REUSED`"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "413":
+          description: "`FILE_TOO_LARGE` (with `max_size_mb`)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "415":
+          description: "`FILE_TYPE_NOT_SUPPORTED`: not a PDF (checked by content, not extension)"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: "`TOO_MANY_PAGES` (with `max_pages`), `PDF_ENCRYPTED`, `SPACE_REQUIRED` or `VALIDATION_ERROR`"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+    get:
+      tags: [documents]
+      operationId: listDocuments
+      summary: Documents in one of the caller's spaces, newest first
+      parameters:
+        - name: space_id
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "200":
+          description: Documents (DELETING ones are hidden)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentList"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /v1/documents/{document_id}:
+    parameters:
+      - name: document_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [documents]
+      operationId: getDocument
+      summary: One document (for status polling)
+      responses:
+        "200":
+          description: The document
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Document"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
   /v1/spaces:
     get:
       tags: [spaces]
@@ -365,6 +543,21 @@ components:
           type: integer
           minimum: 1
           description: "Set with `TOO_MANY_ATTEMPTS`; also sent as the `Retry-After` header."
+        version:
+          type: string
+          description: "Set with `CONSENT_REQUIRED`: the notice version to accept."
+        current_version:
+          type: string
+          description: "Set with `VALIDATION_ERROR` from POST /v1/me/consents."
+        max_documents:
+          type: integer
+          description: "Set with `DOCUMENT_LIMIT_REACHED`."
+        max_pages:
+          type: integer
+          description: "Set with `TOO_MANY_PAGES`."
+        max_size_mb:
+          type: integer
+          description: "Set with `FILE_TOO_LARGE`."
         errors:
           type: array
           description: "Set with `VALIDATION_ERROR`: which fields are invalid."
@@ -381,6 +574,91 @@ components:
     Locale:
       type: string
       enum: [vi, en]
+    ConsentKind:
+      type: string
+      enum: [ai_processing]
+    ConsentRequest:
+      type: object
+      additionalProperties: false
+      required: [kind, version]
+      properties:
+        kind:
+          $ref: "#/components/schemas/ConsentKind"
+        version:
+          type: string
+          maxLength: 64
+    Consent:
+      type: object
+      additionalProperties: false
+      required: [kind, version, created_at]
+      properties:
+        kind:
+          $ref: "#/components/schemas/ConsentKind"
+        version:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+    ConsentList:
+      type: object
+      additionalProperties: false
+      required: [items, current_versions]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Consent"
+        current_versions:
+          type: object
+          description: Current notice version per kind; consent is valid only for the current one.
+          additionalProperties:
+            type: string
+    DocumentStatus:
+      type: string
+      enum: [UPLOADED, QUEUED, PROCESSING, READY, FAILED, PAUSED_QUOTA, DELETING]
+    Document:
+      type: object
+      additionalProperties: false
+      required: [id, space_id, filename, size_bytes, page_count, status, error_code, created_at, updated_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        space_id:
+          type: string
+          format: uuid
+        filename:
+          type: string
+        size_bytes:
+          type: integer
+        page_count:
+          type: integer
+        status:
+          $ref: "#/components/schemas/DocumentStatus"
+        error_code:
+          type: [string, "null"]
+          enum: [NO_TEXT_LAYER, EXTRACTION_FAILED, PROCESSING_FAILED, null]
+          description: Set when status is FAILED.
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    DocumentList:
+      type: object
+      additionalProperties: false
+      required: [items, total_documents, max_documents]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Document"
+        total_documents:
+          type: integer
+          description: Documents counted toward the per-user limit, across all spaces.
+        max_documents:
+          type: integer
     SpaceNameRequest:
       type: object
       additionalProperties: false

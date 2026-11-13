@@ -37,7 +37,7 @@ Quy tắc thiết kế:
 |---|---|---|
 | `UPLOADED` | File đã lưu, chưa vào hàng đợi | `QUEUED` |
 | `QUEUED` | Đang chờ worker | `PROCESSING`, `DELETING` |
-| `PROCESSING` | Đang trích văn bản, chia đoạn, tạo embedding | `READY`, `FAILED`, `PAUSED_QUOTA`, `DELETING` |
+| `PROCESSING` | Đang trích văn bản, chia đoạn, tạo embedding | `READY`, `FAILED`, `PAUSED_QUOTA`, `QUEUED` (lỗi tạm thời, chờ lần thử sau; thêm ở F5), `DELETING` |
 | `READY` | Sẵn sàng hỏi đáp | `DELETING` |
 | `FAILED` | Lỗi sau số lần thử cho phép | `QUEUED` (thử lại), `DELETING` |
 | `PAUSED_QUOTA` | Tạm dừng vì AI hết hạn mức, chờ phục hồi | `QUEUED` (tự động khi hạn mức phục hồi), `DELETING` |
