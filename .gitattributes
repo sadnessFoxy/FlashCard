@@ -1,0 +1,5 @@
+# Keep LF everywhere so Windows and Linux (CI, Docker) see identical files.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.pdf binary
