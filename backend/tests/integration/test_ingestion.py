@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import logging
 import uuid
+from datetime import UTC, datetime
 
 import pytest
 from sqlalchemy import func, select, text
@@ -68,6 +69,7 @@ class Harness:
             user = await users.create(
                 email=f"{uuid.uuid4().hex}@example.com", password_hash=None, locale="vi"
             )
+            user.email_verified_at = datetime.now(UTC)  # uploads need a verified email
             await users.give_consent(user.id, "ai_processing", settings.AI_CONSENT_VERSION)
             space = await SpaceService(session).create(user.id, "Space")
             document, _ = await DocumentService(session, self.storage, self.queue).upload(  # type: ignore[arg-type]

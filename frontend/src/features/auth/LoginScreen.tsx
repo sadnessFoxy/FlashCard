@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -31,6 +32,7 @@ interface FieldErrors {
 
 export function LoginScreen() {
   const { t, i18n } = useTranslation();
+  const router = useRouter();
   const signedIn = useAuthStore((s) => s.signedIn);
   const [mode, setMode] = useState<Mode>("login");
   const [email, setEmail] = useState("");
@@ -169,6 +171,15 @@ export function LoginScreen() {
             loading={submitting}
             testID="auth-submit"
           />
+          {mode === "login" && (
+            <Pressable
+              accessibilityRole="link"
+              onPress={() => router.push("/forgot-password")}
+              testID="auth-forgot"
+            >
+              <Text style={styles.forgot}>{t("auth.forgotPassword")}</Text>
+            </Pressable>
+          )}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -177,6 +188,12 @@ export function LoginScreen() {
 
 const styles = StyleSheet.create({
   flex: { backgroundColor: colors.background, flex: 1 },
+  forgot: {
+    color: colors.primary,
+    fontSize: fontSize.sm,
+    fontWeight: "600",
+    textAlign: "center",
+  },
   container: {
     alignSelf: "center",
     gap: spacing.lg,

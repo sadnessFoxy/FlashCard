@@ -14,6 +14,8 @@ interface AuthState {
   user: User | null;
   bootstrap: () => Promise<void>;
   signedIn: (user: User) => void;
+  /** The server returned a newer copy of the user (e.g. after verifying the email). */
+  userUpdated: (user: User) => void;
   /** Local-only sign-out, e.g. when refresh failed. */
   sessionEnded: () => void;
   logout: () => Promise<void>;
@@ -34,6 +36,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   signedIn: (user) => set({ status: "signedIn", user }),
+
+  userUpdated: (user) => set({ user }),
 
   sessionEnded: () => set({ status: "signedOut", user: null }),
 

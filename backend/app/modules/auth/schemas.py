@@ -6,7 +6,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from app.modules.auth.email import validate_and_normalize_email
+from app.modules.auth.email import normalize_email, validate_and_normalize_email
 from app.modules.users.schemas import Locale, UserOut
 
 ClientPlatform = Literal["web", "native"]
@@ -49,3 +49,30 @@ class AuthSessionOut(BaseModel):
     access_token: str | None = None
     refresh_token: str | None = None
     access_token_expires_in: int
+
+
+# ---------- email codes (docs/specs/f4-email-codes.md) ----------
+
+CODE_PATTERN = r"^\s*\d{6}\s*$"
+
+
+class VerifyEmailRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    code: str = Field(pattern=CODE_PATTERN)
+
+
+class PasswordResetRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    email: str = Field(max_length=254)
+
+    @field_validator("email")
+    @classmethod
+    def _email(cls, value: str) -> str:
+        return normalize_email(value)
+
+
+class PasswordResetConfirmRequest(PasswordResetRequest):
+    code: str = Field(pattern=CODE_PATTERN)
+    new_password: str = Field(max_length=1024)

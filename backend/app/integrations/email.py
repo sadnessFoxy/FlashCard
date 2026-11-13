@@ -1,51 +1,66 @@
 """
-Email service (Mailpit cho local dev, real SMTP cho production).
-R3: SMTP credentials come from env vars.
-R10: never log email bodies or tokens.
+Outgoing email over SMTP (Mailpit locally, a real SMTP server later).
+R3: credentials come from settings. R10: bodies and codes are never logged.
 """
 
 from __future__ import annotations
 
+import asyncio
+import smtplib
+from dataclasses import dataclass
+from email.message import EmailMessage
+from typing import Protocol
+
+from app.core.config import settings
 from app.core.logging import get_logger
 
 logger = get_logger(__name__)
 
 
-class EmailService:
-    """
-    Send email over SMTP.
-    Local dev uses Mailpit (port 1025).
-    """
-
-    async def send_verification_email(
-        self,
-        to_email: str,
-        verification_token: str,
-    ) -> None:
-        """Send the account verification email."""
-        # TODO(F4): implement with aiosmtplib
-        # verification_token is the plaintext token for the user;
-        # only its hash is stored (R15)
-        logger.info("Sending verification email to %s", to_email)
-
-    async def send_password_reset_email(
-        self,
-        to_email: str,
-        reset_token: str,
-    ) -> None:
-        """Send the password reset email."""
-        # TODO(F4): implement
-        # R15: single-use, expiring, stored hashed
-        logger.info("Sending password reset email to %s", to_email)
-
-    async def send_security_alert(
-        self,
-        to_email: str,
-        event: str,
-    ) -> None:
-        """Send a security alert (password changed, unusual sign-in)."""
-        # TODO(phase 4): implement
-        logger.info("Sending security alert '%s' to %s", event, to_email)
+@dataclass(frozen=True)
+class OutgoingEmail:
+    to: str
+    subject: str
+    text: str
 
 
-email_service = EmailService()
+class Mailer(Protocol):
+    async def send(self, email: OutgoingEmail) -> None: ...
+
+
+class SmtpMailer:
+    """Sends with the standard library in a worker thread so the event loop never blocks."""
+
+    async def send(self, email: OutgoingEmail) -> None:
+        await asyncio.to_thread(self._send_sync, email)
+
+    @staticmethod
+    def _send_sync(email: OutgoingEmail) -> None:
+        message = EmailMessage()
+        message["From"] = settings.SMTP_FROM_EMAIL
+        message["To"] = email.to
+        message["Subject"] = email.subject
+        message.set_content(email.text)
+        with smtplib.SMTP(settings.SMTP_HOST, settings.SMTP_PORT, timeout=10) as smtp:
+            if settings.SMTP_USE_TLS:
+                smtp.starttls()
+            if settings.SMTP_USERNAME:
+                smtp.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
+            smtp.send_message(message)
+
+
+_mailer: Mailer = SmtpMailer()
+
+
+def get_mailer() -> Mailer:
+    return _mailer
+
+
+async def send_quietly(mailer: Mailer, email: OutgoingEmail, purpose: str) -> bool:
+    """Send; on failure log the purpose only (no address, no body) and report False."""
+    try:
+        await mailer.send(email)
+        return True
+    except (OSError, smtplib.SMTPException) as exc:
+        logger.warning("Email not sent (purpose=%s, error=%s)", purpose, type(exc).__name__)
+        return False

@@ -35,13 +35,16 @@ from sqlalchemy import text  # noqa: E402
 
 from app.core.redis import close_redis, get_redis  # noqa: E402
 from app.db.session import engine  # noqa: E402
+from app.integrations.email import get_mailer  # noqa: E402
 from app.integrations.llm_gateway.gateway import LLMGateway  # noqa: E402
 from app.main import app  # noqa: E402
 from app.modules.ai.providers.fake import FakeProvider  # noqa: E402
+from tests.fixtures.fakes import RecordingMailer  # noqa: E402
 
 ALLOWED_ORIGIN = "http://localhost:8081"
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 _TABLES = (
+    "auth_codes",
     "review_logs",
     "flashcards",
     "flashcard_decks",
@@ -99,3 +102,11 @@ async def client() -> AsyncGenerator[AsyncClient, None]:
 @pytest.fixture
 def fake_llm_gateway() -> LLMGateway:
     return LLMGateway(provider=FakeProvider())
+
+
+@pytest.fixture(autouse=True)
+def mailer() -> RecordingMailer:
+    """Every test records emails in memory; nothing is ever sent over SMTP."""
+    recording = RecordingMailer()
+    app.dependency_overrides[get_mailer] = lambda: recording
+    return recording

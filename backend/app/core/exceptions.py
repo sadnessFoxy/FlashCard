@@ -272,3 +272,13 @@ class SourceEmptyError(AppError):
 
     def __init__(self) -> None:
         super().__init__("SOURCE_EMPTY", "The selected source has no text", 422)
+
+
+# ------- Email codes (docs/specs/f4-email-codes.md) -------
+
+
+class InvalidCodeError(AppError):
+    """Wrong, expired, used or exhausted code: one error so nothing leaks."""
+
+    def __init__(self) -> None:
+        super().__init__("INVALID_CODE", "The code is invalid or has expired", 400)

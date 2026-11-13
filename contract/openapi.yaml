@@ -214,6 +214,94 @@ paths:
           $ref: "#/components/responses/CsrfRejected"
         "422":
           $ref: "#/components/responses/ValidationError"
+  /v1/auth/email-verification:
+    post:
+      tags: [auth]
+      operationId: sendEmailVerification
+      summary: Email a fresh 6-digit verification code (no-op when already verified)
+      description: Registration already sends one. At most one per minute and 5 per hour.
+      responses:
+        "204":
+          description: Sent (or nothing to do)
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/CsrfRejected"
+        "429":
+          $ref: "#/components/responses/TooManyAttempts"
+  /v1/auth/email-verification/confirm:
+    post:
+      tags: [auth]
+      operationId: confirmEmailVerification
+      summary: Verify the email with the emailed code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyEmailRequest"
+      responses:
+        "200":
+          description: Verified; the updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "400":
+          $ref: "#/components/responses/InvalidCode"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/CsrfRejected"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /v1/auth/password-reset:
+    post:
+      tags: [auth]
+      operationId: requestPasswordReset
+      summary: Email a password reset code if the account exists
+      description: |
+        Always 202 with no body, whether or not the email exists or the request was rate
+        limited, so it cannot reveal accounts. Google-only accounts get a pointer to Google sign-in.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasswordResetRequest"
+      responses:
+        "202":
+          description: Accepted
+        "403":
+          $ref: "#/components/responses/CsrfRejected"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /v1/auth/password-reset/confirm:
+    post:
+      tags: [auth]
+      operationId: confirmPasswordReset
+      summary: Set a new password with the emailed code; signs out every session
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PasswordResetConfirmRequest"
+      responses:
+        "204":
+          description: Password changed; all refresh tokens revoked; email marked verified
+        "400":
+          $ref: "#/components/responses/InvalidCode"
+        "403":
+          $ref: "#/components/responses/CsrfRejected"
+        "422":
+          description: "`VALIDATION_ERROR`, or `WEAK_PASSWORD` with `reason`"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /v1/me:
     get:
       tags: [users]
@@ -1770,6 +1858,38 @@ components:
         total_due:
           type: integer
           minimum: 0
+    VerifyEmailRequest:
+      type: object
+      additionalProperties: false
+      required: [code]
+      properties:
+        code:
+          type: string
+          pattern: "^\\s*\\d{6}\\s*$"
+          description: The 6-digit code from the email.
+    PasswordResetRequest:
+      type: object
+      additionalProperties: false
+      required: [email]
+      properties:
+        email:
+          type: string
+          maxLength: 254
+    PasswordResetConfirmRequest:
+      type: object
+      additionalProperties: false
+      required: [email, code, new_password]
+      properties:
+        email:
+          type: string
+          maxLength: 254
+        code:
+          type: string
+          pattern: "^\\s*\\d{6}\\s*$"
+          description: The 6-digit code from the email.
+        new_password:
+          type: string
+          maxLength: 1024
     Locale:
       type: string
       enum: [vi, en]
@@ -2058,6 +2178,12 @@ components:
             $ref: "#/components/schemas/ErrorResponse"
     AiUnavailable:
       description: "`AI_TEMPORARILY_UNAVAILABLE`: the AI provider cannot be reached right now."
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    InvalidCode:
+      description: "`INVALID_CODE`: wrong, expired, already used, or too many wrong tries"
       content:
         application/json:
           schema:

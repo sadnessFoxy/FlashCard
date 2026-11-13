@@ -18,12 +18,12 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 | 1 | Khởi tạo dự án | 15/19 | Đang làm | Tuần 1 | 2026-11-07 |
 | 2 | CI/CD | 0/9 | Tạm hoãn | Người dùng hoãn 2026-11-10 | |
 | 3 | Kết nối & đồng bộ dữ liệu | 3/16 | Đang làm | Tuần 2 đến 4 | |
-| 4 | Bảo mật | 5/28 | Đang làm | Tuần 2 đến 4, rà soát lại trước beta | |
+| 4 | Bảo mật | 7/28 | Đang làm | Tuần 2 đến 4, rà soát lại trước beta | |
 | 5 | Sức tải, hiệu năng & chi phí AI | 3/19 | Đang làm | Trước production | |
 | 6 | Beta & chuẩn bị production | 0/10 | Chưa bắt đầu | | |
 | 7 | Ra mắt & vận hành | 0/6 | Chưa bắt đầu | | |
-| F | Lát chức năng bản 1 | 9/17 | Đang làm | Song song với giai đoạn 1 đến 6 | 2026-11-08 |
-| | **Tổng** | **47/140** | | | |
+| F | Lát chức năng bản 1 | 10/17 | Đang làm | Song song với giai đoạn 1 đến 6 | 2026-11-08 |
+| | **Tổng** | **50/140** | | | |
 
 ---
 
@@ -169,8 +169,8 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 - [x] Access token ngắn (khoảng 15 phút) cộng refresh token có xoay vòng (rotation) và thu hồi được; phát hiện dùng lại token (F2)
 - [x] Băm mật khẩu bằng argon2 hoặc bcrypt (argon2id, F2)
 - [ ] Đăng nhập email và mật khẩu, Google: backend xác thực ID token, quy tắc liên kết tài khoản (xem docs/SECURITY.md)
-- [ ] Xác minh email và quên mật khẩu: token một lần, hạn ngắn, không lộ email có tồn tại hay không, thu hồi phiên sau khi đổi mật khẩu
-- [ ] Tích hợp dịch vụ gửi email (xác minh, đặt lại mật khẩu, cảnh báo)
+- [x] Xác minh email và quên mật khẩu: token một lần, hạn ngắn, không lộ email có tồn tại hay không, thu hồi phiên sau khi đổi mật khẩu (F4)
+- [x] Tích hợp dịch vụ gửi email (xác minh, đặt lại mật khẩu, cảnh báo) (F4: SMTP, Mailpit khi chạy local)
 - [ ] Tự xây xác thực bằng thư viện chuẩn (không tự phát minh thuật toán mã hóa) và kiểm thử kỹ các luồng U1 đến U4 trong docs/BUSINESS_FLOWS.md
 - [ ] Phân quyền theo từng bản ghi ở backend (chống IDOR, tức xem tài liệu của người khác bằng cách đổi ID)
 - [ ] Phân quyền quản trị: vai trò admin kiểm tra ở backend, API `/v1/admin/*`, quản trị viên không xem nội dung người dùng, mọi thao tác ghi nhật ký kiểm toán (xem docs/SECURITY.md)
@@ -276,7 +276,7 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 - [x] F1. Khung chạy được xuyên suốt: một endpoint thật đi từ frontend qua backend tới database, có kiểm tra sức khỏe và test (`/health`, `/v1/system/status`; màn hình trạng thái ở `frontend/app/index.tsx`)
 - [x] F2. Đăng ký, đăng nhập bằng email và mật khẩu, duy trì và kết thúc phiên (U1, U4; màn hình 1; docs/specs/f2-email-auth.md)
 - [ ] F3. Đăng nhập bằng Google (U1; màn hình 1)
-- [ ] F4. Xác minh email và quên, đặt lại mật khẩu (U2, U3; màn hình 2, 3)
+- [x] F4. Xác minh email và quên, đặt lại mật khẩu (U2, U3; màn hình 2, 3) (docs/specs/f4-email-codes.md)
 - [x] F4b. Không gian học tập: tạo, đổi tên, xóa, không gian mặc định (U16; màn hình 5; docs/specs/f4b-spaces.md). Hàm tạo không gian mặc định đã có, được gọi từ luồng tải lên ở F5
 - [x] F5. Tải tài liệu PDF và xử lý nền đến `READY`: trích văn bản, chia đoạn, embedding, trạng thái (U5; màn hình 5, 6) (docs/specs/f5-document-upload.md)
 - [x] F6. Quản lý tài liệu: danh sách, chi tiết, thử lại, xóa (U6; màn hình 5, 7) (docs/specs/f6-document-management.md)
@@ -335,3 +335,4 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 | 2026-11-13 | Lát F8 xong (docs/specs/f8-citations-history.md): xem trang được trích dạng văn bản đọc lại từ PDF gốc, đoạn trích được tô nổi bật, chuyển trang, cache Redis theo người dùng; lịch sử hội thoại theo Không gian, mở lại, xóa có xác nhận. Theo yêu cầu người dùng về code dễ đọc, dễ bảo trì: tách module chat backend (nguồn trích, trích dẫn, luồng trả lời, trình bày) và tab Hỏi đáp frontend (hook gửi câu hỏi, bong bóng tin nhắn, hộp trích dẫn, chip tài liệu, ô nhập); gom helper test dùng chung. Sửa nhờ thử thật với Gemini: câu hỏi tiếng Anh trên giáo trình tiếng Việt bị trả lời bằng tiếng Việt (giờ ghi rõ ngôn ngữ cần trả lời cạnh câu hỏi, đúng 3/3 lần thử), câu trả lời có ký hiệu LaTeX, câu hỏi không có câu trả lời trong lịch sử làm lệch câu kế tiếp. Test: backend 233, frontend 74 |
 | 2026-11-13 | Lát F9 xong (docs/specs/f9-flashcards.md): bộ thẻ trong Không gian, thẻ tạo bằng tay hoặc AI đề xuất từ tài liệu (khoảng trang) hay từ câu trả lời hỏi đáp; người học sửa, bỏ chọn rồi mới lưu; nguồn thẻ là bản ghi nhanh (tài liệu, trang); hạn mức tạo thẻ 10 lần mỗi ngày tính riêng với hỏi đáp; bảng thẻ có sẵn cột lịch SM-2 cho F10. Code: module `study/flashcards/`; hạn mức theo ngày tổng quát hóa (`DailyQuota`) dùng chung cho hỏi đáp và tạo thẻ; khối nguồn `<source>` và nhận diện ngôn ngữ tách ra dùng chung (`modules/ai/`); hộp xác nhận, nhóm chip dùng chung ở frontend; cấu hình test frontend có sẵn địa chỉ API nên màn hình mới không làm vỡ test cũ. Thử thật với Gemini: 6 thẻ tiếng Việt đúng nội dung, đúng trang, sau 2,3 giây. Test: backend 246, frontend 83 |
 | 2026-11-13 | Lát F10 xong (docs/specs/f10-reviews.md): ôn tập SM-2 bốn mức (Quên, Khó, Được, Dễ), thẻ Quên quay lại trong phiên, màn hình kết quả (thẻ khó, lần ôn kế tiếp); không cần AI. Chạy khi mất mạng: mỗi lượt chấm có mã do app tạo, lưu hàng đợi trên máy (AsyncStorage) rồi gửi theo lô; server bỏ qua lượt gửi lại, lượt cũ đến muộn chỉ ghi nhật ký. Test: backend 261 (gồm unit test công thức SM-2), frontend 91; thử qua HTTP thật: lịch đúng, gửi lại không ghi trùng |
+| 2026-11-13 | Lát F4 xong trước F3 (F3 cần OAuth client Google của người dùng) (docs/specs/f4-email-codes.md): xác minh email và quên mật khẩu bằng mã 6 chữ số qua email, mã lưu dạng HMAC, dùng một lần, 15 phút, sai 5 lần thì hủy; quên mật khẩu không lộ email nào có tài khoản; đặt lại thì thu hồi mọi phiên và gửi email báo; tài khoản chưa xác minh không tải tài liệu được (bật `REQUIRE_VERIFIED_EMAIL_FOR_UPLOAD`). Gửi email qua SMTP bằng thư viện chuẩn (không thêm phụ thuộc); test dùng hộp thư giả. Thử thật với Mailpit: đi hết hai luồng. Test: backend 271, frontend 96 |

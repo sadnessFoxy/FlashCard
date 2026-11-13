@@ -4,15 +4,19 @@ from __future__ import annotations
 
 import uuid
 from collections.abc import AsyncGenerator
+from datetime import UTC, datetime
 
 import pytest
 import pytest_asyncio
 from httpx import AsyncClient, Response
+from sqlalchemy import update
 
 from app.core.config import settings
+from app.db.session import AsyncSessionLocal
 from app.integrations.object_storage import get_storage
 from app.main import app
 from app.modules.documents.queue import get_job_queue
+from app.modules.users.models import User
 from tests.contract_schema import assert_response_matches_contract
 from tests.fixtures.fakes import InMemoryStorage, RecordingQueue
 from tests.fixtures.pdfs import make_blank_pdf, make_encrypted_pdf, make_pdf
@@ -30,7 +34,10 @@ async def fakes() -> AsyncGenerator[tuple[InMemoryStorage, RecordingQueue], None
     yield storage, queue
 
 
-async def sign_up(client: AsyncClient, email: str = "reader@example.com") -> dict[str, str]:
+async def sign_up(
+    client: AsyncClient, email: str = "reader@example.com", *, verified: bool = True
+) -> dict[str, str]:
+    """Register; `verified` marks the email verified as if the emailed code was entered."""
     body = (
         await client.post(
             "/v1/auth/register",
@@ -38,6 +45,12 @@ async def sign_up(client: AsyncClient, email: str = "reader@example.com") -> dic
             headers={"X-Client-Platform": "native"},
         )
     ).json()
+    if verified:
+        async with AsyncSessionLocal() as s:
+            await s.execute(
+                update(User).where(User.email == email).values(email_verified_at=datetime.now(UTC))
+            )
+            await s.commit()
     return {"Authorization": f"Bearer {body['access_token']}"}
 
 

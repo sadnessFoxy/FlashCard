@@ -26,6 +26,7 @@ AUTH_TABLES = {
     "flashcard_decks",
     "flashcards",
     "review_logs",
+    "auth_codes",
 }
 
 

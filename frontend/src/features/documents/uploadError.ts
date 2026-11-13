@@ -19,6 +19,8 @@ export function uploadErrorMessage(error: unknown, t: TFunction): string {
       return t("documents.errors.limit", { max: d.maxDocuments ?? 10 });
     case "CONSENT_REQUIRED":
       return t("documents.errors.consent");
+    case "EMAIL_NOT_VERIFIED":
+      return t("documents.errors.emailNotVerified");
     case "NETWORK_ERROR":
     case "TIMEOUT_ERROR":
       return t("documents.errors.network");

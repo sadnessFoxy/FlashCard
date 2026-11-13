@@ -38,7 +38,8 @@
         "too_long": "Password can be at most 128 characters",
         "too_common": "This password is too common, choose another",
         "same_as_email": "Password can't be the same as your email"
-      }
+      },
+      "invalidCode": "That code is wrong or has expired. Check it or send a new one."
     }
   },
   "errors": {
@@ -151,7 +152,8 @@
       "encrypted": "Password-protected PDFs aren't supported. Remove the password and try again.",
       "limit": "You have {{max}} documents, the maximum. Delete some to upload more.",
       "consent": "Please accept the data processing notice before uploading.",
-      "network": "Connection lost during upload. Press Retry; no duplicate will be created."
+      "network": "Connection lost during upload. Press Retry; no duplicate will be created.",
+      "emailNotVerified": "Verify your email before uploading (we sent a code to your inbox)."
     },
     "notFound": "This document doesn't exist or was deleted.",
     "backToSpace": "Back to space",
@@ -290,5 +292,26 @@
     "pendingSync_one": "{{count}} result is saved on this device and will sync when you're online.",
     "pendingSync_other": "{{count}} results are saved on this device and will sync when you're online.",
     "done": "Done"
+  },
+  "forgot": {
+    "title": "Reset password",
+    "backToLogin": "Back to sign in",
+    "emailHint": "Enter your account email. If it has an account, we'll send a 6-digit code.",
+    "sendCode": "Send code",
+    "code": "6-digit code",
+    "codeSent": "If {{email}} has an account, a reset code was sent to it. It expires in 15 minutes.",
+    "newPassword": "New password",
+    "setPassword": "Set new password",
+    "resend": "Send a new code",
+    "done": "Password changed. Every other session was signed out; sign in with the new password."
+  },
+  "verify": {
+    "title": "Verify your email",
+    "hint": "Enter the 6-digit code sent to {{email}}. You need a verified email to upload documents.",
+    "confirm": "Verify",
+    "resend": "Send a new code",
+    "resent": "A new code is on its way. Check your inbox.",
+    "done": "Your email is verified.",
+    "banner": "Verify your email to upload documents. Tap here to enter the code."
   }
 }

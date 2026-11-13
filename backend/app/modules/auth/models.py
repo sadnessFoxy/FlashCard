@@ -11,6 +11,7 @@ from sqlalchemy import (
     DateTime,
     ForeignKey,
     Index,
+    Integer,
     String,
     UniqueConstraint,
 )
@@ -20,6 +21,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.db.base import Base
 
 AUTH_PROVIDERS = ("email", "google")
+CODE_PURPOSES = ("verify_email", "reset_password")
 
 
 class AuthIdentity(Base):
@@ -69,3 +71,25 @@ class RefreshToken(Base):
         UUID(as_uuid=True), ForeignKey("refresh_tokens.id", ondelete="SET NULL")
     )
     user_agent: Mapped[str | None] = mapped_column(String(200))
+
+
+class AuthCode(Base):
+    """
+    One-time code sent by email (R15): stored as an HMAC keyed with SECRET_KEY, single use,
+    short-lived, and dead after AUTH_CODE_MAX_ATTEMPTS wrong entries.
+    """
+
+    __tablename__ = "auth_codes"
+    __table_args__ = (
+        CheckConstraint("purpose IN ('verify_email', 'reset_password')", name="purpose"),
+        Index("ix_auth_codes_user_id_purpose", "user_id", "purpose"),
+    )
+
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), nullable=False
+    )
+    purpose: Mapped[str] = mapped_column(String(16), nullable=False)
+    code_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)

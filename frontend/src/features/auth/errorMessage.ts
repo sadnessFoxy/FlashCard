@@ -23,6 +23,8 @@ export function authErrorMessage(error: unknown, t: TFunction): string {
           Math.ceil((error.details.retryAfterSeconds ?? 60) / 60),
         ),
       });
+    case "INVALID_CODE":
+      return t("auth.errors.invalidCode");
     case "VALIDATION_ERROR":
       return error.details.fields?.includes("email")
         ? t("auth.errors.invalidEmail")

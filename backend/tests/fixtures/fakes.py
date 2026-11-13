@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import re
 import uuid
 
+from app.integrations.email import OutgoingEmail
 from app.integrations.object_storage import StorageError
 
 
@@ -39,3 +41,21 @@ class RecordingQueue:
 
     async def enqueue_purge(self, document_id: uuid.UUID, storage_key: str) -> None:
         self.purges.append((document_id, storage_key))
+
+
+class RecordingMailer:
+    """Keeps sent emails in memory; tests read codes from them."""
+
+    def __init__(self) -> None:
+        self.sent: list[OutgoingEmail] = []
+
+    async def send(self, email: OutgoingEmail) -> None:
+        self.sent.append(email)
+
+    def last_code(self, to: str) -> str:
+        for email in reversed(self.sent):
+            if email.to == to:
+                match = re.search(r"\b(\d{6})\b", email.text)
+                if match:
+                    return match.group(1)
+        raise AssertionError(f"no code sent to {to}")

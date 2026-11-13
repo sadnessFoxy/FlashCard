@@ -61,6 +61,14 @@ class Settings(BaseSettings):
     REGISTER_MAX_PER_IP: int = Field(default=5)
     REGISTER_WINDOW_SECONDS: int = Field(default=60 * 60)
 
+    # ------- One-time codes: email verification, password reset (docs/specs/f4-email-codes.md)
+    AUTH_CODE_TTL_MINUTES: int = Field(default=15)
+    AUTH_CODE_MAX_ATTEMPTS: int = Field(default=5, description="Wrong entries before a code dies")
+    VERIFY_EMAIL_RESEND_SECONDS: int = Field(default=60)
+    VERIFY_EMAIL_MAX_PER_HOUR: int = Field(default=5)
+    PASSWORD_RESET_MAX_PER_EMAIL_PER_HOUR: int = Field(default=3)
+    PASSWORD_RESET_MAX_PER_IP_PER_HOUR: int = Field(default=20)
+
     # ------- AI / Gemini -------
     GEMINI_API_KEY: str = Field(
         description="Google Gemini API key (from Google AI Studio). Never commit."
@@ -144,7 +152,7 @@ class Settings(BaseSettings):
         description="Current version of the AI data-processing notice; bump to re-ask consent",
     )
     REQUIRE_VERIFIED_EMAIL_FOR_UPLOAD: bool = Field(
-        default=False, description="Turn on once email verification (F4) exists"
+        default=True, description="Unverified accounts cannot upload (DECISIONS)"
     )
     CHUNK_TARGET_CHARS: int = Field(default=1200)
     CHUNK_OVERLAP_CHARS: int = Field(default=150)

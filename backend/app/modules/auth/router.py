@@ -12,16 +12,23 @@ from app.api.errors import app_error_handler
 from app.core.exceptions import AppError, InvalidRefreshTokenError
 from app.core.security import access_token_ttl_seconds
 from app.db.session import get_db
+from app.integrations.email import Mailer, get_mailer
 from app.modules.auth.cookies import REFRESH_COOKIE, clear_session_cookies, set_session_cookies
-from app.modules.auth.dependencies import get_client_info
+from app.modules.auth.dependencies import get_client_info, get_current_user
+from app.modules.auth.password_reset import PasswordReset
 from app.modules.auth.schemas import (
     AuthSessionOut,
     ClientPlatform,
     LoginRequest,
+    PasswordResetConfirmRequest,
+    PasswordResetRequest,
     RefreshTokenRequest,
     RegisterRequest,
+    VerifyEmailRequest,
 )
 from app.modules.auth.service import AuthService, ClientInfo, IssuedSession
+from app.modules.auth.verification import EmailVerification
+from app.modules.users.models import User
 from app.modules.users.schemas import UserOut
 
 router = APIRouter()
@@ -29,6 +36,8 @@ router = APIRouter()
 PlatformHeader = Annotated[ClientPlatform, Header(alias="X-Client-Platform")]
 Db = Annotated[AsyncSession, Depends(get_db, scope="function")]
 Client = Annotated[ClientInfo, Depends(get_client_info)]
+Mail = Annotated[Mailer, Depends(get_mailer)]
+CurrentUser = Annotated[User, Depends(get_current_user)]
 
 
 def _session_response(
@@ -67,11 +76,17 @@ def _refresh_token_from(
     operation_id="register",
 )
 async def register(
-    body: RegisterRequest, platform: PlatformHeader, response: Response, db: Db, client: Client
+    body: RegisterRequest,
+    platform: PlatformHeader,
+    response: Response,
+    db: Db,
+    client: Client,
+    mailer: Mail,
 ) -> AuthSessionOut:
     issued = await AuthService(db).register(
         email=body.email, password=body.password, locale=body.locale, client=client
     )
+    await EmailVerification(db, mailer).send(issued.user)
     return _session_response(issued, platform, response)
 
 
@@ -128,3 +143,48 @@ async def logout(
     if platform == "web":
         clear_session_cookies(response)
     return response
+
+
+# ---------- email codes (docs/specs/f4-email-codes.md) ----------
+
+
+@router.post(
+    "/email-verification",
+    status_code=status.HTTP_204_NO_CONTENT,
+    operation_id="sendEmailVerification",
+)
+async def send_email_verification(user: CurrentUser, db: Db, mailer: Mail) -> Response:
+    await EmailVerification(db, mailer).send(user)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.post(
+    "/email-verification/confirm", response_model=UserOut, operation_id="confirmEmailVerification"
+)
+async def confirm_email_verification(
+    body: VerifyEmailRequest, user: CurrentUser, db: Db, mailer: Mail
+) -> UserOut:
+    return UserOut.from_model(await EmailVerification(db, mailer).confirm(user, body.code))
+
+
+@router.post(
+    "/password-reset", status_code=status.HTTP_202_ACCEPTED, operation_id="requestPasswordReset"
+)
+async def request_password_reset(
+    body: PasswordResetRequest, db: Db, client: Client, mailer: Mail
+) -> Response:
+    # Same answer whether or not the email exists (no account enumeration).
+    await PasswordReset(db, mailer).request(body.email, client.ip)
+    return Response(status_code=status.HTTP_202_ACCEPTED)
+
+
+@router.post(
+    "/password-reset/confirm",
+    status_code=status.HTTP_204_NO_CONTENT,
+    operation_id="confirmPasswordReset",
+)
+async def confirm_password_reset(
+    body: PasswordResetConfirmRequest, db: Db, mailer: Mail
+) -> Response:
+    await PasswordReset(db, mailer).reset(body.email, body.code, body.new_password)
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

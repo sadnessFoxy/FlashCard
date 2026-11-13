@@ -19,6 +19,7 @@ import {
   useRenameSpace,
   useSpaces,
 } from "./hooks";
+import { VerifyEmailBanner } from "../auth/VerifyEmailBanner";
 import { DeleteSpaceDialog, SpaceNameDialog } from "./SpaceDialogs";
 
 export function SpacesScreen() {
@@ -116,6 +117,7 @@ export function SpacesScreen() {
 
   return (
     <View style={styles.container}>
+      <VerifyEmailBanner />
       <View style={styles.header}>
         <Text style={styles.title} accessibilityRole="header">
           {t("tabs.spaces")}

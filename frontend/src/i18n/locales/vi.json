@@ -38,7 +38,8 @@
         "too_long": "Mật khẩu tối đa 128 ký tự",
         "too_common": "Mật khẩu này quá phổ biến, hãy chọn mật khẩu khác",
         "same_as_email": "Mật khẩu không được trùng với email"
-      }
+      },
+      "invalidCode": "Mã không đúng hoặc đã hết hạn. Hãy kiểm tra lại hoặc gửi mã mới."
     }
   },
   "errors": {
@@ -151,7 +152,8 @@
       "encrypted": "PDF có mật khẩu chưa được hỗ trợ. Hãy gỡ mật khẩu rồi tải lại.",
       "limit": "Bạn đã có {{max}} tài liệu, là mức tối đa. Hãy xóa bớt để tải thêm.",
       "consent": "Bạn cần đồng ý với thông báo xử lý dữ liệu trước khi tải.",
-      "network": "Mất kết nối khi tải lên. Bấm Thử lại, tài liệu sẽ không bị tạo trùng."
+      "network": "Mất kết nối khi tải lên. Bấm Thử lại, tài liệu sẽ không bị tạo trùng.",
+      "emailNotVerified": "Hãy xác minh email trước khi tải tài liệu (mã đã gửi tới hộp thư của bạn)."
     },
     "notFound": "Tài liệu này không tồn tại hoặc đã bị xóa.",
     "backToSpace": "Về không gian",
@@ -290,5 +292,26 @@
     "pendingSync_one": "{{count}} kết quả đang lưu trên máy, sẽ đồng bộ khi có mạng.",
     "pendingSync_other": "{{count}} kết quả đang lưu trên máy, sẽ đồng bộ khi có mạng.",
     "done": "Xong"
+  },
+  "forgot": {
+    "title": "Đặt lại mật khẩu",
+    "backToLogin": "Quay lại đăng nhập",
+    "emailHint": "Nhập email tài khoản. Nếu email có tài khoản, chúng tôi sẽ gửi mã gồm 6 chữ số.",
+    "sendCode": "Gửi mã",
+    "code": "Mã 6 chữ số",
+    "codeSent": "Nếu {{email}} có tài khoản, mã đặt lại đã được gửi tới email đó. Mã có hiệu lực 15 phút.",
+    "newPassword": "Mật khẩu mới",
+    "setPassword": "Đặt mật khẩu mới",
+    "resend": "Gửi lại mã",
+    "done": "Đã đổi mật khẩu. Mọi phiên đăng nhập cũ đã bị đăng xuất; hãy đăng nhập bằng mật khẩu mới."
+  },
+  "verify": {
+    "title": "Xác minh email",
+    "hint": "Nhập mã 6 chữ số đã gửi tới {{email}}. Cần xác minh email trước khi tải tài liệu.",
+    "confirm": "Xác minh",
+    "resend": "Gửi lại mã",
+    "resent": "Đã gửi mã mới. Hãy kiểm tra hộp thư.",
+    "done": "Email của bạn đã được xác minh.",
+    "banner": "Xác minh email để tải tài liệu lên. Bấm vào đây để nhập mã."
   }
 }

@@ -55,3 +55,34 @@ export async function logout(): Promise<void> {
 export function getMe(): Promise<User> {
   return api.get<User>("/v1/me");
 }
+
+// ---------- email codes (docs/specs/f4-email-codes.md) ----------
+
+export function sendEmailVerification(): Promise<void> {
+  return api.post<void>("/v1/auth/email-verification");
+}
+
+export function confirmEmailVerification(code: string): Promise<User> {
+  return api.post<User>("/v1/auth/email-verification/confirm", { code });
+}
+
+/** Always succeeds the same way, whether or not the email has an account. */
+export function requestPasswordReset(email: string): Promise<void> {
+  return api.post<void>(
+    "/v1/auth/password-reset",
+    { email },
+    { skipAuth: true },
+  );
+}
+
+export function confirmPasswordReset(
+  email: string,
+  code: string,
+  newPassword: string,
+): Promise<void> {
+  return api.post<void>(
+    "/v1/auth/password-reset/confirm",
+    { email, code, new_password: newPassword },
+    { skipAuth: true },
+  );
+}
