@@ -45,6 +45,10 @@ class Document(Base):
         UUID(as_uuid=True), ForeignKey("spaces.id", ondelete="CASCADE"), nullable=False
     )
     filename: Mapped[str] = mapped_column(String(255), nullable=False)
+    # "pdf" or "docx" (documents.formats); decides how the stored file is read.
+    file_kind: Mapped[str] = mapped_column(
+        String(8), nullable=False, default="pdf", server_default="pdf"
+    )
     storage_key: Mapped[str] = mapped_column(String(255), nullable=False)
     size_bytes: Mapped[int] = mapped_column(BigInteger, nullable=False)
     page_count: Mapped[int] = mapped_column(Integer, nullable=False)

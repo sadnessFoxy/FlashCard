@@ -28,6 +28,7 @@ from app.modules.documents.models import Document, DocumentChunk, DocumentJob
 from app.modules.documents.service import DocumentService
 from app.modules.spaces.service import SpaceService
 from app.modules.users.service import UserService
+from tests.fixtures.docx import make_docx
 from tests.fixtures.fakes import InMemoryStorage, RecordingQueue
 from tests.fixtures.pdfs import lorem, make_blank_pdf, make_pdf
 
@@ -140,6 +141,25 @@ async def test_pdf_reaches_ready_with_768_dim_vectors() -> None:
     assert all(1 <= c.page_start <= c.page_end <= 2 for c in chunks)
     assert all(len(c.embedding) == 768 for c in chunks if c.embedding is not None)
     assert (await job(document_id)).status == "succeeded"
+
+
+async def test_word_file_reaches_ready_with_its_pages() -> None:
+    h = Harness()
+    data = make_docx([["Chương 1. Giới hạn", lorem(3)], ["Chương 2. Đạo hàm", lorem(3, seed="b")]])
+    document_id = await h.upload(data)
+
+    assert await h.pipeline.process(document_id) == "READY"
+
+    document = await doc(document_id)
+    assert (document.file_kind, document.page_count) == ("docx", 2)
+    async with AsyncSessionLocal() as session:
+        chunks = (
+            await session.scalars(
+                select(DocumentChunk).where(DocumentChunk.document_id == document_id)
+            )
+        ).all()
+    assert {c.page_start for c in chunks} == {1, 2}
+    assert any(c.content.startswith("Chương 2. Đạo hàm") for c in chunks)
 
 
 async def test_vectors_support_cosine_search() -> None:

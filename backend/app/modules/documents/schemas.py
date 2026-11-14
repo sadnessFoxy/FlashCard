@@ -20,6 +20,7 @@ class DocumentOut(BaseModel):
     id: uuid.UUID
     space_id: uuid.UUID
     filename: str
+    file_kind: Literal["pdf", "docx"]
     size_bytes: int
     page_count: int
     status: DocumentStatus

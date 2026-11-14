@@ -145,7 +145,7 @@
     "count": "{{count}}/{{max}} documents",
     "meta": "{{pages}} pages · {{date}}",
     "emptyTitle": "No documents yet",
-    "emptyHint": "Upload a PDF course book (up to {{mb}} MB) to start asking questions and making flashcards.",
+    "emptyHint": "Upload a PDF or Word (.docx) course book (up to {{mb}} MB) to start asking questions and making flashcards.",
     "loadError": "Couldn't load documents.",
     "pausedHint": "AI is out of quota for now; processing resumes automatically.",
     "status": {
@@ -159,7 +159,7 @@
     },
     "failure": {
       "NO_TEXT_LAYER": "Scanned (image-only) documents aren't supported yet.",
-      "EXTRACTION_FAILED": "Couldn't read the PDF content.",
+      "EXTRACTION_FAILED": "Couldn't read the document content.",
       "PROCESSING_FAILED": "Processing failed after several attempts."
     },
     "consent": {
@@ -169,7 +169,7 @@
     },
     "errors": {
       "tooLarge": "File too large (max {{mb}} MB).",
-      "notPdf": "Only PDF files are supported.",
+      "notPdf": "Only PDF or Word (.docx) files are supported.",
       "tooManyPages": "Document too long (max {{pages}} pages).",
       "encrypted": "Password-protected PDFs aren't supported. Remove the password and try again.",
       "limit": "You have {{max}} documents, the maximum. Delete some to upload more.",

@@ -30,8 +30,9 @@ from app.integrations.llm_gateway.gateway import LLMGateway
 from app.integrations.object_storage import ObjectStorage, StorageError
 from app.modules.ai.usage import estimate_tokens
 from app.modules.documents.chunking import chunk_pages
+from app.modules.documents.formats import UnsupportedFileError, extract_pages
 from app.modules.documents.models import DocumentChunk
-from app.modules.documents.pdf import NotAPdfError, extract_pages, looks_scanned
+from app.modules.documents.pdf import looks_scanned
 from app.modules.documents.queue import JobQueue
 from app.modules.documents.repository import DocumentRepository
 from app.modules.documents.states import (
@@ -79,10 +80,14 @@ class IngestionPipeline:
                 job.status = "running"
                 job.started_at = datetime.now(UTC)
             await session.commit()
-            owner_id, storage_key = document.owner_id, document.storage_key
+            owner_id, storage_key, kind = (
+                document.owner_id,
+                document.storage_key,
+                document.file_kind,
+            )
 
         try:
-            await self._ensure_chunks(document_id, owner_id, storage_key)
+            await self._ensure_chunks(document_id, owner_id, storage_key, kind)
             await self._embed_all(document_id, owner_id)
             return await self._finish(document_id, READY, job_status="succeeded")
         except _StoppedError:
@@ -90,7 +95,7 @@ class IngestionPipeline:
             return None
         except _NoTextLayerError:
             return await self._finish(document_id, FAILED, "NO_TEXT_LAYER", job_status="failed")
-        except NotAPdfError:
+        except UnsupportedFileError:
             return await self._finish(document_id, FAILED, "EXTRACTION_FAILED", job_status="failed")
         except (AiQuotaExhaustedError, AiCircuitOpenError):
             logger.warning("AI quota unavailable, pausing (document_id=%s)", document_id)
@@ -101,13 +106,13 @@ class IngestionPipeline:
     # ------------------------------------------------------------- stages
 
     async def _ensure_chunks(
-        self, document_id: uuid.UUID, owner_id: uuid.UUID, storage_key: str
+        self, document_id: uuid.UUID, owner_id: uuid.UUID, storage_key: str, kind: str
     ) -> None:
         async with self._sessions() as session:
             if await DocumentRepository(session).chunk_count(document_id):
                 return  # resumed run: chunks already stored
         data = await self._storage.download_file(storage_key)
-        pages = extract_pages(data)
+        pages = extract_pages(data, kind)
         if looks_scanned(pages, settings.SCANNED_MIN_CHARS_PER_PAGE):
             raise _NoTextLayerError
         chunks = chunk_pages(

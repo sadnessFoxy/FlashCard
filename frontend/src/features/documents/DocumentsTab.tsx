@@ -14,7 +14,11 @@ import { Dialog } from "../../components/feedback/Dialog";
 import { Button } from "../../components/ui/Button";
 import { colors, fontSize, radius, spacing } from "../../theme/tokens";
 import { uuidv4 } from "../../utils/uuid";
-import type { DocumentItem, PickedFile } from "./api";
+import {
+  SUPPORTED_MIME_TYPES,
+  type DocumentItem,
+  type PickedFile,
+} from "./api";
 import {
   useAiConsent,
   useDocuments,
@@ -98,7 +102,7 @@ export function DocumentsTab({ spaceId }: { spaceId: string }) {
   async function pick() {
     setError(null);
     const result = await DocumentPicker.getDocumentAsync({
-      type: "application/pdf",
+      type: SUPPORTED_MIME_TYPES,
       copyToCacheDirectory: true,
       multiple: false,
     });

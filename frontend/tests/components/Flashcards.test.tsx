@@ -109,6 +109,7 @@ beforeEach(async () => {
         id: "d1",
         space_id: "s1",
         filename: "Giải tích.pdf",
+        file_kind: "pdf",
         size_bytes: 1,
         page_count: 3,
         status: "READY",

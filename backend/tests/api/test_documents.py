@@ -18,6 +18,7 @@ from app.main import app
 from app.modules.documents.queue import get_job_queue
 from app.modules.users.models import User
 from tests.contract_schema import assert_response_matches_contract
+from tests.fixtures.docx import make_docx
 from tests.fixtures.fakes import InMemoryStorage, RecordingQueue
 from tests.fixtures.pdfs import make_blank_pdf, make_encrypted_pdf, make_pdf
 
@@ -321,3 +322,19 @@ async def test_other_users_space_and_documents_are_404(
     for r in responses:
         assert (r.status_code, r.json()["code"]) == (404, "NOT_FOUND")
         assert "Giáo" not in r.text
+
+
+async def test_word_upload_is_accepted(
+    client: AsyncClient, fakes: tuple[InMemoryStorage, RecordingQueue]
+) -> None:
+    storage, queue = fakes
+    auth = await sign_up(client)
+    await consent(client, auth)
+    data = make_docx([["Trang một."], ["Trang hai."], ["Trang ba."]])
+
+    response = await upload(client, auth, data, filename="Bài giảng.docx")
+
+    assert response.status_code == 202
+    body = response.json()
+    assert (body["file_kind"], body["page_count"]) == ("docx", 3)
+    assert len(queue.jobs) == 1 and list(storage.objects.values()) == [data]

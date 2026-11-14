@@ -54,6 +54,7 @@ function doc(id: string, filename: string): DocumentItem {
     id,
     space_id: "s1",
     filename,
+    file_kind: "pdf",
     size_bytes: 1,
     page_count: 3,
     status: "READY",

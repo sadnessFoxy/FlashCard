@@ -43,6 +43,7 @@ function doc(overrides: Partial<DocumentItem> = {}): DocumentItem {
     id: "d1",
     space_id: "s1",
     filename: "Giáo trình.pdf",
+    file_kind: "pdf",
     size_bytes: 1000,
     page_count: 12,
     status: "READY",

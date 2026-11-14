@@ -500,7 +500,7 @@ paths:
                 file:
                   type: string
                   format: binary
-                  description: PDF, at most `max_size_mb` (20) MB and 200 pages.
+                  description: PDF or Word (.docx), at most `max_size_mb` (20) MB and 200 pages.
                 space_id:
                   type: string
                   format: uuid
@@ -541,7 +541,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/ErrorResponse"
         "415":
-          description: "`FILE_TYPE_NOT_SUPPORTED`: not a PDF (checked by content, not extension)"
+          description: "`FILE_TYPE_NOT_SUPPORTED`: not a PDF or .docx (checked by content, not extension)"
           content:
             application/json:
               schema:
@@ -2541,7 +2541,7 @@ components:
     Document:
       type: object
       additionalProperties: false
-      required: [id, space_id, filename, size_bytes, page_count, status, error_code, created_at, updated_at]
+      required: [id, space_id, filename, file_kind, size_bytes, page_count, status, error_code, created_at, updated_at]
       properties:
         id:
           type: string
@@ -2551,6 +2551,10 @@ components:
           format: uuid
         filename:
           type: string
+        file_kind:
+          type: string
+          enum: [pdf, docx]
+          description: Detected from the file content. Word pages follow the page breaks Word saved, else about 3,000 characters per page.
         size_bytes:
           type: integer
         page_count:

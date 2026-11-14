@@ -1260,6 +1260,11 @@ export interface components {
             /** Format: uuid */
             space_id: string;
             filename: string;
+            /**
+             * @description Detected from the file content. Word pages follow the page breaks Word saved, else about 3,000 characters per page.
+             * @enum {string}
+             */
+            file_kind: "pdf" | "docx";
             size_bytes: number;
             page_count: number;
             status: components["schemas"]["DocumentStatus"];
@@ -2052,7 +2057,7 @@ export interface operations {
                 "multipart/form-data": {
                     /**
                      * Format: binary
-                     * @description PDF, at most `max_size_mb` (20) MB and 200 pages.
+                     * @description PDF or Word (.docx), at most `max_size_mb` (20) MB and 200 pages.
                      */
                     file: string;
                     /**
@@ -2111,7 +2116,7 @@ export interface operations {
                     "application/json": components["schemas"]["ErrorResponse"];
                 };
             };
-            /** @description `FILE_TYPE_NOT_SUPPORTED`: not a PDF (checked by content, not extension) */
+            /** @description `FILE_TYPE_NOT_SUPPORTED`: not a PDF or .docx (checked by content, not extension) */
             415: {
                 headers: {
                     [name: string]: unknown;

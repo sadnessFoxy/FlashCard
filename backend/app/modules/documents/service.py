@@ -25,8 +25,8 @@ from app.core.exceptions import (
 from app.core.logging import get_logger
 from app.integrations.object_storage import ObjectStorage
 from app.modules.documents.filenames import sanitize_filename
+from app.modules.documents.formats import CONTENT_TYPES, UnsupportedFileError, inspect_file
 from app.modules.documents.models import Document, DocumentJob
-from app.modules.documents.pdf import NotAPdfError, inspect_pdf
 from app.modules.documents.queue import JobQueue
 from app.modules.documents.repository import DocumentRepository
 from app.modules.documents.states import DELETING, FAILED, PAUSED_QUOTA, QUEUED, UPLOADED
@@ -72,9 +72,9 @@ class DocumentService:
         if len(data) > settings.max_file_size_bytes:
             raise FileTooLargeError(settings.MAX_FILE_SIZE_MB)
         try:
-            info = inspect_pdf(data)
-        except NotAPdfError:
-            raise FileTypeNotSupportedError("not a PDF") from None
+            info = inspect_file(data)
+        except UnsupportedFileError:
+            raise FileTypeNotSupportedError("not a PDF or .docx") from None
         if info.encrypted:
             raise PdfEncryptedError()
         if info.page_count > settings.MAX_PAGES:
@@ -92,6 +92,7 @@ class DocumentService:
             owner_id=user.id,
             space_id=space.id,
             filename=safe_name,
+            file_kind=info.kind,
             storage_key=storage_key_for(user.id, document_id),
             size_bytes=len(data),
             page_count=info.page_count,
@@ -109,7 +110,7 @@ class DocumentService:
                 raise
             return self._replay(raced, digest), False
 
-        await self._storage.upload_file(document.storage_key, data, "application/pdf")
+        await self._storage.upload_file(document.storage_key, data, CONTENT_TYPES[info.kind])
         await self._repo.transition(document.id, QUEUED, sources=[UPLOADED])
         await self._repo.add_job(DocumentJob(document_id=document.id))
         # Commit before enqueueing so the worker can see the row.

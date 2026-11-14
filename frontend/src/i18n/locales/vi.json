@@ -145,7 +145,7 @@
     "count": "{{count}}/{{max}} tài liệu",
     "meta": "{{pages}} trang · {{date}}",
     "emptyTitle": "Chưa có tài liệu nào",
-    "emptyHint": "Tải giáo trình dạng PDF (tối đa {{mb}} MB) để bắt đầu hỏi đáp và tạo thẻ học.",
+    "emptyHint": "Tải giáo trình dạng PDF hoặc Word (.docx), tối đa {{mb}} MB, để bắt đầu hỏi đáp và tạo thẻ học.",
     "loadError": "Không tải được danh sách tài liệu.",
     "pausedHint": "AI đang tạm hết lượt; tài liệu sẽ tự xử lý tiếp khi có lượt.",
     "status": {
@@ -159,7 +159,7 @@
     },
     "failure": {
       "NO_TEXT_LAYER": "Tài liệu scan (chỉ có ảnh) chưa được hỗ trợ.",
-      "EXTRACTION_FAILED": "Không đọc được nội dung PDF.",
+      "EXTRACTION_FAILED": "Không đọc được nội dung tài liệu.",
       "PROCESSING_FAILED": "Xử lý thất bại sau nhiều lần thử."
     },
     "consent": {
@@ -169,7 +169,7 @@
     },
     "errors": {
       "tooLarge": "File quá lớn (tối đa {{mb}} MB).",
-      "notPdf": "Chỉ hỗ trợ file PDF.",
+      "notPdf": "Chỉ hỗ trợ file PDF hoặc Word (.docx).",
       "tooManyPages": "Tài liệu quá dài (tối đa {{pages}} trang).",
       "encrypted": "PDF có mật khẩu chưa được hỗ trợ. Hãy gỡ mật khẩu rồi tải lại.",
       "limit": "Bạn đã có {{max}} tài liệu, là mức tối đa. Hãy xóa bớt để tải thêm.",

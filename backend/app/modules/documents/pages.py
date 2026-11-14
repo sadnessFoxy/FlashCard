@@ -2,8 +2,9 @@
 Read one page of a document as paragraphs for the citation view
 (docs/specs/f8-citations-history.md).
 
-Text comes from the stored PDF, so it is exactly what the page says. Extracted pages are
-cached in Redis under a key that includes the owner (R4); cache errors never fail the request.
+Text comes from the stored file (PDF or Word), so it is exactly what the page says.
+Extracted pages are cached in Redis under a key that includes the owner (R4); cache
+errors never fail the request.
 """
 
 from __future__ import annotations
@@ -23,8 +24,8 @@ from app.core.redis import get_redis
 from app.integrations.object_storage import ObjectStorage
 from app.modules.documents.access import ready_document
 from app.modules.documents.chunking import split_paragraphs
+from app.modules.documents.formats import UnsupportedFileError, extract_page
 from app.modules.documents.models import Document
-from app.modules.documents.pdf import NotAPdfError, extract_page
 
 logger = get_logger(__name__)
 
@@ -58,8 +59,8 @@ class PageReader:
     async def _extract(self, document: Document, page: int) -> list[str]:
         data = await self._storage.download_file(document.storage_key)
         try:
-            text = extract_page(data, page)
-        except NotAPdfError:
+            text = extract_page(data, document.file_kind, page)
+        except UnsupportedFileError:
             logger.warning("Page extraction failed (document_id=%s)", document.id)
             return []
         return [paragraph for paragraph, _heading in split_paragraphs(text)]

@@ -137,6 +137,12 @@ class Settings(BaseSettings):
         default=200,
         description="Maximum pages per document",
     )
+    DOCX_CHARS_PER_PAGE: int = Field(
+        default=3000, description="Page size for Word files without recorded page breaks"
+    )
+    DOCX_MAX_BODY_BYTES: int = Field(
+        default=50 * 1024 * 1024, description="Unzipped body size limit (zip bomb guard)"
+    )
     MAX_DOCUMENTS_PER_USER: int = Field(
         default=10,
         description="Maximum documents per user",

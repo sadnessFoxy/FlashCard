@@ -80,7 +80,7 @@
 | Ngưỡng coverage bắt buộc | Bỏ ngưỡng cứng 80% trong pytest, vẫn in báo cáo coverage | Theo docs/TESTING.md: không đặt mục tiêu coverage máy móc; phần lớn code khung chưa có tính năng để test. Xem lại khi xong các lát lõi | 2026-11-08 | Đã chốt |
 | Endpoint kiểm tra hệ thống | `GET /health` (chỉ tiến trình, không chạm database) và `GET /v1/system/status` (database có pgvector, Redis; luôn trả 200 kèm `ok`/`degraded`, chỉ trả mã lỗi ổn định, không lộ chuỗi kết nối) | Màn hình trạng thái hiển thị được phần nào hỏng; dùng cho kiểm tra sức khỏe khi triển khai | 2026-11-08 | Đã chốt |
 | Tóm tắt theo chương: tạo tự động hay theo yêu cầu | Tạo theo yêu cầu | Tiết kiệm hạn mức AI | 2026-11-07 | Đã chốt (mặc định) |
-| Cách tính số trang cho file Word (giới hạn 200 trang) | Quy đổi sau khi chuyển đổi sang PDF | Mặc định | 2026-11-07 | Đã chốt (mặc định) |
+| Cách tính số trang cho file Word (giới hạn 200 trang) | ~~Quy đổi sau khi chuyển đổi sang PDF~~ → theo dấu ngắt trang Word lưu trong file, không có thì 3.000 ký tự mỗi trang | Chuyển sang PDF cần LibreOffice (lớn, chưa có trong môi trường); cách mới không thêm phụ thuộc, lệch đôi chút so với bản in. Thêm LibreOffice sau nếu cần khớp tuyệt đối | 2026-11-14 | Đã đổi (tự quyết, F13) |
 | Xử lý tài liệu scan | Gemini đọc trực tiếp làm mặc định; Tesseract (tiếng Việt và tiếng Anh) làm dự phòng khi hết hạn mức | Cả hai đều miễn phí trong điều kiện nhất định; chọn theo khuyến nghị, cần thử nghiệm trên tài liệu scan tiếng Việt thật. Xem docs/AI_PIPELINE.md | 2026-10-29 | Đã chốt, chờ thử nghiệm |
 
 ## Rủi ro & câu hỏi mở

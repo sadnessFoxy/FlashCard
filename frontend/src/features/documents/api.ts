@@ -9,6 +9,12 @@ type Consent = components["schemas"]["Consent"];
 
 export const AI_CONSENT_KIND = "ai_processing";
 
+/** File types the backend accepts; it checks the content, so this only filters the picker. */
+export const SUPPORTED_MIME_TYPES = [
+  "application/pdf",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+];
+
 /** A file picked on web (File) or native (uri + name), ready for multipart upload. */
 export interface PickedFile {
   name: string;
@@ -43,7 +49,7 @@ export function uploadDocument(
     form.append("file", {
       uri: picked.uri,
       name: picked.name,
-      type: picked.mimeType ?? "application/pdf",
+      type: picked.mimeType ?? "application/octet-stream",
     } as unknown as Blob);
   }
   return api.post<DocumentItem>("/v1/documents", form, {
