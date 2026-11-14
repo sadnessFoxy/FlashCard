@@ -103,7 +103,8 @@
       "noPassword": "Tài khoản này đăng nhập bằng Google nên không có mật khẩu.",
       "retypeEmail": "Tài khoản đăng nhập bằng Google: hãy nhập lại email để xác nhận.",
       "confirmationMismatch": "Email nhập lại không khớp."
-    }
+    },
+    "quizzesLeft": "Còn {{remaining}}/{{limit}} lượt tạo trắc nghiệm hôm nay"
   },
   "spaces": {
     "title": "Không gian",
@@ -333,5 +334,44 @@
     "resent": "Đã gửi mã mới. Hãy kiểm tra hộp thư.",
     "done": "Email của bạn đã được xác minh.",
     "banner": "Xác minh email để tải tài liệu lên. Bấm vào đây để nhập mã."
+  },
+  "quizzes": {
+    "create": "Tạo trắc nghiệm",
+    "createTitle": "Tạo trắc nghiệm",
+    "emptyTitle": "Chưa có bài trắc nghiệm nào",
+    "emptyHint": "Chọn một tài liệu hoặc một chương (khoảng trang), AI sẽ soạn câu hỏi trắc nghiệm.",
+    "loadError": "Không tải được danh sách trắc nghiệm.",
+    "wholeDocument": "cả tài liệu",
+    "questionCount_one": "{{count}} câu",
+    "questionCount_other": "{{count}} câu",
+    "lastScore": "lần gần nhất {{score}}/{{total}}",
+    "countLabel": "Số câu hỏi",
+    "usesQuota": "Mỗi lần tạo dùng 1 lượt tạo trắc nghiệm hôm nay.",
+    "generate": "Tạo câu hỏi",
+    "generating": "AI đang soạn câu hỏi, có thể mất vài chục giây…",
+    "progress": "Câu {{current}}/{{total}}",
+    "next": "Câu tiếp",
+    "submit": "Nộp bài",
+    "unanswered_one": "Còn {{count}} câu chưa trả lời; câu bỏ trống tính là sai.",
+    "unanswered_other": "Còn {{count}} câu chưa trả lời; câu bỏ trống tính là sai.",
+    "resumed": "Đã mở lại bài làm dở.",
+    "noQuestions": "Bài trắc nghiệm này không có câu hỏi.",
+    "leaveTitle": "Thoát khi chưa nộp bài?",
+    "leaveMessage": "Bạn có muốn lưu bài làm để làm tiếp sau không?",
+    "saveAndLeave": "Lưu và thoát",
+    "discardAndLeave": "Bỏ bài làm",
+    "resultTitle": "Kết quả",
+    "score": "{{score}}/{{total}} câu đúng",
+    "allCorrect": "Bạn trả lời đúng tất cả các câu.",
+    "reviewWrong": "Xem lại câu sai",
+    "yourAnswer": "Bạn chọn: {{answer}}",
+    "correctAnswer": "Đáp án đúng: {{answer}}",
+    "blank": "bỏ trống",
+    "retake": "Làm lại",
+    "errors": {
+      "quota": "Bạn đã dùng hết lượt tạo trắc nghiệm hôm nay.",
+      "aiUnavailable": "AI đang tạm nghỉ, hãy thử lại sau ít phút.",
+      "notFound": "Bài trắc nghiệm không còn tồn tại."
+    }
   }
 }

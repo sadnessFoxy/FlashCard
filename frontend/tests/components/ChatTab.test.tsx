@@ -139,6 +139,12 @@ beforeEach(async () => {
       remaining: 10,
       resets_at: "2026-11-13T17:00:00Z",
     },
+    quizzes: {
+      daily_limit: 5,
+      used_today: 0,
+      remaining: 5,
+      resets_at: "2026-11-13T17:00:00Z",
+    },
   });
   list.mockResolvedValue({ items: [] });
   create.mockResolvedValue(conversation);

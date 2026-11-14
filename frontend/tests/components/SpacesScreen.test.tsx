@@ -50,6 +50,9 @@ jest.mock("../../src/features/chat/api", () => ({
   listConversations: jest.fn(),
   sendMessage: jest.fn(),
 }));
+jest.mock("../../src/features/quizzes/api", () => ({
+  listQuizzes: jest.fn(async () => ({ items: [] })),
+}));
 jest.mock("expo-router", () => ({
   useRouter: () => ({ push: mockPush, replace: mockReplace }),
 }));
@@ -201,13 +204,13 @@ describe("SpacesScreen", () => {
 });
 
 describe("SpaceDetailScreen", () => {
-  it("shows the name and placeholder tabs", async () => {
+  it("shows the name and switches tabs", async () => {
     get.mockResolvedValue(space("Giải tích 1", "a"));
     renderWithQuery(<SpaceDetailScreen id="a" />);
 
     expect(await screen.findByTestId("space-title")).toBeTruthy();
     fireEvent.press(screen.getByText("Trắc nghiệm"));
-    expect(screen.getByTestId("space-tab-quizzes")).toBeTruthy();
+    expect(await screen.findByTestId("quizzes-empty")).toBeTruthy();
   });
 
   it("handles a missing or foreign space", async () => {

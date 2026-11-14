@@ -31,3 +31,4 @@ class UsageOut(UsageCounter):
     """Top-level fields are the question quota; other AI features have their own counters."""
 
     card_suggestions: UsageCounter
+    quizzes: UsageCounter

@@ -15,7 +15,7 @@ from datetime import UTC, datetime
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.core.exceptions import NotFoundError, UserQuotaExceededError
+from app.core.exceptions import NotFoundError
 from app.integrations.llm_gateway.circuit_breaker import CircuitState
 from app.integrations.llm_gateway.gateway import LLMGateway
 from app.modules.chat.citations import cited_document_ids, snapshots
@@ -82,7 +82,7 @@ class ChatService:
         document_ids: list[uuid.UUID] | None,
     ) -> PreparedTurn:
         conversation = await self._require(owner_id, conversation_id)
-        await self._check_quota(owner_id)
+        await self._quota.require(owner_id)
         found = await SourceFinder(self._session, self._gateway).find(
             owner_id=owner_id,
             space_id=conversation.space_id,
@@ -131,11 +131,6 @@ class ChatService:
 
     def stream(self, turn: PreparedTurn) -> AsyncGenerator[str, None]:
         return AnswerStream(turn, self._gateway, self._quota).events()
-
-    async def _check_quota(self, owner_id: uuid.UUID) -> None:
-        quota = await self._quota.status(owner_id)
-        if quota.remaining <= 0:
-            raise UserQuotaExceededError(0, quota.resets_at.isoformat())
 
     def _mode(self, found: FoundSources) -> str:
         if not found.sources:

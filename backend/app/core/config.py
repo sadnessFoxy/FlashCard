@@ -193,6 +193,12 @@ class Settings(BaseSettings):
     CARD_SUGGESTION_MAX_OUTPUT_TOKENS: int = Field(default=4096)
     MAX_CARDS_PER_DECK: int = Field(default=1000)
 
+    # ------- Quizzes (docs/specs/f11-quizzes.md) -------
+    QUIZ_DAILY_LIMIT: int = Field(default=5, description="AI-generated quizzes per user per day")
+    QUIZ_MAX_QUESTIONS: int = Field(default=20)
+    QUIZ_SOURCE_CHARS: int = Field(default=15000)
+    QUIZ_MAX_OUTPUT_TOKENS: int = Field(default=6144)
+
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def parse_cors_origins(cls, v: str | list[str]) -> list[str]:

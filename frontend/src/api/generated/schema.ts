@@ -645,6 +645,69 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/quizzes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The caller's quizzes in a space, newest first */
+        get: operations["listQuizzes"];
+        put?: never;
+        /**
+         * Have the AI write a quiz from a READY document (optionally a page range)
+         * @description Uses the daily quiz quota (`Usage.quizzes`); a failed AI call does not use it.
+         */
+        post: operations["createQuiz"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/quizzes/{quiz_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quiz_id: string;
+            };
+            cookie?: never;
+        };
+        /** A quiz with its questions (no answers) */
+        get: operations["getQuiz"];
+        put?: never;
+        post?: never;
+        /** Delete a quiz and its attempts */
+        delete: operations["deleteQuiz"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/quizzes/{quiz_id}/attempts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quiz_id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Submit answers; graded by code
+         * @description Unanswered questions, unknown ids and out-of-range choices count as wrong.
+         */
+        post: operations["submitQuizAttempt"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -708,6 +771,7 @@ export interface components {
             /** Format: date-time */
             resets_at: string;
             card_suggestions: components["schemas"]["UsageCounter"];
+            quizzes: components["schemas"]["UsageCounter"];
         };
         CreateConversationRequest: {
             /** Format: uuid */
@@ -1016,6 +1080,87 @@ export interface components {
         ChangePasswordRequest: {
             current_password: string;
             new_password: string;
+        };
+        CreateQuizRequest: {
+            /** Format: uuid */
+            space_id: string;
+            /** Format: uuid */
+            document_id: string;
+            page_start?: number | null;
+            page_end?: number | null;
+            /** @default 10 */
+            question_count: number;
+        };
+        QuizSummary: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            space_id: string;
+            title: string;
+            page_start: number | null;
+            page_end: number | null;
+            question_count: number;
+            attempt_count: number;
+            /** @description Score of the latest attempt; null before the first one. */
+            last_score: number | null;
+            /** Format: date-time */
+            created_at: string;
+        };
+        QuizList: {
+            items: components["schemas"]["QuizSummary"][];
+        };
+        QuizQuestion: {
+            /** Format: uuid */
+            id: string;
+            position: number;
+            prompt: string;
+            options: string[];
+        };
+        QuizDetail: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            space_id: string;
+            title: string;
+            page_start: number | null;
+            page_end: number | null;
+            question_count: number;
+            attempt_count: number;
+            /** @description Score of the latest attempt; null before the first one. */
+            last_score: number | null;
+            /** Format: date-time */
+            created_at: string;
+            questions: components["schemas"]["QuizQuestion"][];
+        };
+        SubmitAttemptRequest: {
+            answers: {
+                /** Format: uuid */
+                question_id: string;
+                /** @description Option index; null when left blank. */
+                choice?: number | null;
+            }[];
+        };
+        QuestionResult: {
+            /** Format: uuid */
+            question_id: string;
+            prompt: string;
+            options: string[];
+            choice: number | null;
+            correct_index: number;
+            is_correct: boolean;
+            explanation: string;
+            source: components["schemas"]["CardSource"];
+        };
+        AttemptResult: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            quiz_id: string;
+            score: number;
+            total: number;
+            /** Format: date-time */
+            created_at: string;
+            results: components["schemas"]["QuestionResult"][];
         };
         /** @enum {string} */
         Locale: "vi" | "en";
@@ -2672,6 +2817,157 @@ export interface operations {
             };
             401: components["responses"]["UnauthorizedError"];
             403: components["responses"]["CsrfRejected"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    listQuizzes: {
+        parameters: {
+            query: {
+                space_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Quizzes with attempt counts and the latest score */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizList"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    createQuiz: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateQuizRequest"];
+            };
+        };
+        responses: {
+            /** @description Created; questions without answers */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizDetail"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["CsrfRejected"];
+            404: components["responses"]["NotFound"];
+            /** @description `DOCUMENT_NOT_READY` */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description `VALIDATION_ERROR`, or `SOURCE_EMPTY` when the pages have no text */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            429: components["responses"]["UserQuotaExceeded"];
+            503: components["responses"]["AiUnavailable"];
+        };
+    };
+    getQuiz: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quiz_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description The quiz */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["QuizDetail"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    deleteQuiz: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quiz_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Deleted */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["CsrfRejected"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    submitQuizAttempt: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                quiz_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubmitAttemptRequest"];
+            };
+        };
+        responses: {
+            /** @description Score and per-question results with the correct answers */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttemptResult"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["CsrfRejected"];
+            404: components["responses"]["NotFound"];
             422: components["responses"]["ValidationError"];
         };
     };

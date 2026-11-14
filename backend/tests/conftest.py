@@ -44,6 +44,9 @@ from tests.fixtures.fakes import RecordingMailer  # noqa: E402
 ALLOWED_ORIGIN = "http://localhost:8081"
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 _TABLES = (
+    "quiz_attempts",
+    "quiz_questions",
+    "quizzes",
     "auth_codes",
     "review_logs",
     "flashcards",

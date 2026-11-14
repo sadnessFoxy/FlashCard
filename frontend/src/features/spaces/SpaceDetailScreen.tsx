@@ -15,6 +15,7 @@ import { colors, fontSize, radius, spacing } from "../../theme/tokens";
 import { ChatTab } from "../chat/ChatTab";
 import { DocumentsTab } from "../documents/DocumentsTab";
 import { DecksTab } from "../flashcards/DecksTab";
+import { QuizzesTab } from "../quizzes/QuizzesTab";
 import { useDeleteSpace, useRenameSpace, useSpace } from "./hooks";
 import { DeleteSpaceDialog, SpaceNameDialog } from "./SpaceDialogs";
 
@@ -128,10 +129,7 @@ export function SpaceDetailScreen({ id, initialTab, conversationId }: Props) {
       ) : tab === "cards" ? (
         <DecksTab spaceId={id} />
       ) : (
-        // Quizzes arrive in F11.
-        <View style={styles.placeholder} testID={`space-tab-${tab}`}>
-          <Text style={styles.muted}>{t("spaces.comingSoon")}</Text>
-        </View>
+        <QuizzesTab spaceId={id} />
       )}
 
       <SpaceNameDialog
@@ -197,12 +195,4 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   tabTextActive: { color: colors.text },
-  placeholder: {
-    alignItems: "center",
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    borderStyle: "dashed",
-    borderWidth: 1,
-    padding: spacing.xxl,
-  },
 });

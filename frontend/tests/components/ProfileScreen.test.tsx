@@ -72,6 +72,7 @@ beforeEach(async () => {
       remaining: 9,
       resets_at: RESETS,
     },
+    quizzes: { daily_limit: 5, used_today: 2, remaining: 3, resets_at: RESETS },
   });
 });
 

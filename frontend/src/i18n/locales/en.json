@@ -103,7 +103,8 @@
       "noPassword": "This account signs in with Google, so it has no password.",
       "retypeEmail": "This account signs in with Google: retype your email to confirm.",
       "confirmationMismatch": "The email doesn't match."
-    }
+    },
+    "quizzesLeft": "{{remaining}}/{{limit}} quiz generations left today"
   },
   "spaces": {
     "title": "Spaces",
@@ -333,5 +334,44 @@
     "resent": "A new code is on its way. Check your inbox.",
     "done": "Your email is verified.",
     "banner": "Verify your email to upload documents. Tap here to enter the code."
+  },
+  "quizzes": {
+    "create": "New quiz",
+    "createTitle": "New quiz",
+    "emptyTitle": "No quizzes yet",
+    "emptyHint": "Pick a document or a chapter (page range) and the AI writes multiple-choice questions.",
+    "loadError": "Couldn't load quizzes.",
+    "wholeDocument": "whole document",
+    "questionCount_one": "{{count}} question",
+    "questionCount_other": "{{count}} questions",
+    "lastScore": "last {{score}}/{{total}}",
+    "countLabel": "Number of questions",
+    "usesQuota": "Each quiz uses one of today's quiz generations.",
+    "generate": "Write questions",
+    "generating": "The AI is writing questions; this can take a little while…",
+    "progress": "Question {{current}}/{{total}}",
+    "next": "Next",
+    "submit": "Submit",
+    "unanswered_one": "{{count}} question is unanswered; blanks count as wrong.",
+    "unanswered_other": "{{count}} questions are unanswered; blanks count as wrong.",
+    "resumed": "Picked up where you left off.",
+    "noQuestions": "This quiz has no questions.",
+    "leaveTitle": "Leave without submitting?",
+    "leaveMessage": "Do you want to keep your answers and finish later?",
+    "saveAndLeave": "Keep and leave",
+    "discardAndLeave": "Discard answers",
+    "resultTitle": "Result",
+    "score": "{{score}}/{{total}} correct",
+    "allCorrect": "You got every question right.",
+    "reviewWrong": "Review wrong answers",
+    "yourAnswer": "Your answer: {{answer}}",
+    "correctAnswer": "Correct answer: {{answer}}",
+    "blank": "blank",
+    "retake": "Take again",
+    "errors": {
+      "quota": "You've used all your quiz generations for today.",
+      "aiUnavailable": "AI is taking a break, please try again in a few minutes.",
+      "notFound": "This quiz no longer exists."
+    }
   }
 }

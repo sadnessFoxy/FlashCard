@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 
 from app.modules.study.flashcards.prompts import BACK_LIMIT, build_request, parse_cards
-from app.modules.study.flashcards.suggestions import Passage
+from app.modules.study.source_material import Passage
 
 
 def test_parse_keeps_valid_unique_cards_up_to_limit() -> None:

@@ -22,8 +22,8 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 | 5 | Sức tải, hiệu năng & chi phí AI | 3/19 | Đang làm | Trước production | |
 | 6 | Beta & chuẩn bị production | 0/10 | Chưa bắt đầu | | |
 | 7 | Ra mắt & vận hành | 0/6 | Chưa bắt đầu | | |
-| F | Lát chức năng bản 1 | 11/17 | Đang làm | Song song với giai đoạn 1 đến 6 | 2026-11-08 |
-| | **Tổng** | **51/140** | | | |
+| F | Lát chức năng bản 1 | 12/17 | Đang làm | Song song với giai đoạn 1 đến 6 | 2026-11-08 |
+| | **Tổng** | **52/140** | | | |
 
 ---
 
@@ -284,7 +284,7 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 - [x] F8. Xem trích dẫn và lịch sử hội thoại (U7; màn hình 10, 11) (docs/specs/f8-citations-history.md)
 - [x] F9. Flashcard: bộ thẻ, AI đề xuất và người học duyệt, tạo tay, sửa, xóa (U11; màn hình 12, 13, 14) (docs/specs/f9-flashcards.md)
 - [x] F10. Ôn tập lặp lại ngắt quãng theo SM-2 và kết quả ôn tập (U12; màn hình 15, 16) (docs/specs/f10-reviews.md)
-- [ ] F11. Câu hỏi trắc nghiệm: tạo, làm bài, chấm bằng code, xem lại câu sai kèm nguồn (U13; màn hình 17, 18, 19)
+- [x] F11. Câu hỏi trắc nghiệm: tạo, làm bài, chấm bằng code, xem lại câu sai kèm nguồn (U13; màn hình 17, 18, 19) (docs/specs/f11-quizzes.md)
 - [ ] F12. Tóm tắt theo chương (U15; màn hình 8)
 - [ ] F13. Hỗ trợ tài liệu Word (.docx) (U5)
 - [ ] F14. Tài liệu scan: Gemini đọc trực tiếp, Tesseract dự phòng, sau khi thử trên tài liệu tiếng Việt thật (U14)
@@ -337,3 +337,4 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 | 2026-11-13 | Lát F10 xong (docs/specs/f10-reviews.md): ôn tập SM-2 bốn mức (Quên, Khó, Được, Dễ), thẻ Quên quay lại trong phiên, màn hình kết quả (thẻ khó, lần ôn kế tiếp); không cần AI. Chạy khi mất mạng: mỗi lượt chấm có mã do app tạo, lưu hàng đợi trên máy (AsyncStorage) rồi gửi theo lô; server bỏ qua lượt gửi lại, lượt cũ đến muộn chỉ ghi nhật ký. Test: backend 261 (gồm unit test công thức SM-2), frontend 91; thử qua HTTP thật: lịch đúng, gửi lại không ghi trùng |
 | 2026-11-13 | Lát F4 xong trước F3 (F3 cần OAuth client Google của người dùng) (docs/specs/f4-email-codes.md): xác minh email và quên mật khẩu bằng mã 6 chữ số qua email, mã lưu dạng HMAC, dùng một lần, 15 phút, sai 5 lần thì hủy; quên mật khẩu không lộ email nào có tài khoản; đặt lại thì thu hồi mọi phiên và gửi email báo; tài khoản chưa xác minh không tải tài liệu được (bật `REQUIRE_VERIFIED_EMAIL_FOR_UPLOAD`). Gửi email qua SMTP bằng thư viện chuẩn (không thêm phụ thuộc); test dùng hộp thư giả. Thử thật với Mailpit: đi hết hai luồng. Test: backend 271, frontend 96 |
 | 2026-11-14 | Lát F15 xong (docs/specs/f15-profile.md): màn hình Hồ sơ gồm trạng thái xác minh email, ngôn ngữ giao diện lưu theo tài khoản (app đổi theo khi đăng nhập), lượt hỏi và lượt tạo thẻ còn lại, đổi mật khẩu (đăng xuất thiết bị khác, giữ thiết bị đang dùng, có email báo), xóa tài khoản (xác nhận bằng mật khẩu hoặc nhập lại email với tài khoản Google; xóa toàn bộ dữ liệu, dọn file bằng job nền, số liệu AI chỉ giữ ẩn danh). Nhập lại mật khẩu bị giới hạn số lần như đăng nhập. Thử thật qua HTTP: đủ các bước. Test: backend 278, frontend 102 |
+| 2026-11-14 | Lát F11 xong (docs/specs/f11-quizzes.md): AI soạn câu hỏi trắc nghiệm 4 lựa chọn từ tài liệu hoặc khoảng trang, code xáo lựa chọn và chấm điểm, đáp án chỉ trả về sau khi nộp; xem lại câu sai kèm giải thích và nguồn; bài làm dở lưu trên máy; hạn mức 5 lần tạo mỗi ngày tính riêng. Code: tách bộ nạp nguồn (`study/source_material.py`) và quy trình trừ lượt (`DailyQuota.require`, `spend`) dùng chung cho tạo thẻ, trắc nghiệm và hỏi đáp. Thử thật với Gemini: 5 câu đúng nội dung sau 2,7 giây, đáp án đúng ở nhiều vị trí; sửa chỉ dẫn để giải thích không nhắc "nguồn 1". Test: backend 289, frontend 107 |

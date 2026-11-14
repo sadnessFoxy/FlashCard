@@ -99,6 +99,12 @@ export function ProfileScreen() {
                 limit: usage.data.card_suggestions.daily_limit,
               })}
             </Text>
+            <Text style={styles.text} testID="profile-quizzes">
+              {t("profile.quizzesLeft", {
+                remaining: usage.data.quizzes.remaining,
+                limit: usage.data.quizzes.daily_limit,
+              })}
+            </Text>
             <Text style={styles.muted}>{t("profile.usageResets")}</Text>
           </>
         ) : (
