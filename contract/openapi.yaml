@@ -44,6 +44,9 @@ tags:
     description: |
       Multiple-choice quizzes the AI writes from a document or page range, graded by code
       (spec: docs/specs/f11-quizzes.md). Correct answers only appear in attempt results.
+  - name: summaries
+    description: |
+      Chapter summaries made on request, saved and reused (spec: docs/specs/f12-summaries.md).
 security:
   - BearerAuth: []
   - CookieAuth: []
@@ -686,6 +689,93 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
         "422":
           $ref: "#/components/responses/ValidationError"
+  /v1/documents/{document_id}/sections:
+    parameters:
+      - name: document_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [summaries]
+      operationId: listDocumentSections
+      summary: The document's chapters (or page-range parts) with saved summaries
+      description: |
+        Chapters come from headings in the document, found once and kept; without usable
+        headings the document is split into fixed page ranges (`title` is null).
+      responses:
+        "200":
+          description: Sections in reading order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SectionList"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: "`DOCUMENT_NOT_READY`"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /v1/documents/{document_id}/sections/{section_id}/summary:
+    parameters:
+      - name: document_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: section_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags: [summaries]
+      operationId: summarizeSection
+      summary: Make the summary of one section (or return the saved one)
+      responses:
+        "200":
+          description: Already made earlier; no quota used
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Summary"
+        "201":
+          description: Made now; uses the daily summary quota (`Usage.summaries`)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Summary"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/CsrfRejected"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: "`DOCUMENT_NOT_READY`"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: "`VALIDATION_ERROR`, or `SOURCE_EMPTY` when the section has no text"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "429":
+          $ref: "#/components/responses/UserQuotaExceeded"
+        "503":
+          $ref: "#/components/responses/AiUnavailable"
   /v1/documents/{document_id}/move:
     parameters:
       - name: document_id
@@ -1534,7 +1624,7 @@ components:
       type: object
       additionalProperties: false
       description: Top-level fields are the daily question quota; each other AI feature has its own counter.
-      required: [daily_limit, used_today, remaining, resets_at, card_suggestions, quizzes]
+      required: [daily_limit, used_today, remaining, resets_at, card_suggestions, quizzes, summaries]
       properties:
         daily_limit:
           type: integer
@@ -1549,6 +1639,8 @@ components:
         card_suggestions:
           $ref: "#/components/schemas/UsageCounter"
         quizzes:
+          $ref: "#/components/schemas/UsageCounter"
+        summaries:
           $ref: "#/components/schemas/UsageCounter"
     CreateConversationRequest:
       type: object
@@ -2342,6 +2434,65 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/QuestionResult"
+    Summary:
+      type: object
+      additionalProperties: false
+      required: [points, created_at]
+      properties:
+        points:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [text, page]
+            properties:
+              text:
+                type: string
+              page:
+                type: [integer, "null"]
+                minimum: 1
+                description: Page the point comes from.
+        created_at:
+          type: string
+          format: date-time
+    Section:
+      type: object
+      additionalProperties: false
+      required: [id, position, title, page_start, page_end, summary]
+      properties:
+        id:
+          type: string
+          format: uuid
+        position:
+          type: integer
+          minimum: 0
+        title:
+          type: [string, "null"]
+          description: The chapter heading; null for a page-range part.
+        page_start:
+          type: integer
+          minimum: 1
+        page_end:
+          type: integer
+          minimum: 1
+        summary:
+          oneOf:
+            - $ref: "#/components/schemas/Summary"
+            - type: "null"
+    SectionList:
+      type: object
+      additionalProperties: false
+      required: [document_id, filename, items]
+      properties:
+        document_id:
+          type: string
+          format: uuid
+        filename:
+          type: string
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Section"
     Locale:
       type: string
       enum: [vi, en]

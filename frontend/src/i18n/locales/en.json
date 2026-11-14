@@ -104,7 +104,8 @@
       "retypeEmail": "This account signs in with Google: retype your email to confirm.",
       "confirmationMismatch": "The email doesn't match."
     },
-    "quizzesLeft": "{{remaining}}/{{limit}} quiz generations left today"
+    "quizzesLeft": "{{remaining}}/{{limit}} quiz generations left today",
+    "summariesLeft": "{{remaining}}/{{limit}} summaries left today"
   },
   "spaces": {
     "title": "Spaces",
@@ -184,7 +185,6 @@
     "moveNoSpaces": "You have no other space yet. Create one first.",
     "deleteTitle": "Delete \"{{name}}\"?",
     "deleteWarning": "The document, its passages and search data will be permanently deleted. Q&A history is kept; citations will show \"deleted document\".",
-    "shortcutsSoon": "Q&A and flashcards from this document are coming in a later update.",
     "detail": {
       "pages_one": "{{count}} page",
       "pages_other": "{{count}} pages",
@@ -372,6 +372,15 @@
       "quota": "You've used all your quiz generations for today.",
       "aiUnavailable": "AI is taking a break, please try again in a few minutes.",
       "notFound": "This quiz no longer exists."
+    }
+  },
+  "summaries": {
+    "open": "Chapter summaries",
+    "title": "Chapter summaries",
+    "quota": "{{remaining}}/{{limit}} summaries left today. Summaries are kept; viewing them again is free.",
+    "make": "Summarize",
+    "errors": {
+      "quota": "You've used all your summaries for today. Summaries already made can still be viewed."
     }
   }
 }

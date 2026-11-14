@@ -32,3 +32,4 @@ class UsageOut(UsageCounter):
 
     card_suggestions: UsageCounter
     quizzes: UsageCounter
+    summaries: UsageCounter

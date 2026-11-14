@@ -104,7 +104,8 @@
       "retypeEmail": "Tài khoản đăng nhập bằng Google: hãy nhập lại email để xác nhận.",
       "confirmationMismatch": "Email nhập lại không khớp."
     },
-    "quizzesLeft": "Còn {{remaining}}/{{limit}} lượt tạo trắc nghiệm hôm nay"
+    "quizzesLeft": "Còn {{remaining}}/{{limit}} lượt tạo trắc nghiệm hôm nay",
+    "summariesLeft": "Còn {{remaining}}/{{limit}} lượt tóm tắt hôm nay"
   },
   "spaces": {
     "title": "Không gian",
@@ -184,7 +185,6 @@
     "moveNoSpaces": "Bạn chưa có không gian nào khác. Hãy tạo thêm một không gian trước.",
     "deleteTitle": "Xóa \"{{name}}\"?",
     "deleteWarning": "Tài liệu, các đoạn văn và dữ liệu tìm kiếm của nó sẽ bị xóa vĩnh viễn. Lịch sử hỏi đáp vẫn được giữ, trích dẫn sẽ hiện \"tài liệu đã xóa\".",
-    "shortcutsSoon": "Hỏi đáp và tạo thẻ từ tài liệu này sẽ có ở bản cập nhật tới.",
     "detail": {
       "pages_one": "{{count}} trang",
       "pages_other": "{{count}} trang",
@@ -372,6 +372,15 @@
       "quota": "Bạn đã dùng hết lượt tạo trắc nghiệm hôm nay.",
       "aiUnavailable": "AI đang tạm nghỉ, hãy thử lại sau ít phút.",
       "notFound": "Bài trắc nghiệm không còn tồn tại."
+    }
+  },
+  "summaries": {
+    "open": "Tóm tắt theo chương",
+    "title": "Tóm tắt theo chương",
+    "quota": "Còn {{remaining}}/{{limit}} lượt tóm tắt hôm nay. Tóm tắt đã tạo được lưu lại, xem lại không tốn lượt.",
+    "make": "Tạo tóm tắt",
+    "errors": {
+      "quota": "Bạn đã dùng hết lượt tóm tắt hôm nay. Các tóm tắt đã tạo vẫn xem được."
     }
   }
 }

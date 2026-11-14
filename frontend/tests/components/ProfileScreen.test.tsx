@@ -5,6 +5,7 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react-native";
+import { usage as usageFixture, usageCounter } from "../fixtures/usage";
 
 import { ApiError } from "../../src/api/errors";
 import type { User } from "../../src/features/auth/api";
@@ -55,25 +56,18 @@ function renderScreen() {
   );
 }
 
-const RESETS = "2026-11-13T17:00:00Z";
-
 beforeEach(async () => {
   jest.clearAllMocks();
   await i18n.changeLanguage("vi");
   useAuthStore.setState({ status: "signedIn", user: user() });
-  usage.mockResolvedValue({
-    daily_limit: 30,
-    used_today: 4,
-    remaining: 26,
-    resets_at: RESETS,
-    card_suggestions: {
-      daily_limit: 10,
-      used_today: 1,
-      remaining: 9,
-      resets_at: RESETS,
-    },
-    quizzes: { daily_limit: 5, used_today: 2, remaining: 3, resets_at: RESETS },
-  });
+  usage.mockResolvedValue(
+    usageFixture({
+      used_today: 4,
+      remaining: 26,
+      card_suggestions: usageCounter(10, 1),
+      quizzes: usageCounter(5, 2),
+    }),
+  );
 });
 
 it("shows the account and today's AI allowance", async () => {

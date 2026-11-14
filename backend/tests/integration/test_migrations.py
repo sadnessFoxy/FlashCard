@@ -30,6 +30,8 @@ AUTH_TABLES = {
     "quizzes",
     "quiz_questions",
     "quiz_attempts",
+    "document_sections",
+    "document_summaries",
 }
 
 

@@ -105,6 +105,12 @@ export function ProfileScreen() {
                 limit: usage.data.quizzes.daily_limit,
               })}
             </Text>
+            <Text style={styles.text} testID="profile-summaries">
+              {t("profile.summariesLeft", {
+                remaining: usage.data.summaries.remaining,
+                limit: usage.data.summaries.daily_limit,
+              })}
+            </Text>
             <Text style={styles.muted}>{t("profile.usageResets")}</Text>
           </>
         ) : (

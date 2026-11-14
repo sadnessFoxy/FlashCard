@@ -17,15 +17,14 @@ from redis.exceptions import RedisError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
-from app.core.exceptions import DocumentNotReadyError, NotFoundError
+from app.core.exceptions import NotFoundError
 from app.core.logging import get_logger
 from app.core.redis import get_redis
 from app.integrations.object_storage import ObjectStorage
+from app.modules.documents.access import ready_document
 from app.modules.documents.chunking import split_paragraphs
 from app.modules.documents.models import Document
 from app.modules.documents.pdf import NotAPdfError, extract_page
-from app.modules.documents.repository import DocumentRepository
-from app.modules.documents.states import DELETING, READY
 
 logger = get_logger(__name__)
 
@@ -41,12 +40,12 @@ class PageReader:
     def __init__(
         self, session: AsyncSession, storage: ObjectStorage, redis: Redis | None = None
     ) -> None:
-        self._repo = DocumentRepository(session)
+        self._session = session
         self._storage = storage
         self._redis = redis
 
     async def read(self, owner_id: uuid.UUID, document_id: uuid.UUID, page: int) -> DocumentPage:
-        document = await self._readable_document(owner_id, document_id)
+        document = await ready_document(self._session, owner_id, document_id)
         if not 1 <= page <= document.page_count:
             raise NotFoundError("Page")
         key = f"doc-page:{owner_id}:{document_id}:{page}"
@@ -55,14 +54,6 @@ class PageReader:
             paragraphs = await self._extract(document, page)
             await self._store(key, paragraphs)
         return DocumentPage(document=document, page=page, paragraphs=paragraphs)
-
-    async def _readable_document(self, owner_id: uuid.UUID, document_id: uuid.UUID) -> Document:
-        document = await self._repo.get_for_owner(owner_id, document_id)
-        if document is None or document.status == DELETING:
-            raise NotFoundError("Document")
-        if document.status != READY:
-            raise DocumentNotReadyError()
-        return document
 
     async def _extract(self, document: Document, page: int) -> list[str]:
         data = await self._storage.download_file(document.storage_key)

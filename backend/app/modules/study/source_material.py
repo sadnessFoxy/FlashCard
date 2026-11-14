@@ -11,12 +11,11 @@ from dataclasses import dataclass
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import DocumentNotReadyError, NotFoundError, SourceEmptyError
+from app.core.exceptions import NotFoundError, SourceEmptyError
 from app.modules.chat.repository import ChatRepository
+from app.modules.documents.access import ready_document
 from app.modules.documents.models import Document
-from app.modules.documents.repository import DocumentRepository
 from app.modules.documents.retrieval import document_passages
-from app.modules.documents.states import DELETING, READY
 
 
 @dataclass(frozen=True)
@@ -87,11 +86,9 @@ class SourceMaterialLoader:
     async def document_in_space(
         self, owner_id: uuid.UUID, space_id: uuid.UUID, document_id: uuid.UUID
     ) -> Document:
-        document = await DocumentRepository(self._session).get_for_owner(owner_id, document_id)
-        if document is None or document.status == DELETING or document.space_id != space_id:
+        document = await ready_document(self._session, owner_id, document_id)
+        if document.space_id != space_id:
             raise NotFoundError("Document")
-        if document.status != READY:
-            raise DocumentNotReadyError()
         return document
 
     def _within_budget(self, passages: list[Passage]) -> list[Passage]:

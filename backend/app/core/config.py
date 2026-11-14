@@ -199,6 +199,17 @@ class Settings(BaseSettings):
     QUIZ_SOURCE_CHARS: int = Field(default=15000)
     QUIZ_MAX_OUTPUT_TOKENS: int = Field(default=6144)
 
+    # ------- Chapter summaries (docs/specs/f12-summaries.md) -------
+    SUMMARY_DAILY_LIMIT: int = Field(default=10, description="AI summaries per user per day")
+    SUMMARY_SOURCE_CHARS: int = Field(default=20000)
+    SUMMARY_MAX_OUTPUT_TOKENS: int = Field(default=2048)
+    SUMMARY_PAGES_PER_PART: int = Field(
+        default=10, description="Page range per part when a document has no chapter headings"
+    )
+    SUMMARY_MAX_SECTIONS: int = Field(
+        default=40, description="More headings than this: split by page ranges instead"
+    )
+
     @field_validator("CORS_ORIGINS", mode="before")
     @classmethod
     def parse_cors_origins(cls, v: str | list[str]) -> list[str]:

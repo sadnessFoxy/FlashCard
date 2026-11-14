@@ -360,6 +360,49 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/documents/{document_id}/sections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        /**
+         * The document's chapters (or page-range parts) with saved summaries
+         * @description Chapters come from headings in the document, found once and kept; without usable
+         *     headings the document is split into fixed page ranges (`title` is null).
+         */
+        get: operations["listDocumentSections"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/documents/{document_id}/sections/{section_id}/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+                section_id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Make the summary of one section (or return the saved one) */
+        post: operations["summarizeSection"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/documents/{document_id}/move": {
         parameters: {
             query?: never;
@@ -772,6 +815,7 @@ export interface components {
             resets_at: string;
             card_suggestions: components["schemas"]["UsageCounter"];
             quizzes: components["schemas"]["UsageCounter"];
+            summaries: components["schemas"]["UsageCounter"];
         };
         CreateConversationRequest: {
             /** Format: uuid */
@@ -1161,6 +1205,31 @@ export interface components {
             /** Format: date-time */
             created_at: string;
             results: components["schemas"]["QuestionResult"][];
+        };
+        Summary: {
+            points: {
+                text: string;
+                /** @description Page the point comes from. */
+                page: number | null;
+            }[];
+            /** Format: date-time */
+            created_at: string;
+        };
+        Section: {
+            /** Format: uuid */
+            id: string;
+            position: number;
+            /** @description The chapter heading; null for a page-range part. */
+            title: string | null;
+            page_start: number;
+            page_end: number;
+            summary: components["schemas"]["Summary"] | null;
+        };
+        SectionList: {
+            /** Format: uuid */
+            document_id: string;
+            filename: string;
+            items: components["schemas"]["Section"][];
         };
         /** @enum {string} */
         Locale: "vi" | "en";
@@ -2179,6 +2248,95 @@ export interface operations {
                 };
             };
             422: components["responses"]["ValidationError"];
+        };
+    };
+    listDocumentSections: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Sections in reading order */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SectionList"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            404: components["responses"]["NotFound"];
+            /** @description `DOCUMENT_NOT_READY` */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    summarizeSection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+                section_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Already made earlier; no quota used */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Summary"];
+                };
+            };
+            /** @description Made now; uses the daily summary quota (`Usage.summaries`) */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Summary"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["CsrfRejected"];
+            404: components["responses"]["NotFound"];
+            /** @description `DOCUMENT_NOT_READY` */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description `VALIDATION_ERROR`, or `SOURCE_EMPTY` when the section has no text */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            429: components["responses"]["UserQuotaExceeded"];
+            503: components["responses"]["AiUnavailable"];
         };
     };
     moveDocument: {

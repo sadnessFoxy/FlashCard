@@ -27,8 +27,9 @@ jest.mock("../../src/features/documents/api", () => ({
 jest.mock("../../src/features/spaces/api", () => ({ listSpaces: jest.fn() }));
 
 const mockReplace = jest.fn();
+const mockPush = jest.fn();
 jest.mock("expo-router", () => ({
-  useRouter: () => ({ replace: mockReplace, push: jest.fn() }),
+  useRouter: () => ({ replace: mockReplace, push: mockPush }),
 }));
 
 const get = getDocument as jest.MockedFunction<typeof getDocument>;
@@ -84,6 +85,23 @@ it("shows details and hides retry for a ready document", async () => {
   expect(screen.getByText("12 trang")).toBeTruthy();
   expect(screen.getByText("Dung lượng: 3.0 MB")).toBeTruthy();
   expect(screen.queryByTestId("document-retry")).toBeNull();
+});
+
+it("offers study shortcuts for a ready document only", async () => {
+  get.mockResolvedValue(doc());
+  const { unmount } = renderScreen();
+
+  fireEvent.press(await screen.findByTestId("document-summaries"));
+  expect(mockPush).toHaveBeenCalledWith({
+    pathname: "/spaces/documents/summary/[documentId]",
+    params: { documentId: doc().id },
+  });
+  unmount();
+
+  get.mockResolvedValue(doc({ status: "PROCESSING" }));
+  renderScreen();
+  await screen.findByTestId("document-title");
+  expect(screen.queryByTestId("document-summaries")).toBeNull();
 });
 
 it("retries a failed document", async () => {

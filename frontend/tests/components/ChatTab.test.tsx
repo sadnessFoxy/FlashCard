@@ -5,6 +5,7 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react-native";
+import { usage as usageFixture } from "../fixtures/usage";
 
 import { ApiError } from "../../src/api/errors";
 import {
@@ -128,24 +129,7 @@ beforeEach(async () => {
     total_documents: 2,
     max_documents: 10,
   });
-  usage.mockResolvedValue({
-    daily_limit: 30,
-    used_today: 2,
-    remaining: 28,
-    resets_at: "2026-11-13T17:00:00Z",
-    card_suggestions: {
-      daily_limit: 10,
-      used_today: 0,
-      remaining: 10,
-      resets_at: "2026-11-13T17:00:00Z",
-    },
-    quizzes: {
-      daily_limit: 5,
-      used_today: 0,
-      remaining: 5,
-      resets_at: "2026-11-13T17:00:00Z",
-    },
-  });
+  usage.mockResolvedValue(usageFixture({ used_today: 2, remaining: 28 }));
   list.mockResolvedValue({ items: [] });
   create.mockResolvedValue(conversation);
   detail.mockResolvedValue({ ...conversation, messages: [] });

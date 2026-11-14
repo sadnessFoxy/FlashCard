@@ -133,6 +133,13 @@ class QuizQuota(DailyQuota):
         super().__init__("quizzes", settings.QUIZ_DAILY_LIMIT, redis, now)
 
 
+class SummaryQuota(DailyQuota):
+    """AI chapter summaries (U15), counted apart from the other features."""
+
+    def __init__(self, redis: Redis | None = None, now: datetime | None = None) -> None:
+        super().__init__("summaries", settings.SUMMARY_DAILY_LIMIT, redis, now)
+
+
 def get_question_quota() -> QuestionQuota:
     return QuestionQuota()
 
@@ -143,3 +150,7 @@ def get_card_suggestion_quota() -> CardSuggestionQuota:
 
 def get_quiz_quota() -> QuizQuota:
     return QuizQuota()
+
+
+def get_summary_quota() -> SummaryQuota:
+    return SummaryQuota()

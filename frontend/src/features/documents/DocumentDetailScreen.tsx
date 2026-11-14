@@ -144,10 +144,41 @@ export function DocumentDetailScreen({ id }: { id: string }) {
         />
       </View>
 
-      {/* Shortcuts unlock with Q&A (F7) and flashcards (F9). */}
-      <View style={styles.shortcuts}>
-        <Text style={styles.muted}>{t("documents.shortcutsSoon")}</Text>
-      </View>
+      {doc.status === "READY" ? (
+        <View style={styles.shortcuts}>
+          <Button
+            label={t("summaries.open")}
+            variant="secondary"
+            onPress={() =>
+              router.push({
+                pathname: "/spaces/documents/summary/[documentId]",
+                params: { documentId: doc.id },
+              })
+            }
+            testID="document-summaries"
+          />
+          <Button
+            label={t("cards.generate")}
+            variant="secondary"
+            onPress={() =>
+              router.push({
+                pathname: "/spaces/decks/generate",
+                params: { spaceId: doc.space_id },
+              })
+            }
+          />
+          <Button
+            label={t("quizzes.create")}
+            variant="secondary"
+            onPress={() =>
+              router.push({
+                pathname: "/spaces/quizzes/new",
+                params: { spaceId: doc.space_id },
+              })
+            }
+          />
+        </View>
+      ) : null}
 
       <Dialog
         visible={confirmDelete}
@@ -247,11 +278,5 @@ const styles = StyleSheet.create({
     gap: spacing.md,
     justifyContent: "flex-end",
   },
-  shortcuts: {
-    borderColor: colors.border,
-    borderRadius: radius.lg,
-    borderStyle: "dashed",
-    borderWidth: 1,
-    padding: spacing.lg,
-  },
+  shortcuts: { gap: spacing.sm },
 });
