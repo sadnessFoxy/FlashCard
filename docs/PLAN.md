@@ -22,8 +22,8 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 | 5 | Sức tải, hiệu năng & chi phí AI | 3/19 | Đang làm | Trước production | |
 | 6 | Beta & chuẩn bị production | 0/10 | Chưa bắt đầu | | |
 | 7 | Ra mắt & vận hành | 0/6 | Chưa bắt đầu | | |
-| F | Lát chức năng bản 1 | 10/17 | Đang làm | Song song với giai đoạn 1 đến 6 | 2026-11-08 |
-| | **Tổng** | **50/140** | | | |
+| F | Lát chức năng bản 1 | 11/17 | Đang làm | Song song với giai đoạn 1 đến 6 | 2026-11-08 |
+| | **Tổng** | **51/140** | | | |
 
 ---
 
@@ -288,7 +288,7 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 - [ ] F12. Tóm tắt theo chương (U15; màn hình 8)
 - [ ] F13. Hỗ trợ tài liệu Word (.docx) (U5)
 - [ ] F14. Tài liệu scan: Gemini đọc trực tiếp, Tesseract dự phòng, sau khi thử trên tài liệu tiếng Việt thật (U14)
-- [ ] F15. Hồ sơ và cài đặt: ngôn ngữ, lượt hỏi còn lại, đổi mật khẩu, xóa tài khoản (U4, U9, U10; màn hình 4)
+- [x] F15. Hồ sơ và cài đặt: ngôn ngữ, lượt hỏi còn lại, đổi mật khẩu, xóa tài khoản (U4, U9, U10; màn hình 4) (docs/specs/f15-profile.md)
 - [ ] F16. Giao diện quản trị web: tổng quan, người dùng, theo dõi job, cấu hình, nhật ký kiểm toán (A1 đến A7; màn hình 20 đến 25)
 
 **Tiêu chí hoàn thành:** mọi chức năng trong docs/BUSINESS_FLOWS.md phần bản 1 và phần quản trị chạy được, test qua, và kịch bản trong docs/TESTING.md đều đạt.
@@ -336,3 +336,4 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 | 2026-11-13 | Lát F9 xong (docs/specs/f9-flashcards.md): bộ thẻ trong Không gian, thẻ tạo bằng tay hoặc AI đề xuất từ tài liệu (khoảng trang) hay từ câu trả lời hỏi đáp; người học sửa, bỏ chọn rồi mới lưu; nguồn thẻ là bản ghi nhanh (tài liệu, trang); hạn mức tạo thẻ 10 lần mỗi ngày tính riêng với hỏi đáp; bảng thẻ có sẵn cột lịch SM-2 cho F10. Code: module `study/flashcards/`; hạn mức theo ngày tổng quát hóa (`DailyQuota`) dùng chung cho hỏi đáp và tạo thẻ; khối nguồn `<source>` và nhận diện ngôn ngữ tách ra dùng chung (`modules/ai/`); hộp xác nhận, nhóm chip dùng chung ở frontend; cấu hình test frontend có sẵn địa chỉ API nên màn hình mới không làm vỡ test cũ. Thử thật với Gemini: 6 thẻ tiếng Việt đúng nội dung, đúng trang, sau 2,3 giây. Test: backend 246, frontend 83 |
 | 2026-11-13 | Lát F10 xong (docs/specs/f10-reviews.md): ôn tập SM-2 bốn mức (Quên, Khó, Được, Dễ), thẻ Quên quay lại trong phiên, màn hình kết quả (thẻ khó, lần ôn kế tiếp); không cần AI. Chạy khi mất mạng: mỗi lượt chấm có mã do app tạo, lưu hàng đợi trên máy (AsyncStorage) rồi gửi theo lô; server bỏ qua lượt gửi lại, lượt cũ đến muộn chỉ ghi nhật ký. Test: backend 261 (gồm unit test công thức SM-2), frontend 91; thử qua HTTP thật: lịch đúng, gửi lại không ghi trùng |
 | 2026-11-13 | Lát F4 xong trước F3 (F3 cần OAuth client Google của người dùng) (docs/specs/f4-email-codes.md): xác minh email và quên mật khẩu bằng mã 6 chữ số qua email, mã lưu dạng HMAC, dùng một lần, 15 phút, sai 5 lần thì hủy; quên mật khẩu không lộ email nào có tài khoản; đặt lại thì thu hồi mọi phiên và gửi email báo; tài khoản chưa xác minh không tải tài liệu được (bật `REQUIRE_VERIFIED_EMAIL_FOR_UPLOAD`). Gửi email qua SMTP bằng thư viện chuẩn (không thêm phụ thuộc); test dùng hộp thư giả. Thử thật với Mailpit: đi hết hai luồng. Test: backend 271, frontend 96 |
+| 2026-11-14 | Lát F15 xong (docs/specs/f15-profile.md): màn hình Hồ sơ gồm trạng thái xác minh email, ngôn ngữ giao diện lưu theo tài khoản (app đổi theo khi đăng nhập), lượt hỏi và lượt tạo thẻ còn lại, đổi mật khẩu (đăng xuất thiết bị khác, giữ thiết bị đang dùng, có email báo), xóa tài khoản (xác nhận bằng mật khẩu hoặc nhập lại email với tài khoản Google; xóa toàn bộ dữ liệu, dọn file bằng job nền, số liệu AI chỉ giữ ẩn danh). Nhập lại mật khẩu bị giới hạn số lần như đăng nhập. Thử thật qua HTTP: đủ các bước. Test: backend 278, frontend 102 |

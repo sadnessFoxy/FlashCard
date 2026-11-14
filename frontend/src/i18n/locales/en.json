@@ -83,7 +83,27 @@
   },
   "profile": {
     "title": "Profile",
-    "signedInAs": "Signed in as"
+    "signedInAs": "Signed in as",
+    "verifyEmail": "Email not verified. Tap to enter the code.",
+    "emailVerified": "Email verified",
+    "language": "Interface language",
+    "usageTitle": "Today's AI allowance",
+    "cardSuggestionsLeft": "{{remaining}}/{{limit}} AI card suggestions left today",
+    "usageResets": "Resets at midnight (Vietnam time).",
+    "changePassword": "Change password",
+    "currentPassword": "Current password",
+    "changePasswordHint": "Other devices will be signed out.",
+    "deleteAccount": "Delete account",
+    "deleteTitle": "Delete your account for good?",
+    "deleteWarning": "All documents, chats, decks and review progress will be deleted and can't be recovered. Backups are cleared within 30 days.",
+    "deleteConfirm": "Delete for good",
+    "confirmEmail": "Retype your email",
+    "errors": {
+      "invalidPassword": "The current password is wrong.",
+      "noPassword": "This account signs in with Google, so it has no password.",
+      "retypeEmail": "This account signs in with Google: retype your email to confirm.",
+      "confirmationMismatch": "The email doesn't match."
+    }
   },
   "spaces": {
     "title": "Spaces",

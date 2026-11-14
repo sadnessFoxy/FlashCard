@@ -83,7 +83,27 @@
   },
   "profile": {
     "title": "Hồ sơ",
-    "signedInAs": "Đang đăng nhập bằng"
+    "signedInAs": "Đang đăng nhập bằng",
+    "verifyEmail": "Chưa xác minh email. Bấm để nhập mã.",
+    "emailVerified": "Email đã được xác minh",
+    "language": "Ngôn ngữ giao diện",
+    "usageTitle": "Lượt dùng AI hôm nay",
+    "cardSuggestionsLeft": "Còn {{remaining}}/{{limit}} lượt tạo thẻ bằng AI hôm nay",
+    "usageResets": "Lượt được đặt lại lúc 0 giờ (giờ Việt Nam).",
+    "changePassword": "Đổi mật khẩu",
+    "currentPassword": "Mật khẩu hiện tại",
+    "changePasswordHint": "Đổi xong, các thiết bị khác sẽ bị đăng xuất.",
+    "deleteAccount": "Xóa tài khoản",
+    "deleteTitle": "Xóa tài khoản vĩnh viễn?",
+    "deleteWarning": "Mọi tài liệu, hội thoại, bộ thẻ và tiến độ ôn tập sẽ bị xóa và không khôi phục được. Bản sao lưu được xóa trong tối đa 30 ngày.",
+    "deleteConfirm": "Xóa vĩnh viễn",
+    "confirmEmail": "Nhập lại email của bạn",
+    "errors": {
+      "invalidPassword": "Mật khẩu hiện tại không đúng.",
+      "noPassword": "Tài khoản này đăng nhập bằng Google nên không có mật khẩu.",
+      "retypeEmail": "Tài khoản đăng nhập bằng Google: hãy nhập lại email để xác nhận.",
+      "confirmationMismatch": "Email nhập lại không khớp."
+    }
   },
   "spaces": {
     "title": "Không gian",
