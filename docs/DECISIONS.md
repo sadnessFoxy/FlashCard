@@ -81,7 +81,7 @@
 | Endpoint kiểm tra hệ thống | `GET /health` (chỉ tiến trình, không chạm database) và `GET /v1/system/status` (database có pgvector, Redis; luôn trả 200 kèm `ok`/`degraded`, chỉ trả mã lỗi ổn định, không lộ chuỗi kết nối) | Màn hình trạng thái hiển thị được phần nào hỏng; dùng cho kiểm tra sức khỏe khi triển khai | 2026-11-08 | Đã chốt |
 | Tóm tắt theo chương: tạo tự động hay theo yêu cầu | Tạo theo yêu cầu | Tiết kiệm hạn mức AI | 2026-11-07 | Đã chốt (mặc định) |
 | Cách tính số trang cho file Word (giới hạn 200 trang) | ~~Quy đổi sau khi chuyển đổi sang PDF~~ → theo dấu ngắt trang Word lưu trong file, không có thì 3.000 ký tự mỗi trang | Chuyển sang PDF cần LibreOffice (lớn, chưa có trong môi trường); cách mới không thêm phụ thuộc, lệch đôi chút so với bản in. Thêm LibreOffice sau nếu cần khớp tuyệt đối | 2026-11-14 | Đã đổi (tự quyết, F13) |
-| Xử lý tài liệu scan | Gemini đọc trực tiếp làm mặc định; Tesseract (tiếng Việt và tiếng Anh) làm dự phòng khi hết hạn mức | Cả hai đều miễn phí trong điều kiện nhất định; chọn theo khuyến nghị, cần thử nghiệm trên tài liệu scan tiếng Việt thật. Xem docs/AI_PIPELINE.md | 2026-10-29 | Đã chốt, chờ thử nghiệm |
+| Xử lý tài liệu scan | Gemini đọc trực tiếp từng trang (đã làm ở F14, tối đa 50 trang scan mỗi tài liệu); Tesseract dự phòng **hoãn** vì môi trường chưa có chương trình Tesseract, khi AI ngừng thì tài liệu chờ `PAUSED_QUOTA` rồi tự chạy lại | Cả hai đều miễn phí trong điều kiện nhất định; cần thử trên tài liệu scan tiếng Việt thật. Xem docs/AI_PIPELINE.md, docs/specs/f14-scans.md | 2026-11-15 | Đã chốt phần Gemini, chờ thử scan thật; Tesseract hoãn |
 
 ## Rủi ro & câu hỏi mở
 

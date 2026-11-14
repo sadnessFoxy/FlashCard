@@ -35,6 +35,7 @@ from app.modules.documents.models import DocumentChunk
 from app.modules.documents.pdf import looks_scanned
 from app.modules.documents.queue import JobQueue
 from app.modules.documents.repository import DocumentRepository
+from app.modules.documents.scans import ScanReader
 from app.modules.documents.states import (
     FAILED,
     PAUSED_QUOTA,
@@ -42,6 +43,7 @@ from app.modules.documents.states import (
     QUEUED,
     READY,
 )
+from app.modules.documents.text import AI_OCR, ocr_text_key, save_ocr_text
 
 logger = get_logger(__name__)
 
@@ -95,6 +97,8 @@ class IngestionPipeline:
             return None
         except _NoTextLayerError:
             return await self._finish(document_id, FAILED, "NO_TEXT_LAYER", job_status="failed")
+        except _ScanTooLongError:
+            return await self._finish(document_id, FAILED, "SCAN_TOO_LONG", job_status="failed")
         except UnsupportedFileError:
             return await self._finish(document_id, FAILED, "EXTRACTION_FAILED", job_status="failed")
         except (AiQuotaExhaustedError, AiCircuitOpenError):
@@ -113,8 +117,11 @@ class IngestionPipeline:
                 return  # resumed run: chunks already stored
         data = await self._storage.download_file(storage_key)
         pages = extract_pages(data, kind)
+        text_source = "text"
         if looks_scanned(pages, settings.SCANNED_MIN_CHARS_PER_PAGE):
-            raise _NoTextLayerError
+            pages = await self._read_scan(data, kind, len(pages), owner_id)
+            text_source = AI_OCR
+            await save_ocr_text(self._storage, storage_key, pages)  # the PDF has no text to reread
         chunks = chunk_pages(
             pages,
             target_chars=settings.CHUNK_TARGET_CHARS,
@@ -126,6 +133,7 @@ class IngestionPipeline:
         async with self._sessions() as session:
             repo = DocumentRepository(session)
             await self._still_processing(repo, document_id)
+            await repo.set_text_source(document_id, text_source)
             repo.add_chunks(
                 [
                     DocumentChunk(
@@ -142,6 +150,19 @@ class IngestionPipeline:
             )
             await session.commit()
         logger.info("Document chunked (document_id=%s, chunks=%d)", document_id, len(chunks))
+
+    async def _read_scan(
+        self, data: bytes, kind: str, page_count: int, owner_id: uuid.UUID
+    ) -> list[str]:
+        """Scanned PDF: the AI reads it page by page (U14); too long or not a PDF fails."""
+        if kind != "pdf":
+            raise _NoTextLayerError
+        if page_count > settings.SCAN_MAX_PAGES:
+            raise _ScanTooLongError
+        pages = await ScanReader(self._gateway).read_pages(data, owner_id)
+        if looks_scanned(pages, settings.SCANNED_MIN_CHARS_PER_PAGE):
+            raise _NoTextLayerError  # the AI found no readable text either
+        return pages
 
     async def _embed_all(self, document_id: uuid.UUID, owner_id: uuid.UUID) -> None:
         while True:
@@ -236,6 +257,7 @@ class IngestionPipeline:
         False when storage failed (the caller retries later)."""
         try:
             await self._storage.delete_file(storage_key)
+            await self._storage.delete_file(ocr_text_key(storage_key))  # scans only; no-op else
         except StorageError:
             logger.warning("Purge: storage delete failed (document_id=%s)", document_id)
             return False
@@ -276,4 +298,8 @@ class IngestionPipeline:
 
 
 class _NoTextLayerError(Exception):
-    """The PDF has no usable text layer (scanned); handled by F14."""
+    """No usable text: no text layer and the AI could not read any either."""
+
+
+class _ScanTooLongError(Exception):
+    """A scanned PDF longer than SCAN_MAX_PAGES (reading it would cost too many tokens)."""

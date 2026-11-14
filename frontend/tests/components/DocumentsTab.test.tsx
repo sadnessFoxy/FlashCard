@@ -44,6 +44,7 @@ function doc(overrides: Partial<DocumentItem> = {}): DocumentItem {
     space_id: "s1",
     filename: "Giáo trình.pdf",
     file_kind: "pdf",
+    text_source: "text",
     size_bytes: 1000,
     page_count: 12,
     status: "READY",
@@ -109,7 +110,7 @@ it("labels each status and explains failures", async () => {
 
   expect(await screen.findByText("Sẵn sàng")).toBeTruthy();
   expect(screen.getByText("Đang xử lý")).toBeTruthy();
-  expect(screen.getByText(/Tài liệu scan/)).toBeTruthy();
+  expect(screen.getByText(/Không đọc được chữ/)).toBeTruthy();
   expect(screen.getByText("Tạm dừng")).toBeTruthy();
   expect(screen.getByText(/tự xử lý tiếp/)).toBeTruthy();
 });

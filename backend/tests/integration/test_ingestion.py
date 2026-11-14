@@ -25,7 +25,9 @@ from app.integrations.object_storage import ObjectStorage
 from app.modules.ai.providers.fake import FakeProvider
 from app.modules.documents.ingestion import IngestionPipeline
 from app.modules.documents.models import Document, DocumentChunk, DocumentJob
+from app.modules.documents.repository import DocumentRepository
 from app.modules.documents.service import DocumentService
+from app.modules.documents.text import document_page, ocr_text_key
 from app.modules.spaces.service import SpaceService
 from app.modules.users.service import UserService
 from tests.fixtures.docx import make_docx
@@ -182,12 +184,77 @@ async def test_vectors_support_cosine_search() -> None:
     assert nearest == 0
 
 
-async def test_scanned_pdf_fails_with_no_text_layer() -> None:
+async def test_scanned_pdf_is_read_by_the_ai_page_by_page() -> None:
+    h = Harness()
+    h.provider.generate_script = [
+        "Chương 1. Giới hạn\n\nGiới hạn mô tả giá trị mà hàm số tiến tới.",
+        "Chương 2. Đạo hàm\n\nĐạo hàm là hệ số góc của tiếp tuyến.",
+    ]
+    document_id = await h.upload(make_blank_pdf(2))
+
+    assert await h.pipeline.process(document_id) == "READY"
+
+    document = await doc(document_id)
+    assert document.text_source == "ai_ocr"
+    calls = h.provider.generate_calls
+    assert len(calls) == 2  # one call per page
+    assert all(c["attachment"].mime_type == "application/pdf" for c in calls)
+    assert "untrusted" in calls[0]["system_prompt"]
+    async with AsyncSessionLocal() as session:
+        chunks = (
+            await session.scalars(
+                select(DocumentChunk).where(DocumentChunk.document_id == document_id)
+            )
+        ).all()
+    assert {c.page_start for c in chunks} == {1, 2}
+    assert any("hệ số góc" in c.content for c in chunks)
+
+    # The transcription is kept next to the file, so pages can be shown again later.
+    assert await document_page(h.storage, document, 2) == (  # type: ignore[arg-type]
+        "Chương 2. Đạo hàm\n\nĐạo hàm là hệ số góc của tiếp tuyến."
+    )
+    sidecar = ocr_text_key(document.storage_key)
+    assert sidecar in h.storage.objects  # type: ignore[union-attr]
+    async with AsyncSessionLocal() as session:
+        await DocumentRepository(session).transition(document_id, "DELETING")
+        await session.commit()
+    assert await h.pipeline.purge(document_id, document.storage_key)
+    assert h.storage.objects == {}  # type: ignore[union-attr]
+
+
+async def test_scan_without_readable_text_fails() -> None:
+    h = Harness()
+    h.provider.generate_script = ["", "  "]
+    document_id = await h.upload(make_blank_pdf(2))
+
+    assert await h.pipeline.process(document_id) == "FAILED"
+    assert (await doc(document_id)).error_code == "NO_TEXT_LAYER"
+
+
+async def test_long_scan_fails_without_calling_the_ai(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(settings, "SCAN_MAX_PAGES", 2)
     h = Harness()
     document_id = await h.upload(make_blank_pdf(3))
 
     assert await h.pipeline.process(document_id) == "FAILED"
-    assert (await doc(document_id)).error_code == "NO_TEXT_LAYER"
+    assert (await doc(document_id)).error_code == "SCAN_TOO_LONG"
+    assert h.provider.generate_calls == []
+
+
+async def test_ai_quota_during_a_scan_pauses_the_document() -> None:
+    h = Harness()
+    h.provider.generate_script = ["Trang một.", AiQuotaExhaustedError()]
+    document_id = await h.upload(make_blank_pdf(2))
+
+    assert await h.pipeline.process(document_id) == "PAUSED_QUOTA"
+
+
+async def test_text_pdf_keeps_text_source_text() -> None:
+    h = Harness()
+    document_id = await h.upload(make_pdf([lorem(3)]))
+    assert await h.pipeline.process(document_id) == "READY"
+    assert (await doc(document_id)).text_source == "text"
+    assert h.provider.generate_calls == []
 
 
 async def test_quota_exhaustion_pauses_and_resume_skips_done_chunks(

@@ -192,7 +192,7 @@ async def test_deleting_a_space_purges_its_files(
     space = await new_space(client, reader)
     keep = await new_space(client, reader, "Giữ lại")
     doomed = [(await upload(client, reader, PDF, space_id=space)).json() for _ in range(2)]
-    kept = (await upload(client, reader, make_pdf(["kept"]), space_id=keep)).json()
+    kept = (await upload(client, reader, make_pdf([lorem(2, seed="kept")]), space_id=keep)).json()
     await world.ingest_all()
     assert len(world.storage.objects) == 3
 

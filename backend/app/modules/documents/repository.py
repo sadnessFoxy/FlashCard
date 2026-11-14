@@ -103,6 +103,11 @@ class DocumentRepository:
         )
         return [(row[0], row[1]) for row in result.all()]
 
+    async def set_text_source(self, document_id: uuid.UUID, text_source: str) -> None:
+        await self._session.execute(
+            update(Document).where(Document.id == document_id).values(text_source=text_source)
+        )
+
     async def all_for_owner(self, owner_id: uuid.UUID) -> list[tuple[uuid.UUID, str]]:
         """(id, storage_key) of every document of the owner, in any status."""
         result = await self._session.execute(

@@ -49,6 +49,8 @@ class Document(Base):
     file_kind: Mapped[str] = mapped_column(
         String(8), nullable=False, default="pdf", server_default="pdf"
     )
+    # How the text was obtained: "text" (text layer / Word) or "ai_ocr" (scanned, read by AI).
+    text_source: Mapped[str | None] = mapped_column(String(16))
     storage_key: Mapped[str] = mapped_column(String(255), nullable=False)
     size_bytes: Mapped[int] = mapped_column(BigInteger, nullable=False)
     page_count: Mapped[int] = mapped_column(Integer, nullable=False)

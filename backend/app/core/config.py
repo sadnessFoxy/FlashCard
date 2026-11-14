@@ -164,6 +164,10 @@ class Settings(BaseSettings):
     CHUNK_OVERLAP_CHARS: int = Field(default=150)
     CHUNK_MAX_CHARS: int = Field(default=6000)
     SCANNED_MIN_CHARS_PER_PAGE: int = Field(default=20)
+    SCAN_MAX_PAGES: int = Field(
+        default=50, description="Scanned PDFs are read by the AI page by page; longer ones fail"
+    )
+    SCAN_MAX_OUTPUT_TOKENS_PER_PAGE: int = Field(default=4096)
     EMBED_BATCH_SIZE: int = Field(default=32)
     INGEST_MAX_ATTEMPTS: int = Field(default=3)
     AI_RATE_LIMIT_MAX_WAIT_SECONDS: int = Field(default=60)

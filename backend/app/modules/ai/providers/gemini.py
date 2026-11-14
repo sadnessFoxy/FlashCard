@@ -7,6 +7,7 @@ R10: never log document content or personal data.
 
 from __future__ import annotations
 
+import base64
 import json
 from collections.abc import AsyncGenerator
 from typing import Any
@@ -16,7 +17,7 @@ import httpx
 from app.core.config import settings
 from app.core.exceptions import AiTemporarilyUnavailableError
 from app.core.logging import get_logger
-from app.modules.ai.providers.base import EmbedTask, LLMProvider
+from app.modules.ai.providers.base import Attachment, EmbedTask, LLMProvider
 from app.modules.ai.providers.gemini_errors import classify_gemini_error
 
 logger = get_logger(__name__)
@@ -195,12 +196,13 @@ class GeminiProvider(LLMProvider):
         max_tokens: int | None = None,
         temperature: float = 0.7,
         response_format: dict[str, Any] | None = None,
+        attachment: Attachment | None = None,
     ) -> str:
         """Non-streaming generation."""
         url = f"/{GEMINI_API_VERSION}/models/{self._chat_model}:generateContent"
 
         request_body: dict[str, Any] = {
-            "contents": [{"parts": [{"text": prompt}]}],
+            "contents": [{"parts": [*_inline(attachment), {"text": prompt}]}],
             "generationConfig": {"temperature": temperature},
         }
 
@@ -250,3 +252,11 @@ class GeminiProvider(LLMProvider):
     async def close(self) -> None:
         """Close the HTTP client."""
         await self._client.aclose()
+
+
+def _inline(attachment: Attachment | None) -> list[dict[str, Any]]:
+    """Gemini inline file part (base64), placed before the text prompt."""
+    if attachment is None:
+        return []
+    encoded = base64.b64encode(attachment.data).decode("ascii")
+    return [{"inline_data": {"mime_type": attachment.mime_type, "data": encoded}}]

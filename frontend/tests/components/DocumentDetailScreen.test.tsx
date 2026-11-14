@@ -44,6 +44,7 @@ function doc(overrides: Partial<DocumentItem> = {}): DocumentItem {
     space_id: "s1",
     filename: "Giáo trình.pdf",
     file_kind: "pdf",
+    text_source: "text",
     size_bytes: 3 * 1024 * 1024,
     page_count: 12,
     status: "READY",
@@ -103,6 +104,12 @@ it("offers study shortcuts for a ready document only", async () => {
   renderScreen();
   await screen.findByTestId("document-title");
   expect(screen.queryByTestId("document-summaries")).toBeNull();
+});
+
+it("says when a scanned document was read by AI", async () => {
+  get.mockResolvedValue(doc({ text_source: "ai_ocr" }));
+  renderScreen();
+  expect(await screen.findByTestId("document-ai-ocr")).toBeTruthy();
 });
 
 it("retries a failed document", async () => {

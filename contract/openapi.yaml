@@ -2541,7 +2541,7 @@ components:
     Document:
       type: object
       additionalProperties: false
-      required: [id, space_id, filename, file_kind, size_bytes, page_count, status, error_code, created_at, updated_at]
+      required: [id, space_id, filename, file_kind, text_source, size_bytes, page_count, status, error_code, created_at, updated_at]
       properties:
         id:
           type: string
@@ -2555,6 +2555,10 @@ components:
           type: string
           enum: [pdf, docx]
           description: Detected from the file content. Word pages follow the page breaks Word saved, else about 3,000 characters per page.
+        text_source:
+          type: [string, "null"]
+          enum: [text, ai_ocr, null]
+          description: "`ai_ocr`: a scanned PDF whose pages the AI read; null until processed."
         size_bytes:
           type: integer
         page_count:
@@ -2563,8 +2567,8 @@ components:
           $ref: "#/components/schemas/DocumentStatus"
         error_code:
           type: [string, "null"]
-          enum: [NO_TEXT_LAYER, EXTRACTION_FAILED, PROCESSING_FAILED, null]
-          description: Set when status is FAILED.
+          enum: [NO_TEXT_LAYER, SCAN_TOO_LONG, EXTRACTION_FAILED, PROCESSING_FAILED, null]
+          description: "Set when status is FAILED. `SCAN_TOO_LONG`: a scanned PDF over 50 pages (read by AI page by page)."
         created_at:
           type: string
           format: date-time

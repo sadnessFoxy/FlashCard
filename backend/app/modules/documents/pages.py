@@ -24,8 +24,9 @@ from app.core.redis import get_redis
 from app.integrations.object_storage import ObjectStorage
 from app.modules.documents.access import ready_document
 from app.modules.documents.chunking import split_paragraphs
-from app.modules.documents.formats import UnsupportedFileError, extract_page
+from app.modules.documents.formats import UnsupportedFileError
 from app.modules.documents.models import Document
+from app.modules.documents.text import document_page
 
 logger = get_logger(__name__)
 
@@ -57,9 +58,8 @@ class PageReader:
         return DocumentPage(document=document, page=page, paragraphs=paragraphs)
 
     async def _extract(self, document: Document, page: int) -> list[str]:
-        data = await self._storage.download_file(document.storage_key)
         try:
-            text = extract_page(data, document.file_kind, page)
+            text = await document_page(self._storage, document, page)
         except UnsupportedFileError:
             logger.warning("Page extraction failed (document_id=%s)", document.id)
             return []

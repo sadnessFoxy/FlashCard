@@ -24,7 +24,7 @@ from app.core.exceptions import (
 )
 from app.core.logging import get_logger
 from app.integrations.llm_gateway.circuit_breaker import CircuitBreaker, CircuitState
-from app.modules.ai.providers.base import EmbedTask, LLMProvider
+from app.modules.ai.providers.base import Attachment, EmbedTask, LLMProvider
 from app.modules.ai.usage import UsageRecorder, estimate_tokens, record_ai_usage
 
 logger = get_logger(__name__)
@@ -159,6 +159,7 @@ class LLMGateway:
         temperature: float = 0.7,
         response_format: dict[str, Any] | None = None,
         user_id: str | None = None,
+        attachment: Attachment | None = None,
     ) -> str:
         return await self._call(
             "generate",
@@ -170,6 +171,7 @@ class LLMGateway:
                 max_tokens=max_tokens,
                 temperature=temperature,
                 response_format=response_format,
+                attachment=attachment,
             ),
             output_tokens=estimate_tokens,
         )

@@ -1265,14 +1265,19 @@ export interface components {
              * @enum {string}
              */
             file_kind: "pdf" | "docx";
+            /**
+             * @description `ai_ocr`: a scanned PDF whose pages the AI read; null until processed.
+             * @enum {string|null}
+             */
+            text_source: "text" | "ai_ocr" | null;
             size_bytes: number;
             page_count: number;
             status: components["schemas"]["DocumentStatus"];
             /**
-             * @description Set when status is FAILED.
+             * @description Set when status is FAILED. `SCAN_TOO_LONG`: a scanned PDF over 50 pages (read by AI page by page).
              * @enum {string|null}
              */
-            error_code: "NO_TEXT_LAYER" | "EXTRACTION_FAILED" | "PROCESSING_FAILED" | null;
+            error_code: "NO_TEXT_LAYER" | "SCAN_TOO_LONG" | "EXTRACTION_FAILED" | "PROCESSING_FAILED" | null;
             /** Format: date-time */
             created_at: string;
             /** Format: date-time */

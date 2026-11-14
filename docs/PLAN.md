@@ -22,8 +22,8 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 | 5 | Sức tải, hiệu năng & chi phí AI | 3/19 | Đang làm | Trước production | |
 | 6 | Beta & chuẩn bị production | 0/10 | Chưa bắt đầu | | |
 | 7 | Ra mắt & vận hành | 0/6 | Chưa bắt đầu | | |
-| F | Lát chức năng bản 1 | 14/17 | Đang làm | Song song với giai đoạn 1 đến 6 | 2026-11-08 |
-| | **Tổng** | **54/140** | | | |
+| F | Lát chức năng bản 1 | 15/17 | Đang làm | Song song với giai đoạn 1 đến 6 | 2026-11-08 |
+| | **Tổng** | **55/140** | | | |
 
 ---
 
@@ -287,7 +287,7 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 - [x] F11. Câu hỏi trắc nghiệm: tạo, làm bài, chấm bằng code, xem lại câu sai kèm nguồn (U13; màn hình 17, 18, 19) (docs/specs/f11-quizzes.md)
 - [x] F12. Tóm tắt theo chương (U15; màn hình 8) (docs/specs/f12-summaries.md)
 - [x] F13. Hỗ trợ tài liệu Word (.docx) (U5) (docs/specs/f13-word.md)
-- [ ] F14. Tài liệu scan: Gemini đọc trực tiếp, Tesseract dự phòng, sau khi thử trên tài liệu tiếng Việt thật (U14)
+- [x] F14. Tài liệu scan: Gemini đọc trực tiếp, Tesseract dự phòng, sau khi thử trên tài liệu tiếng Việt thật (U14) (docs/specs/f14-scans.md; Tesseract hoãn, còn thử trên scan thật)
 - [x] F15. Hồ sơ và cài đặt: ngôn ngữ, lượt hỏi còn lại, đổi mật khẩu, xóa tài khoản (U4, U9, U10; màn hình 4) (docs/specs/f15-profile.md)
 - [ ] F16. Giao diện quản trị web: tổng quan, người dùng, theo dõi job, cấu hình, nhật ký kiểm toán (A1 đến A7; màn hình 20 đến 25)
 
@@ -340,3 +340,4 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 | 2026-11-14 | Lát F11 xong (docs/specs/f11-quizzes.md): AI soạn câu hỏi trắc nghiệm 4 lựa chọn từ tài liệu hoặc khoảng trang, code xáo lựa chọn và chấm điểm, đáp án chỉ trả về sau khi nộp; xem lại câu sai kèm giải thích và nguồn; bài làm dở lưu trên máy; hạn mức 5 lần tạo mỗi ngày tính riêng. Code: tách bộ nạp nguồn (`study/source_material.py`) và quy trình trừ lượt (`DailyQuota.require`, `spend`) dùng chung cho tạo thẻ, trắc nghiệm và hỏi đáp. Thử thật với Gemini: 5 câu đúng nội dung sau 2,7 giây, đáp án đúng ở nhiều vị trí; sửa chỉ dẫn để giải thích không nhắc "nguồn 1". Test: backend 289, frontend 107 |
 | 2026-11-14 | Lát F12 xong (docs/specs/f12-summaries.md): tóm tắt theo chương, chương tìm từ tiêu đề trong PDF (lần đầu mở, rồi lưu lại; không có tiêu đề thì chia 10 trang), tóm tắt tạo theo yêu cầu, mỗi ý kèm trang nguồn, lưu lại để xem lại không tốn lượt; hạn mức 10 lần mỗi ngày tính riêng. Trang chi tiết tài liệu thay khung "sắp ra mắt" bằng lối tắt tóm tắt, tạo thẻ, tạo trắc nghiệm. Code: kiểm tra quyền đọc tài liệu dùng chung (`documents/access.py`); hàm báo lỗi chung cho các tính năng học tập dùng AI ở frontend; dữ liệu giả `Usage` dùng chung trong test. Thử thật với Gemini: tìm đúng 3 chương, tóm tắt 5 ý đúng trang sau 1,2 giây. Test: backend 298, frontend 111 |
 | 2026-11-14 | Lát F13 xong (docs/specs/f13-word.md): tải được file Word (.docx), nhận diện theo nội dung; trang theo dấu ngắt trang Word lưu sẵn, không có thì 3.000 ký tự mỗi trang; đọc bằng thư viện chuẩn, từ chối XML có DTD/ENTITY, giới hạn dung lượng giải nén. Code: gom mọi chỗ đọc nội dung tài liệu về `documents/formats.py` (tải lên, xử lý nền, xem trang, tóm tắt); thêm cột `documents.file_kind`. Thử thật: file Word tiếng Việt (tự tạo bằng code, chưa thử file xuất từ Microsoft Word) lên READY, tìm đúng chương, tóm tắt bằng Gemini đúng trang. Test: backend 306, frontend 111 |
+| 2026-11-15 | Lát F14 xong phần Gemini (docs/specs/f14-scans.md): PDF scan được Gemini đọc từng trang (gửi kèm file PDF một trang), văn bản lưu cạnh file gốc để xem trang và tìm chương, tài liệu ghi `text_source = ai_ocr`; giới hạn 50 trang scan (`SCAN_TOO_LONG`); AI ngừng thì `PAUSED_QUOTA` và tự chạy lại. Tesseract dự phòng hoãn (chưa có chương trình trong môi trường). Code: lớp provider nhận file đính kèm (`Attachment`); `documents/text.py` là nguồn văn bản duy nhất cho mọi tính năng. Phát hiện nhờ thử thật: lần đầu xem trang và tìm chương của tài liệu scan đọc lớp chữ rỗng, đã sửa bằng file văn bản kèm. Thử thật: scan tiếng Việt tự tạo đọc đúng dấu, tìm đúng chương, tóm tắt đúng trang; chưa thử scan thật. Test: backend 311, frontend 113 |

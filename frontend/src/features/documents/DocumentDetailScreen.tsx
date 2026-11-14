@@ -109,6 +109,11 @@ export function DocumentDetailScreen({ id }: { id: string }) {
             date: new Date(doc.created_at).toLocaleString(i18n.language),
           })}
         </Text>
+        {doc.text_source === "ai_ocr" && (
+          <Text style={styles.meta} testID="document-ai-ocr">
+            {t("documents.detail.aiOcr")}
+          </Text>
+        )}
         {doc.status === "FAILED" && doc.error_code && (
           <Text style={styles.error}>
             {t(`documents.failure.${doc.error_code}`)}

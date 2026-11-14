@@ -7,9 +7,18 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from collections.abc import AsyncGenerator
+from dataclasses import dataclass
 from typing import Any, Literal
 
 EmbedTask = Literal["document", "query"]
+
+
+@dataclass(frozen=True)
+class Attachment:
+    """A file the model reads along with the prompt (e.g. one scanned PDF page)."""
+
+    data: bytes
+    mime_type: str
 
 
 class LLMProvider(ABC):
@@ -73,6 +82,7 @@ class LLMProvider(ABC):
         max_tokens: int | None = None,
         temperature: float = 0.7,
         response_format: dict[str, Any] | None = None,
+        attachment: Attachment | None = None,
     ) -> str:
         """
         Generate text without streaming (when the full result is needed).
@@ -83,6 +93,7 @@ class LLMProvider(ABC):
             max_tokens: output token cap
             temperature: randomness
             response_format: output format, e.g. {"type": "json_object"}
+            attachment: a file the model reads with the prompt (scanned pages)
 
         Returns:
             Generated text

@@ -6,7 +6,7 @@ import io
 import logging
 from dataclasses import dataclass
 
-from pypdf import PdfReader
+from pypdf import PdfReader, PdfWriter
 from pypdf.errors import PdfReadError
 
 PDF_MAGIC = b"%PDF-"
@@ -57,6 +57,22 @@ def extract_page(data: bytes, page_number: int) -> str:
         reader = PdfReader(io.BytesIO(data))
         return reader.pages[page_number - 1].extract_text() or ""
     except (PdfReadError, ValueError, KeyError, TypeError, IndexError) as exc:
+        raise NotAPdfError from exc
+
+
+def split_pages(data: bytes) -> list[bytes]:
+    """Each page as its own one-page PDF (for page-by-page AI reading)."""
+    try:
+        reader = PdfReader(io.BytesIO(data))
+        out: list[bytes] = []
+        for page in reader.pages:
+            writer = PdfWriter()
+            writer.add_page(page)
+            buffer = io.BytesIO()
+            writer.write(buffer)
+            out.append(buffer.getvalue())
+        return out
+    except (PdfReadError, ValueError, KeyError, TypeError) as exc:
         raise NotAPdfError from exc
 
 

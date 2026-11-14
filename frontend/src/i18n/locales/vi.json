@@ -158,9 +158,10 @@
       "DELETING": "Đang xóa"
     },
     "failure": {
-      "NO_TEXT_LAYER": "Tài liệu scan (chỉ có ảnh) chưa được hỗ trợ.",
+      "NO_TEXT_LAYER": "Không đọc được chữ nào trong tài liệu, kể cả khi đọc bằng AI.",
       "EXTRACTION_FAILED": "Không đọc được nội dung tài liệu.",
-      "PROCESSING_FAILED": "Xử lý thất bại sau nhiều lần thử."
+      "PROCESSING_FAILED": "Xử lý thất bại sau nhiều lần thử.",
+      "SCAN_TOO_LONG": "Tài liệu scan dài quá 50 trang. Hãy tách thành nhiều file nhỏ hơn."
     },
     "consent": {
       "title": "Trước khi tải tài liệu",
@@ -189,7 +190,8 @@
       "pages_one": "{{count}} trang",
       "pages_other": "{{count}} trang",
       "size": "Dung lượng: {{size}}",
-      "uploaded": "Tải lên: {{date}}"
+      "uploaded": "Tải lên: {{date}}",
+      "aiOcr": "Tài liệu scan: chữ được AI đọc từ ảnh, có thể có lỗi nhỏ."
     }
   },
   "chat": {

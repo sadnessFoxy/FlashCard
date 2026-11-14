@@ -15,8 +15,9 @@ from app.core.logging import get_logger
 from app.integrations.llm_gateway.gateway import LLMGateway
 from app.integrations.object_storage import ObjectStorage
 from app.modules.documents.access import ready_document
-from app.modules.documents.formats import UnsupportedFileError, extract_pages
+from app.modules.documents.formats import UnsupportedFileError
 from app.modules.documents.models import Document
+from app.modules.documents.text import document_pages
 from app.modules.study.source_material import SourceMaterial, SourceMaterialLoader
 from app.modules.study.summaries.models import DocumentSection, DocumentSummary
 from app.modules.study.summaries.prompts import (
@@ -114,9 +115,8 @@ class SummaryService:
         return sections
 
     async def _find(self, document: Document) -> list[SectionDraft]:
-        data = await self._storage.download_file(document.storage_key)
         try:
-            pages = extract_pages(data, document.file_kind)
+            pages = await document_pages(self._storage, document)
         except UnsupportedFileError:
             logger.warning("Section detection failed (document_id=%s)", document.id)
             return page_parts(document.page_count, settings.SUMMARY_PAGES_PER_PART)

@@ -11,7 +11,9 @@ from pydantic import BaseModel, ConfigDict
 DocumentStatus = Literal[
     "UPLOADED", "QUEUED", "PROCESSING", "READY", "FAILED", "PAUSED_QUOTA", "DELETING"
 ]
-DocumentErrorCode = Literal["NO_TEXT_LAYER", "EXTRACTION_FAILED", "PROCESSING_FAILED"]
+DocumentErrorCode = Literal[
+    "NO_TEXT_LAYER", "SCAN_TOO_LONG", "EXTRACTION_FAILED", "PROCESSING_FAILED"
+]
 
 
 class DocumentOut(BaseModel):
@@ -21,6 +23,7 @@ class DocumentOut(BaseModel):
     space_id: uuid.UUID
     filename: str
     file_kind: Literal["pdf", "docx"]
+    text_source: Literal["text", "ai_ocr"] | None
     size_bytes: int
     page_count: int
     status: DocumentStatus

@@ -13,7 +13,7 @@ from typing import Any
 
 from app.core.config import settings
 from app.core.exceptions import AppError
-from app.modules.ai.providers.base import EmbedTask, LLMProvider
+from app.modules.ai.providers.base import Attachment, EmbedTask, LLMProvider
 
 
 class FakeProvider(LLMProvider):
@@ -76,8 +76,11 @@ class FakeProvider(LLMProvider):
         max_tokens: int | None = None,
         temperature: float = 0.7,
         response_format: dict[str, Any] | None = None,
+        attachment: Attachment | None = None,
     ) -> str:
-        self.generate_calls.append({"prompt": prompt, "system_prompt": system_prompt})
+        self.generate_calls.append(
+            {"prompt": prompt, "system_prompt": system_prompt, "attachment": attachment}
+        )
         if self.generate_script:
             step = self.generate_script.pop(0)
             if isinstance(step, AppError):
