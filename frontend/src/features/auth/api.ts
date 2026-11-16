@@ -35,6 +35,19 @@ export async function login(credentials: Credentials): Promise<User> {
   return startSession(session);
 }
 
+/** Exchange a Google ID token; the backend verifies it (R15). */
+export async function signInWithGoogle(
+  idToken: string,
+  locale: Locale,
+): Promise<User> {
+  const session = await api.post<AuthSession>(
+    "/v1/auth/google",
+    { id_token: idToken, locale },
+    { skipAuth: true },
+  );
+  return startSession(session);
+}
+
 /** Revoke the session server-side when possible; always clear it locally. */
 export async function logout(): Promise<void> {
   try {

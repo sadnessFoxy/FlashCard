@@ -16,11 +16,14 @@ from app.integrations.email import Mailer, get_mailer, send_quietly
 from app.modules.auth.cookies import REFRESH_COOKIE, clear_session_cookies, set_session_cookies
 from app.modules.auth.dependencies import get_client_info, get_current_user
 from app.modules.auth.email_templates import account_email
+from app.modules.auth.google import GoogleTokenVerifier, get_google_verifier
+from app.modules.auth.google_sign_in import GoogleSignIn
 from app.modules.auth.password_reset import PasswordReset
 from app.modules.auth.schemas import (
     AuthSessionOut,
     ChangePasswordRequest,
     ClientPlatform,
+    GoogleSignInRequest,
     LoginRequest,
     PasswordResetConfirmRequest,
     PasswordResetRequest,
@@ -216,4 +219,23 @@ async def change_password(
     )
     alert = account_email("password_changed", user.email, user.locale)
     await send_quietly(mailer, alert, "password_changed")
+    return _session_response(issued, platform, response)
+
+
+@router.post(
+    "/google",
+    response_model=AuthSessionOut,
+    response_model_exclude_none=True,
+    operation_id="signInWithGoogle",
+)
+async def sign_in_with_google(
+    body: GoogleSignInRequest,
+    platform: PlatformHeader,
+    response: Response,
+    db: Db,
+    client: Client,
+    verifier: Annotated[GoogleTokenVerifier, Depends(get_google_verifier)],
+) -> AuthSessionOut:
+    """Sign in or sign up with a Google ID token, verified here (R15)."""
+    issued = await GoogleSignIn(db, verifier).sign_in(body.id_token, body.locale, client)
     return _session_response(issued, platform, response)

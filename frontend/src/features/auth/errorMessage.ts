@@ -23,6 +23,12 @@ export function authErrorMessage(error: unknown, t: TFunction): string {
           Math.ceil((error.details.retryAfterSeconds ?? 60) / 60),
         ),
       });
+    case "INVALID_GOOGLE_TOKEN":
+      return t("auth.google.errors.invalid");
+    case "GOOGLE_LINK_REQUIRED":
+      return t("auth.google.errors.linkRequired");
+    case "GOOGLE_NOT_CONFIGURED":
+      return t("auth.google.errors.notConfigured");
     case "INVALID_CODE":
       return t("auth.errors.invalidCode");
     case "VALIDATION_ERROR":

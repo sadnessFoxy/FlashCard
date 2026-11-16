@@ -165,6 +165,58 @@ paths:
           $ref: "#/components/responses/ValidationError"
         "429":
           $ref: "#/components/responses/TooManyAttempts"
+  /v1/auth/google:
+    post:
+      tags: [auth]
+      operationId: signInWithGoogle
+      summary: Sign in or sign up with a Google ID token
+      description: |
+        The ID token is verified on the server (signature, audience, issuer, expiry); nothing
+        else the app sends about the user is trusted (R15). An existing email account is linked
+        only when Google says the email is verified; otherwise `GOOGLE_LINK_REQUIRED`.
+        `GOOGLE_NOT_CONFIGURED` until the operator sets the OAuth client IDs (docs/SETUP_GOOGLE.md).
+      security: []
+      parameters:
+        - $ref: "#/components/parameters/ClientPlatform"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GoogleSignInRequest"
+      responses:
+        "200":
+          description: Signed in (a new account is created on first use)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthSession"
+        "401":
+          description: "`INVALID_GOOGLE_TOKEN`"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: "`ACCOUNT_BLOCKED` or `CSRF_REJECTED`"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: "`GOOGLE_LINK_REQUIRED`: the email has an account and Google did not verify it"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+        "503":
+          description: "`GOOGLE_NOT_CONFIGURED`"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
   /v1/auth/refresh:
     post:
       tags: [auth]
@@ -3107,6 +3159,17 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/AdminAuditEntry"
+    GoogleSignInRequest:
+      type: object
+      additionalProperties: false
+      required: [id_token]
+      properties:
+        id_token:
+          type: string
+          minLength: 1
+          maxLength: 8192
+        locale:
+          $ref: "#/components/schemas/Locale"
     Locale:
       type: string
       enum: [vi, en]

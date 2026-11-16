@@ -85,6 +85,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/auth/google": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sign in or sign up with a Google ID token
+         * @description The ID token is verified on the server (signature, audience, issuer, expiry); nothing
+         *     else the app sends about the user is trusted (R15). An existing email account is linked
+         *     only when Google says the email is verified; otherwise `GOOGLE_LINK_REQUIRED`.
+         *     `GOOGLE_NOT_CONFIGURED` until the operator sets the OAuth client IDs (docs/SETUP_GOOGLE.md).
+         */
+        post: operations["signInWithGoogle"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/auth/refresh": {
         parameters: {
             query?: never;
@@ -1565,6 +1588,10 @@ export interface components {
         AdminAuditList: {
             items: components["schemas"]["AdminAuditEntry"][];
         };
+        GoogleSignInRequest: {
+            id_token: string;
+            locale?: components["schemas"]["Locale"];
+        };
         /** @enum {string} */
         Locale: "vi" | "en";
         /** @enum {string} */
@@ -1962,6 +1989,70 @@ export interface operations {
             };
             422: components["responses"]["ValidationError"];
             429: components["responses"]["TooManyAttempts"];
+        };
+    };
+    signInWithGoogle: {
+        parameters: {
+            query?: never;
+            header: {
+                /** @description `native` returns tokens in the body; `web` sets httpOnly cookies and omits tokens. */
+                "X-Client-Platform": components["parameters"]["ClientPlatform"];
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GoogleSignInRequest"];
+            };
+        };
+        responses: {
+            /** @description Signed in (a new account is created on first use) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AuthSession"];
+                };
+            };
+            /** @description `INVALID_GOOGLE_TOKEN` */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description `ACCOUNT_BLOCKED` or `CSRF_REJECTED` */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description `GOOGLE_LINK_REQUIRED`: the email has an account and Google did not verify it */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            422: components["responses"]["ValidationError"];
+            /** @description `GOOGLE_NOT_CONFIGURED` */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
         };
     };
     refreshSession: {

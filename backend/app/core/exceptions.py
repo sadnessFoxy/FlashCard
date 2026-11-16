@@ -314,3 +314,27 @@ class CannotTargetSelfError(AppError):
 
     def __init__(self) -> None:
         super().__init__("CANNOT_TARGET_SELF", "This action cannot target your own account", 409)
+
+
+# ------- Google sign-in (docs/specs/f3-google.md) -------
+
+
+class GoogleNotConfiguredError(AppError):
+    """No GOOGLE_CLIENT_IDS set: the operator has not created the OAuth clients yet."""
+
+    def __init__(self) -> None:
+        super().__init__("GOOGLE_NOT_CONFIGURED", "Google sign-in is not set up", 503)
+
+
+class InvalidGoogleTokenError(AppError):
+    def __init__(self) -> None:
+        super().__init__("INVALID_GOOGLE_TOKEN", "The Google sign-in could not be verified", 401)
+
+
+class GoogleLinkRequiredError(AppError):
+    """The email has an account, but Google does not vouch for it: sign in the old way first."""
+
+    def __init__(self) -> None:
+        super().__init__(
+            "GOOGLE_LINK_REQUIRED", "Sign in with your password first to link Google", 409
+        )

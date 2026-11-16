@@ -17,7 +17,7 @@ from app.core.config import Settings
     ],
 )
 def test_parse_cors_origins(raw: str | list[str], expected: list[str]) -> None:
-    assert Settings.parse_cors_origins(raw) == expected
+    assert Settings.parse_string_list(raw) == expected
 
 
 def test_rejects_unknown_environment(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -76,6 +76,7 @@
 | Trắc nghiệm (F11) | 4 lựa chọn một đáp án; code xáo lựa chọn và chấm điểm, không nhờ AI chấm; 5 lần tạo mỗi ngày, tối đa 20 câu; bài làm dở lưu trên máy | Chấm minh bạch, không tốn AI; đáp án không dồn vào một vị trí | 2026-11-14 | Đã chốt (tự quyết) |
 | Chia chương cho tóm tắt (F12) | Tìm tiêu đề trong văn bản PDF bằng bộ nhận diện tiêu đề của bước chia đoạn, lưu lại; không có tiêu đề (hoặc hơn 40) thì chia 10 trang; 10 lượt tóm tắt mỗi ngày | Chạy được với tài liệu đã tải trước đó, không phải xử lý lại; dễ đoán với người học | 2026-11-14 | Đã chốt (tự quyết) |
 | Cấu hình chạy và công tắc tắt AI (F16) | Lưu trong `app_settings`, mỗi tiến trình đọc lại sau tối đa 15 giây; công tắc tắt AI đặt trong cổng gọi AI và dùng chung cách suy giảm với cầu dao mở | Không cần triển khai lại; mọi tính năng suy giảm thống nhất | 2026-11-16 | Đã chốt (tự quyết) |
+| Xác thực ID token Google (F3) | Dùng PyJWT và cryptography sẵn có, tải khóa công khai của Google và lưu tạm; không thêm thư viện Google. Frontend dùng `expo-auth-session`; Expo Go không hỗ trợ, cần bản dev build trên điện thoại | Ít phụ thuộc, đủ kiểm tra theo R15 | 2026-11-16 | Đã chốt (tự quyết) |
 | Thời điểm commit phiên database | Mọi endpoint dùng `Depends(get_db, scope="function")`: commit xong mới gửi phản hồi | FastAPI mặc định chạy phần dọn dẹp sau khi gửi phản hồi, gây lỗi đọc ngay sau ghi (thấy khi thử thật F7) | 2026-11-13 | Đã chốt |
 | Cách sinh code frontend từ contract | `openapi-typescript` sinh kiểu vào `frontend/src/api/generated/schema.ts`; gọi mạng vẫn qua `src/api/client.ts` duy nhất. File sinh ra được commit, CI chạy lại và báo lỗi nếu lệch contract | Không cần Java như openapi-generator; giữ một API client duy nhất (token, retry, refresh) | 2026-11-08 | Đã chốt |
 | Ngưỡng coverage bắt buộc | Bỏ ngưỡng cứng 80% trong pytest, vẫn in báo cáo coverage | Theo docs/TESTING.md: không đặt mục tiêu coverage máy móc; phần lớn code khung chưa có tính năng để test. Xem lại khi xong các lát lõi | 2026-11-08 | Đã chốt |
@@ -98,7 +99,7 @@
 | Giới hạn chiều index của pgvector không khớp chiều embedding mặc định | Chọn 768 hoặc 1536 chiều hoặc kiểu `halfvec`, kiểm tra trước khi nạp dữ liệu (docs/AI_PIPELINE.md) | | Chưa làm |
 | Railway không có gói miễn phí vĩnh viễn nên chi phí hosting phát sinh | Chốt ngân sách hosting, theo dõi mức dùng tài nguyên, đặt cảnh báo chi phí | | Chưa làm |
 | PostgreSQL trên Railway là dịch vụ tự vận hành bằng template, dữ liệu mất nếu volume mất | Sao lưu định kỳ ra nơi khác và thử khôi phục; sao lưu file gốc riêng với sao lưu database | | Chưa làm |
-| Gộp tài khoản sai giữa Google và email (nguy cơ chiếm tài khoản) | Chỉ tự liên kết khi email đã xác minh; kiểm thử kỹ các tình huống liên kết | | Chưa làm |
+| Gộp tài khoản sai giữa Google và email (nguy cơ chiếm tài khoản) | Chỉ tự liên kết khi email đã xác minh; kiểm thử kỹ các tình huống liên kết | | Đã làm (F3, có test) |
 | Chất lượng OCR tiếng Việt chưa có số liệu riêng | Thử trên 3 đến 5 tài liệu scan thật trước khi chốt | | Chưa làm |
 
 | Dữ liệu qua gói Gemini miễn phí có thể được Google dùng cải thiện sản phẩm | Chỉ dùng dữ liệu thử nghiệm; hiện thông báo và xin đồng ý như đã thiết kế | | Chưa làm |

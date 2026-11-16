@@ -40,6 +40,14 @@
         "same_as_email": "Mật khẩu không được trùng với email"
       },
       "invalidCode": "Mã không đúng hoặc đã hết hạn. Hãy kiểm tra lại hoặc gửi mã mới."
+    },
+    "google": {
+      "button": "Tiếp tục với Google",
+      "errors": {
+        "invalid": "Không xác thực được đăng nhập Google. Thử lại.",
+        "linkRequired": "Email này đã có tài khoản. Đăng nhập bằng mật khẩu trước, rồi mới dùng được Google.",
+        "notConfigured": "Đăng nhập Google chưa được thiết lập trên máy chủ."
+      }
     }
   },
   "errors": {

@@ -18,12 +18,12 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 | 1 | Khởi tạo dự án | 15/19 | Đang làm | Tuần 1 | 2026-11-07 |
 | 2 | CI/CD | 0/9 | Tạm hoãn | Người dùng hoãn 2026-11-10 | |
 | 3 | Kết nối & đồng bộ dữ liệu | 3/16 | Đang làm | Tuần 2 đến 4 | |
-| 4 | Bảo mật | 8/28 | Đang làm | Tuần 2 đến 4, rà soát lại trước beta | |
+| 4 | Bảo mật | 9/28 | Đang làm | Tuần 2 đến 4, rà soát lại trước beta | |
 | 5 | Sức tải, hiệu năng & chi phí AI | 3/19 | Đang làm | Trước production | |
 | 6 | Beta & chuẩn bị production | 0/10 | Chưa bắt đầu | | |
 | 7 | Ra mắt & vận hành | 0/6 | Chưa bắt đầu | | |
-| F | Lát chức năng bản 1 | 16/17 | Đang làm | Song song với giai đoạn 1 đến 6 | 2026-11-08 |
-| | **Tổng** | **57/140** | | | |
+| F | Lát chức năng bản 1 | 17/17 | Đang làm | Song song với giai đoạn 1 đến 6 | 2026-11-08 |
+| | **Tổng** | **59/140** | | | |
 
 ---
 
@@ -168,7 +168,7 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 *Xác thực và phân quyền*
 - [x] Access token ngắn (khoảng 15 phút) cộng refresh token có xoay vòng (rotation) và thu hồi được; phát hiện dùng lại token (F2)
 - [x] Băm mật khẩu bằng argon2 hoặc bcrypt (argon2id, F2)
-- [ ] Đăng nhập email và mật khẩu, Google: backend xác thực ID token, quy tắc liên kết tài khoản (xem docs/SECURITY.md)
+- [x] Đăng nhập email và mật khẩu, Google: backend xác thực ID token, quy tắc liên kết tài khoản (xem docs/SECURITY.md) (F2, F3)
 - [x] Xác minh email và quên mật khẩu: token một lần, hạn ngắn, không lộ email có tồn tại hay không, thu hồi phiên sau khi đổi mật khẩu (F4)
 - [x] Tích hợp dịch vụ gửi email (xác minh, đặt lại mật khẩu, cảnh báo) (F4: SMTP, Mailpit khi chạy local)
 - [ ] Tự xây xác thực bằng thư viện chuẩn (không tự phát minh thuật toán mã hóa) và kiểm thử kỹ các luồng U1 đến U4 trong docs/BUSINESS_FLOWS.md
@@ -275,7 +275,7 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 **Việc cần làm**
 - [x] F1. Khung chạy được xuyên suốt: một endpoint thật đi từ frontend qua backend tới database, có kiểm tra sức khỏe và test (`/health`, `/v1/system/status`; màn hình trạng thái ở `frontend/app/index.tsx`)
 - [x] F2. Đăng ký, đăng nhập bằng email và mật khẩu, duy trì và kết thúc phiên (U1, U4; màn hình 1; docs/specs/f2-email-auth.md)
-- [ ] F3. Đăng nhập bằng Google (U1; màn hình 1)
+- [x] F3. Đăng nhập bằng Google (U1; màn hình 1) (docs/specs/f3-google.md; chờ người dùng tạo OAuth client theo docs/SETUP_GOOGLE.md để thử thật)
 - [x] F4. Xác minh email và quên, đặt lại mật khẩu (U2, U3; màn hình 2, 3) (docs/specs/f4-email-codes.md)
 - [x] F4b. Không gian học tập: tạo, đổi tên, xóa, không gian mặc định (U16; màn hình 5; docs/specs/f4b-spaces.md). Hàm tạo không gian mặc định đã có, được gọi từ luồng tải lên ở F5
 - [x] F5. Tải tài liệu PDF và xử lý nền đến `READY`: trích văn bản, chia đoạn, embedding, trạng thái (U5; màn hình 5, 6) (docs/specs/f5-document-upload.md)
@@ -342,3 +342,4 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 | 2026-11-14 | Lát F13 xong (docs/specs/f13-word.md): tải được file Word (.docx), nhận diện theo nội dung; trang theo dấu ngắt trang Word lưu sẵn, không có thì 3.000 ký tự mỗi trang; đọc bằng thư viện chuẩn, từ chối XML có DTD/ENTITY, giới hạn dung lượng giải nén. Code: gom mọi chỗ đọc nội dung tài liệu về `documents/formats.py` (tải lên, xử lý nền, xem trang, tóm tắt); thêm cột `documents.file_kind`. Thử thật: file Word tiếng Việt (tự tạo bằng code, chưa thử file xuất từ Microsoft Word) lên READY, tìm đúng chương, tóm tắt bằng Gemini đúng trang. Test: backend 306, frontend 111 |
 | 2026-11-15 | Lát F14 xong phần Gemini (docs/specs/f14-scans.md): PDF scan được Gemini đọc từng trang (gửi kèm file PDF một trang), văn bản lưu cạnh file gốc để xem trang và tìm chương, tài liệu ghi `text_source = ai_ocr`; giới hạn 50 trang scan (`SCAN_TOO_LONG`); AI ngừng thì `PAUSED_QUOTA` và tự chạy lại. Tesseract dự phòng hoãn (chưa có chương trình trong môi trường). Code: lớp provider nhận file đính kèm (`Attachment`); `documents/text.py` là nguồn văn bản duy nhất cho mọi tính năng. Phát hiện nhờ thử thật: lần đầu xem trang và tìm chương của tài liệu scan đọc lớp chữ rỗng, đã sửa bằng file văn bản kèm. Thử thật: scan tiếng Việt tự tạo đọc đúng dấu, tìm đúng chương, tóm tắt đúng trang; chưa thử scan thật. Test: backend 311, frontend 113 |
 | 2026-11-16 | Lát F16 xong (docs/specs/f16-admin.md): trang quản trị web `/admin` gồm tổng quan, người dùng (tìm, khóa có lý do, mở khóa, buộc đăng xuất, hạn mức riêng có thời hạn, xóa theo yêu cầu), tài liệu và job (lọc, thử lại), cấu hình chạy không cần triển khai lại (hạn mức, giới hạn tải lên, ngân sách token, công tắc khẩn cấp tắt AI), nhật ký kiểm toán chỉ thêm; quyền kiểm tra ở backend, không xem nội dung người dùng (R13); script `make create-admin`. Hoãn: xác thực hai bước, cảnh báo tự động (A6), chỉ số p95. Thử thật qua HTTP rồi dọn sạch. Test: backend 319, frontend 119 |
+| 2026-11-16 | Lát F3 xong về code (docs/specs/f3-google.md): `POST /v1/auth/google` xác thực ID token ở backend (chữ ký với khóa công khai của Google, đối tượng nhận, nơi phát hành, hạn dùng), tự tạo tài khoản lần đầu, chỉ liên kết với tài khoản email có sẵn khi Google xác minh email; nút Google chỉ hiện khi có client ID. Không thêm thư viện backend; frontend thêm `expo-auth-session`. Hướng dẫn tạo OAuth client cho người dùng: docs/SETUP_GOOGLE.md. Test: backend 332, frontend 122 |

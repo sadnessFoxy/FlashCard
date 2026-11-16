@@ -26,11 +26,19 @@ const envConfig = {
   },
 } as const;
 
-const env = envConfig[APP_ENV as keyof typeof envConfig] ?? envConfig.development;
+const env =
+  envConfig[APP_ENV as keyof typeof envConfig] ?? envConfig.development;
 
 // API origin WITHOUT /v1 (contract paths already include it).
 // On a real phone set API_URL=http://<computer-LAN-IP>:8000; localhost is the phone itself.
 const apiUrl = process.env.API_URL ?? env.apiUrl;
+
+// Google OAuth client IDs (public, not secrets). Empty = no Google button (docs/SETUP_GOOGLE.md).
+const google = {
+  webClientId: process.env.GOOGLE_WEB_CLIENT_ID ?? "",
+  androidClientId: process.env.GOOGLE_ANDROID_CLIENT_ID ?? "",
+  iosClientId: process.env.GOOGLE_IOS_CLIENT_ID ?? "",
+};
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
@@ -67,6 +75,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   extra: {
     apiUrl,
     appEnv: APP_ENV,
+    google,
     eas: {
       projectId: "your-eas-project-id",
     },

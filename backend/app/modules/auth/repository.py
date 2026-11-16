@@ -45,6 +45,14 @@ class AuthRepository:
             .values(revoked_at=now)
         )
 
+    async def identity(self, provider: str, subject: str) -> AuthIdentity | None:
+        result = await self._session.execute(
+            select(AuthIdentity).where(
+                AuthIdentity.provider == provider, AuthIdentity.provider_subject == subject
+            )
+        )
+        return result.scalar_one_or_none()
+
     async def email_identity(self, user_id: uuid.UUID) -> AuthIdentity | None:
         result = await self._session.execute(
             select(AuthIdentity).where(

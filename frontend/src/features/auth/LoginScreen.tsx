@@ -16,6 +16,7 @@ import { TextField } from "../../components/ui/TextField";
 import { colors, fontSize, radius, spacing } from "../../theme/tokens";
 import { login, register } from "./api";
 import { authErrorMessage } from "./errorMessage";
+import { GoogleSignInButton } from "./GoogleSignInButton";
 import { useAuthStore } from "./useAuthStore";
 
 type Mode = "login" | "register";
@@ -171,6 +172,7 @@ export function LoginScreen() {
             loading={submitting}
             testID="auth-submit"
           />
+          <GoogleSignInButton onSignedIn={signedIn} onError={setFormError} />
           {mode === "login" && (
             <Pressable
               accessibilityRole="link"

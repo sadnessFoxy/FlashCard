@@ -61,7 +61,7 @@
 | 4 | | Cấp access token và refresh token |
 
 Quy tắc:
-- **Liên kết tài khoản** khi cùng một email xuất hiện ở nhiều cách đăng nhập `[đề xuất: tự liên kết nếu email từ Google đã được xác minh; nếu không thì yêu cầu đăng nhập bằng cách cũ rồi mới liên kết; cần chốt]`.
+- **Liên kết tài khoản** khi cùng một email xuất hiện ở nhiều cách đăng nhập tự liên kết nếu email từ Google đã được xác minh; nếu không thì yêu cầu đăng nhập bằng cách cũ rồi mới liên kết (đã chốt, làm ở F3).
 - Giới hạn số lần đăng nhập sai (chống brute-force); thông báo lỗi không cho biết email có tồn tại hay không.
 
 ### U2. Xác minh email (chỉ tài khoản email và mật khẩu)

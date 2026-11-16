@@ -225,6 +225,10 @@ class AuthService:
         await self._repo.revoke_family(family_id, now)
         await self._session.commit()
 
+    async def start_session(self, user: User, client: ClientInfo) -> IssuedSession:
+        """A new session (refresh token family) for an already authenticated user."""
+        return await self._start_session(user, client)
+
     async def _start_session(self, user: User, client: ClientInfo) -> IssuedSession:
         now = _utcnow()
         issued, _ = await self._issue(

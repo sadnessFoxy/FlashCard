@@ -83,3 +83,11 @@ class ChangePasswordRequest(BaseModel):
 
     current_password: str = Field(max_length=1024)
     new_password: str = Field(max_length=1024)
+
+
+class GoogleSignInRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id_token: str = Field(min_length=1, max_length=8192)
+    # Interface language for a brand new account (ignored when the account exists).
+    locale: Locale = "vi"

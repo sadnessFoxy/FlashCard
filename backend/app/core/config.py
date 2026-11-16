@@ -61,6 +61,13 @@ class Settings(BaseSettings):
     REGISTER_MAX_PER_IP: int = Field(default=5)
     REGISTER_WINDOW_SECONDS: int = Field(default=60 * 60)
 
+    # ------- Google sign-in (docs/specs/f3-google.md, docs/SETUP_GOOGLE.md) -------
+    GOOGLE_CLIENT_IDS: list[str] = Field(
+        default_factory=list,
+        description="OAuth client IDs (web, Android, iOS) tokens may be for; empty = off",
+    )
+    GOOGLE_JWKS_URL: str = Field(default="https://www.googleapis.com/oauth2/v3/certs")
+
     # ------- One-time codes: email verification, password reset (docs/specs/f4-email-codes.md)
     AUTH_CODE_TTL_MINUTES: int = Field(default=15)
     AUTH_CODE_MAX_ATTEMPTS: int = Field(default=5, description="Wrong entries before a code dies")
@@ -223,9 +230,10 @@ class Settings(BaseSettings):
         default=40, description="More headings than this: split by page ranges instead"
     )
 
-    @field_validator("CORS_ORIGINS", mode="before")
+    @field_validator("CORS_ORIGINS", "GOOGLE_CLIENT_IDS", mode="before")
     @classmethod
-    def parse_cors_origins(cls, v: str | list[str]) -> list[str]:
+    def parse_string_list(cls, v: str | list[str]) -> list[str]:
+        """A JSON array or a comma-separated string."""
         if isinstance(v, list):
             return [str(origin) for origin in v]
         # JSON array string

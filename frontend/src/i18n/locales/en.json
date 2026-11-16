@@ -40,6 +40,14 @@
         "same_as_email": "Password can't be the same as your email"
       },
       "invalidCode": "That code is wrong or has expired. Check it or send a new one."
+    },
+    "google": {
+      "button": "Continue with Google",
+      "errors": {
+        "invalid": "Google sign-in could not be verified. Try again.",
+        "linkRequired": "This email already has an account. Sign in with your password first, then Google will work.",
+        "notConfigured": "Google sign-in is not set up on the server."
+      }
     }
   },
   "errors": {
