@@ -57,7 +57,7 @@
 | Giao diện quản trị | Có; tách luồng người dùng và luồng quản trị | Xem docs/BUSINESS_FLOWS.md phần 2 | 2026-10-29 | Đã chốt |
 | Hình thức giao diện quản trị | Chỉ web, nhóm route riêng trong cùng codebase, API `/v1/admin/` | Mặc định đề xuất | 2026-11-07 | Đã chốt (mặc định) |
 | Quyền của quản trị viên với nội dung người dùng | Không xem nội dung tài liệu và hội thoại, chỉ siêu dữ liệu và thống kê; ghi nhật ký kiểm toán | Mặc định đề xuất | 2026-11-07 | Đã chốt (mặc định) |
-| Xác thực hai bước cho tài khoản quản trị | Có (làm ở lát quản trị, có thể hoãn nếu chỉ chạy thử) | Mặc định đề xuất | 2026-11-07 | Đã chốt (mặc định) |
+| Xác thực hai bước cho tài khoản quản trị | Có, **hoãn** tới trước khi đưa lên mạng (F16 làm khi chỉ chạy thử) | Mặc định đề xuất | 2026-11-16 | Đã chốt, đang hoãn |
 | Kênh nhận cảnh báo của quản trị viên | Email (Mailpit khi chạy local) | Mặc định đề xuất | 2026-11-07 | Đã chốt (mặc định) |
 | Thuật toán lập lịch ôn tập | SM-2 | | 2026-10-29 | Đã chốt |
 | Định dạng trả lời dần (F7) | Server-Sent Events trên `POST /v1/conversations/{id}/messages` (start, citations, delta, done, error); lỗi trước khi bắt đầu luồng là JSON `ErrorResponse`. Mobile đọc luồng bằng `expo/fetch`, web bằng `fetch` | Không cần WebSocket; chạy qua HTTP thường, dễ test | 2026-11-13 | Đã chốt (tự quyết theo quyền người dùng cấp) |
@@ -75,6 +75,7 @@
 | Đổi mật khẩu khi đang đăng nhập (F15) | Cần mật khẩu hiện tại; thu hồi mọi phiên, cấp phiên mới cho thiết bị đang dùng; gửi email báo | Phiên bị lộ trên máy khác bị cắt ngay, người dùng không phải đăng nhập lại | 2026-11-14 | Đã chốt (tự quyết) |
 | Trắc nghiệm (F11) | 4 lựa chọn một đáp án; code xáo lựa chọn và chấm điểm, không nhờ AI chấm; 5 lần tạo mỗi ngày, tối đa 20 câu; bài làm dở lưu trên máy | Chấm minh bạch, không tốn AI; đáp án không dồn vào một vị trí | 2026-11-14 | Đã chốt (tự quyết) |
 | Chia chương cho tóm tắt (F12) | Tìm tiêu đề trong văn bản PDF bằng bộ nhận diện tiêu đề của bước chia đoạn, lưu lại; không có tiêu đề (hoặc hơn 40) thì chia 10 trang; 10 lượt tóm tắt mỗi ngày | Chạy được với tài liệu đã tải trước đó, không phải xử lý lại; dễ đoán với người học | 2026-11-14 | Đã chốt (tự quyết) |
+| Cấu hình chạy và công tắc tắt AI (F16) | Lưu trong `app_settings`, mỗi tiến trình đọc lại sau tối đa 15 giây; công tắc tắt AI đặt trong cổng gọi AI và dùng chung cách suy giảm với cầu dao mở | Không cần triển khai lại; mọi tính năng suy giảm thống nhất | 2026-11-16 | Đã chốt (tự quyết) |
 | Thời điểm commit phiên database | Mọi endpoint dùng `Depends(get_db, scope="function")`: commit xong mới gửi phản hồi | FastAPI mặc định chạy phần dọn dẹp sau khi gửi phản hồi, gây lỗi đọc ngay sau ghi (thấy khi thử thật F7) | 2026-11-13 | Đã chốt |
 | Cách sinh code frontend từ contract | `openapi-typescript` sinh kiểu vào `frontend/src/api/generated/schema.ts`; gọi mạng vẫn qua `src/api/client.ts` duy nhất. File sinh ra được commit, CI chạy lại và báo lỗi nếu lệch contract | Không cần Java như openapi-generator; giữ một API client duy nhất (token, retry, refresh) | 2026-11-08 | Đã chốt |
 | Ngưỡng coverage bắt buộc | Bỏ ngưỡng cứng 80% trong pytest, vẫn in báo cáo coverage | Theo docs/TESTING.md: không đặt mục tiêu coverage máy móc; phần lớn code khung chưa có tính năng để test. Xem lại khi xong các lát lõi | 2026-11-08 | Đã chốt |

@@ -15,6 +15,7 @@ from app.core.redis import close_redis
 from app.db.session import AsyncSessionLocal, engine
 from app.integrations.llm_gateway.gateway import LLMGateway
 from app.integrations.object_storage import object_storage
+from app.modules.admin.runtime_config import runtime_config
 from app.modules.ai.providers.gemini import GeminiProvider
 from app.modules.documents.ingestion import IngestionPipeline
 from app.modules.documents.queue import ArqJobQueue
@@ -31,7 +32,10 @@ async def startup(ctx: dict[str, Any]) -> None:
     ctx["provider"] = provider
     ctx["queue"] = queue
     ctx["pipeline"] = IngestionPipeline(
-        AsyncSessionLocal, object_storage, LLMGateway(provider), queue
+        AsyncSessionLocal,
+        object_storage,
+        LLMGateway(provider, enabled=runtime_config.ai_enabled),
+        queue,
     )
     logger.info("Worker started (environment=%s)", settings.ENVIRONMENT)
 

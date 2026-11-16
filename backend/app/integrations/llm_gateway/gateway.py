@@ -45,7 +45,10 @@ class LLMGateway:
         breaker: CircuitBreaker | None = None,
         sleep: Sleep = asyncio.sleep,
         recorder: UsageRecorder = record_ai_usage,
+        enabled: Callable[[], Awaitable[bool]] | None = None,
     ) -> None:
+        """`enabled`: the admin emergency switch (A5); off makes every call fail fast."""
+        self._enabled = enabled
         self._provider = provider
         self._breaker = breaker or CircuitBreaker(failure_threshold=5, recovery_timeout=60.0)
         self._sleep = sleep
@@ -67,6 +70,7 @@ class LLMGateway:
         fn: Callable[[], Awaitable[T]],
         output_tokens: Callable[[T], int] = lambda _: 0,
     ) -> T:
+        await self._ensure_enabled()
         transient_failures = 0
         rate_limit_waits = 0
         while True:
@@ -112,6 +116,11 @@ class LLMGateway:
                 operation, user_id, started, True, None, input_tokens, output_tokens(result)
             )
             return result
+
+    async def _ensure_enabled(self) -> None:
+        # Same error as an open breaker, so every feature degrades the same way (U8).
+        if self._enabled is not None and not await self._enabled():
+            raise AiCircuitOpenError()
 
     async def _log(
         self,
@@ -185,6 +194,7 @@ class LLMGateway:
         user_id: str | None = None,
     ) -> AsyncGenerator[str, None]:
         """Streaming is not retried mid-stream; errors surface to the caller (F7)."""
+        await self._ensure_enabled()
         if self._breaker.state == CircuitState.OPEN:
             raise AiCircuitOpenError()
         started = time.perf_counter()

@@ -47,6 +47,11 @@ tags:
   - name: summaries
     description: |
       Chapter summaries made on request, saved and reused (spec: docs/specs/f12-summaries.md).
+  - name: admin
+    description: |
+      Admin console (spec: docs/specs/f16-admin.md). The admin role is checked on the server for
+      every call (`FORBIDDEN` otherwise). Metadata only: never document or chat content (R13).
+      Every change is written to the audit log.
 security:
   - BearerAuth: []
   - CookieAuth: []
@@ -1508,6 +1513,387 @@ paths:
           $ref: "#/components/responses/NotFound"
         "422":
           $ref: "#/components/responses/ValidationError"
+  /v1/admin/overview:
+    get:
+      tags: [admin]
+      operationId: adminOverview
+      summary: Usage, documents, AI and queue at a glance (A2)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminOverview"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/AdminForbidden"
+  /v1/admin/users:
+    get:
+      tags: [admin]
+      operationId: adminListUsers
+      summary: Users, newest first; `q` searches the email (A3)
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+            maxLength: 254
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUserList"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/AdminForbidden"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /v1/admin/users/{user_id}:
+    parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    get:
+      tags: [admin]
+      operationId: adminGetUser
+      summary: One user (metadata only)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUser"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/AdminForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /v1/admin/users/{user_id}/block:
+    parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags: [admin]
+      operationId: adminBlockUser
+      summary: Block a user and revoke every session; the reason is audited
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminReasonRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUser"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/AdminForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: "`CANNOT_TARGET_SELF`, or `DOCUMENT_NOT_RETRYABLE` for a retry"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /v1/admin/users/{user_id}/unblock:
+    parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags: [admin]
+      operationId: adminUnblockUser
+      summary: Unblock a user
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUser"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/AdminForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /v1/admin/users/{user_id}/sign-out:
+    parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags: [admin]
+      operationId: adminSignOutUser
+      summary: Revoke every session of a user
+      responses:
+        "204":
+          description: Done
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/AdminForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: "`CANNOT_TARGET_SELF`, or `DOCUMENT_NOT_RETRYABLE` for a retry"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /v1/admin/users/{user_id}/quota:
+    parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    put:
+      tags: [admin]
+      operationId: adminSetUserQuota
+      summary: Set (or clear with null) a daily question limit for one user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminQuotaRequest"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminUser"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/AdminForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /v1/admin/users/{user_id}/deletion:
+    parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags: [admin]
+      operationId: adminDeleteUser
+      summary: Delete an account on the user's request (U9); the reason is audited
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminReasonRequest"
+      responses:
+        "204":
+          description: Done
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/AdminForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: "`CANNOT_TARGET_SELF`, or `DOCUMENT_NOT_RETRYABLE` for a retry"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /v1/admin/documents:
+    get:
+      tags: [admin]
+      operationId: adminListDocuments
+      summary: Documents and their latest job, optionally by status (A4)
+      parameters:
+        - name: status
+          in: query
+          schema:
+            $ref: "#/components/schemas/DocumentStatus"
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 200
+            default: 100
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminDocumentList"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/AdminForbidden"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /v1/admin/documents/{document_id}/retry:
+    parameters:
+      - name: document_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    post:
+      tags: [admin]
+      operationId: adminRetryDocument
+      summary: Retry a FAILED or PAUSED_QUOTA document
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminDocument"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/AdminForbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          description: "`CANNOT_TARGET_SELF`, or `DOCUMENT_NOT_RETRYABLE` for a retry"
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /v1/admin/settings:
+    get:
+      tags: [admin]
+      operationId: adminGetSettings
+      summary: Runtime settings and their environment defaults (A5)
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminSettings"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/AdminForbidden"
+    patch:
+      tags: [admin]
+      operationId: adminUpdateSettings
+      summary: Change runtime settings; applied by every process within 15 seconds
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AdminSettingsPatch"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminSettings"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/AdminForbidden"
+        "422":
+          $ref: "#/components/responses/ValidationError"
+  /v1/admin/audit:
+    get:
+      tags: [admin]
+      operationId: adminListAudit
+      summary: Audit log, newest first (A7); read only
+      parameters:
+        - name: action
+          in: query
+          schema:
+            type: string
+            maxLength: 64
+        - name: actor_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 500
+            default: 100
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AdminAuditList"
+        "401":
+          $ref: "#/components/responses/UnauthorizedError"
+        "403":
+          $ref: "#/components/responses/AdminForbidden"
+        "422":
+          $ref: "#/components/responses/ValidationError"
 components:
   parameters:
     SpaceId:
@@ -2493,6 +2879,234 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Section"
+    AdminOverview:
+      type: object
+      additionalProperties: false
+      required: [users_total, users_active_today, documents_by_status, questions_today, ai_calls_today, ai_failures_today, ai_tokens_today, ai_daily_token_budget, ai_budget_used_percent, ai_enabled, circuit_state, queue_length]
+      properties:
+        users_total:
+          type: integer
+          minimum: 0
+        users_active_today:
+          type: integer
+          minimum: 0
+        documents_by_status:
+          type: object
+          additionalProperties:
+            type: integer
+        questions_today:
+          type: integer
+          minimum: 0
+        ai_calls_today:
+          type: integer
+          minimum: 0
+        ai_failures_today:
+          type: integer
+          minimum: 0
+        ai_tokens_today:
+          type: integer
+          minimum: 0
+        ai_daily_token_budget:
+          type: integer
+          minimum: 0
+        ai_budget_used_percent:
+          type: [number, "null"]
+          description: Null when no budget is set.
+        ai_enabled:
+          type: boolean
+        circuit_state:
+          type: string
+          enum: [closed, open, half_open]
+        queue_length:
+          type: integer
+          minimum: 0
+    AdminUser:
+      type: object
+      additionalProperties: false
+      required: [id, email, role, status, sign_in_methods, email_verified, created_at, document_count, questions_today, quota_override]
+      properties:
+        id:
+          type: string
+          format: uuid
+        email:
+          type: string
+        role:
+          type: string
+          enum: [user, admin]
+        status:
+          type: string
+          enum: [active, blocked]
+        sign_in_methods:
+          type: array
+          items:
+            type: string
+            enum: [email, google]
+        email_verified:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        document_count:
+          type: integer
+          minimum: 0
+        questions_today:
+          type: integer
+          minimum: 0
+        quota_override:
+          type: [object, "null"]
+          additionalProperties: false
+          required: [daily_limit, expires_at]
+          properties:
+            daily_limit:
+              type: integer
+              minimum: 0
+            expires_at:
+              type: [string, "null"]
+              format: date-time
+    AdminUserList:
+      type: object
+      additionalProperties: false
+      required: [items, total]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminUser"
+        total:
+          type: integer
+          minimum: 0
+    AdminReasonRequest:
+      type: object
+      additionalProperties: false
+      required: [reason]
+      properties:
+        reason:
+          type: string
+          minLength: 1
+          maxLength: 500
+    AdminQuotaRequest:
+      type: object
+      additionalProperties: false
+      required: [daily_limit]
+      properties:
+        daily_limit:
+          type: [integer, "null"]
+          minimum: 0
+          maximum: 10000
+          description: Null removes the override (back to the default).
+        expires_at:
+          type: [string, "null"]
+          format: date-time
+    AdminDocument:
+      type: object
+      additionalProperties: false
+      required: [id, owner_id, owner_email, filename, file_kind, text_source, page_count, status, error_code, created_at, updated_at, last_job]
+      properties:
+        id:
+          type: string
+          format: uuid
+        owner_id:
+          type: string
+          format: uuid
+        owner_email:
+          type: string
+        filename:
+          type: string
+        file_kind:
+          type: string
+        text_source:
+          type: [string, "null"]
+        page_count:
+          type: integer
+        status:
+          type: string
+        error_code:
+          type: [string, "null"]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        last_job:
+          type: [object, "null"]
+          additionalProperties: false
+          required: [status, attempts, last_error_code]
+          properties:
+            status:
+              type: string
+            attempts:
+              type: integer
+            last_error_code:
+              type: [string, "null"]
+    AdminDocumentList:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminDocument"
+    AdminSettings:
+      type: object
+      additionalProperties: false
+      required: [values, defaults]
+      properties:
+        values:
+          type: object
+          additionalProperties: true
+          description: "Current values: user_daily_query_limit, max_file_size_mb, max_pages, max_documents_per_user, ai_enabled, ai_daily_token_budget."
+        defaults:
+          type: object
+          additionalProperties: true
+          description: The environment values used when a setting was never changed.
+    AdminSettingsPatch:
+      type: object
+      additionalProperties: false
+      required: [values]
+      properties:
+        values:
+          type: object
+          additionalProperties: true
+          minProperties: 1
+    AdminAuditEntry:
+      type: object
+      additionalProperties: false
+      required: [id, actor_email, action, target_type, target_id, before, after, reason, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        actor_email:
+          type: string
+        action:
+          type: string
+          examples: [user.block, settings.update]
+        target_type:
+          type: string
+        target_id:
+          type: [string, "null"]
+        before:
+          type: [object, "null"]
+          additionalProperties: true
+        after:
+          type: [object, "null"]
+          additionalProperties: true
+        reason:
+          type: [string, "null"]
+        created_at:
+          type: string
+          format: date-time
+    AdminAuditList:
+      type: object
+      additionalProperties: false
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/AdminAuditEntry"
     Locale:
       type: string
       enum: [vi, en]
@@ -2795,6 +3409,12 @@ components:
             $ref: "#/components/schemas/ErrorResponse"
     InvalidCode:
       description: "`INVALID_CODE`: wrong, expired, already used, or too many wrong tries"
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorResponse"
+    AdminForbidden:
+      description: "`FORBIDDEN` (not an admin) or `CSRF_REJECTED`"
       content:
         application/json:
           schema:

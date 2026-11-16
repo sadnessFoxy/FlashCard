@@ -105,7 +105,8 @@
       "confirmationMismatch": "Email nhập lại không khớp."
     },
     "quizzesLeft": "Còn {{remaining}}/{{limit}} lượt tạo trắc nghiệm hôm nay",
-    "summariesLeft": "Còn {{remaining}}/{{limit}} lượt tóm tắt hôm nay"
+    "summariesLeft": "Còn {{remaining}}/{{limit}} lượt tóm tắt hôm nay",
+    "adminConsole": "Trang quản trị"
   },
   "spaces": {
     "title": "Không gian",
@@ -383,6 +384,114 @@
     "make": "Tạo tóm tắt",
     "errors": {
       "quota": "Bạn đã dùng hết lượt tóm tắt hôm nay. Các tóm tắt đã tạo vẫn xem được."
+    }
+  },
+  "admin": {
+    "webOnly": "Trang quản trị chỉ dùng trên trình duyệt web.",
+    "notAdmin": "Tài khoản này không có quyền quản trị.",
+    "loadError": "Không tải được dữ liệu quản trị.",
+    "reason": "Lý do",
+    "nav": {
+      "overview": "Tổng quan",
+      "users": "Người dùng",
+      "documents": "Tài liệu và job",
+      "settings": "Cấu hình",
+      "audit": "Nhật ký",
+      "exit": "Về ứng dụng"
+    },
+    "overview": {
+      "title": "Tổng quan",
+      "users": "Người dùng",
+      "activeToday": "Hoạt động hôm nay",
+      "questionsToday": "Câu hỏi hôm nay",
+      "aiCalls": "Lượt gọi AI hôm nay",
+      "aiFailures": "Lượt gọi AI lỗi",
+      "tokens": "Token hôm nay",
+      "budget": "Ngân sách token",
+      "ai": "AI",
+      "aiOn": "Đang bật",
+      "aiOff": "Đang tắt",
+      "breaker": "Cầu dao AI",
+      "breakerState": {
+        "closed": "Bình thường",
+        "open": "Đang ngắt",
+        "half_open": "Đang thử lại"
+      },
+      "queue": "Job đang chờ",
+      "documents": "Tài liệu theo trạng thái",
+      "note": "Trạng thái cầu dao là của tiến trình API đang trả lời. Chưa có số liệu thời gian phản hồi (p95)."
+    },
+    "users": {
+      "title": "Người dùng",
+      "search": "Tìm theo email",
+      "total_one": "{{count}} người dùng",
+      "total_other": "{{count}} người dùng",
+      "admin": "quản trị",
+      "status": {
+        "active": "Đang hoạt động",
+        "blocked": "Đã khóa"
+      },
+      "documents_one": "{{count}} tài liệu",
+      "documents_other": "{{count}} tài liệu",
+      "questionsToday_one": "{{count}} câu hỏi hôm nay",
+      "questionsToday_other": "{{count}} câu hỏi hôm nay",
+      "verified": "Đã xác minh email",
+      "unverified": "Chưa xác minh email",
+      "privacy": "Quản trị viên không xem được nội dung tài liệu và hội thoại của người dùng.",
+      "block": "Khóa tài khoản",
+      "unblock": "Mở khóa",
+      "signOut": "Buộc đăng xuất",
+      "delete": "Xóa tài khoản",
+      "quotaTitle": "Hạn mức hỏi đáp riêng",
+      "quotaCurrent": "Đang đặt: {{limit}} câu mỗi ngày, đến {{until}}",
+      "noExpiry": "khi gỡ bỏ",
+      "quotaDefault": "Đang dùng hạn mức mặc định.",
+      "quotaLimit": "Số câu mỗi ngày",
+      "quotaDays": "Trong bao nhiêu ngày (bỏ trống: không thời hạn)",
+      "quotaClear": "Gỡ hạn mức riêng",
+      "confirm": {
+        "block": {
+          "title": "Khóa tài khoản?",
+          "message": "Người dùng bị đăng xuất ngay và không đăng nhập được cho tới khi mở khóa."
+        },
+        "signOut": {
+          "title": "Buộc đăng xuất?",
+          "message": "Mọi phiên đăng nhập của người dùng sẽ bị thu hồi."
+        },
+        "delete": {
+          "title": "Xóa tài khoản theo yêu cầu?",
+          "message": "Toàn bộ dữ liệu của người dùng bị xóa vĩnh viễn. Chỉ làm khi người dùng yêu cầu; ghi lý do hoặc mã yêu cầu."
+        }
+      }
+    },
+    "documents": {
+      "title": "Tài liệu và job",
+      "all": "Tất cả",
+      "empty": "Không có tài liệu nào.",
+      "attempts_one": "{{count}} lần thử",
+      "attempts_other": "{{count}} lần thử"
+    },
+    "settings": {
+      "title": "Cấu hình",
+      "ai_enabled": "Tính năng AI",
+      "aiHint": "Tắt khẩn cấp: hỏi đáp chuyển sang chỉ tìm đoạn, tài liệu mới chờ xử lý, tạo thẻ và trắc nghiệm báo AI tạm nghỉ.",
+      "user_daily_query_limit": "Câu hỏi mỗi người mỗi ngày",
+      "max_file_size_mb": "Dung lượng tối đa (MB)",
+      "max_pages": "Số trang tối đa",
+      "max_documents_per_user": "Số tài liệu mỗi người",
+      "ai_daily_token_budget": "Ngân sách token mỗi ngày (0: không đặt)",
+      "default": "mặc định {{value}}",
+      "review": "Xem lại thay đổi",
+      "save": "Lưu thay đổi",
+      "invalid": "Có giá trị không hợp lệ.",
+      "applies": "Thay đổi áp dụng cho mọi tiến trình trong khoảng 15 giây và được ghi vào nhật ký."
+    },
+    "audit": {
+      "title": "Nhật ký kiểm toán",
+      "empty": "Chưa có thao tác nào."
+    },
+    "errors": {
+      "self": "Không thể thực hiện thao tác này với chính tài khoản của bạn."
     }
   }
 }

@@ -28,7 +28,12 @@ class AccountDeletion:
         self._queue = queue
 
     async def delete(self, user: User, *, password: str | None, confirm_email: str | None) -> None:
+        """Self-service deletion: the user confirms first."""
         await self._confirm(user, password, confirm_email)
+        await self.erase(user)
+
+    async def erase(self, user: User) -> None:
+        """Delete without confirmation (admins handling a deletion request, A3)."""
         files = await DocumentRepository(self._session).all_for_owner(user.id)
         await self._session.execute(delete(User).where(User.id == user.id))
         await self._session.commit()

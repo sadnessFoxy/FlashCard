@@ -1,4 +1,4 @@
-.PHONY: setup dev worker dev-backend dev-frontend test test-backend test-frontend lint lint-fix typecheck migrate migrate-create gen-api infra-up infra-down infra-logs
+.PHONY: setup create-admin dev worker dev-backend dev-frontend test test-backend test-frontend lint lint-fix typecheck migrate migrate-create gen-api infra-up infra-down infra-logs
 
 # ==========================================
 # FlashCard Makefile
@@ -54,6 +54,10 @@ typecheck:
 
 migrate:
 	cd backend && $(PY) -m alembic upgrade head
+
+# Make an existing account an admin: make create-admin email=someone@example.com
+create-admin:
+	cd backend && $(PY) -m app.scripts.create_admin $(email)
 
 migrate-create:
 	cd backend && $(PY) -m alembic revision --autogenerate -m "$(name)"

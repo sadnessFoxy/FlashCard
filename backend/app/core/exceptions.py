@@ -304,3 +304,13 @@ class NoPasswordError(AppError):
 class ConfirmationMismatchError(AppError):
     def __init__(self) -> None:
         super().__init__("CONFIRMATION_MISMATCH", "The confirmation does not match", 422)
+
+
+# ------- Admin (docs/specs/f16-admin.md) -------
+
+
+class CannotTargetSelfError(AppError):
+    """An admin may not block, sign out or delete their own account from the admin UI."""
+
+    def __init__(self) -> None:
+        super().__init__("CANNOT_TARGET_SELF", "This action cannot target your own account", 409)

@@ -17,6 +17,7 @@ from app.integrations.llm_gateway.circuit_breaker import CircuitBreaker
 from app.integrations.llm_gateway.dependency import get_gateway
 from app.integrations.llm_gateway.gateway import LLMGateway
 from app.main import app
+from app.modules.admin.runtime_config import runtime_config
 from app.modules.ai.providers.fake import FakeProvider
 from app.modules.documents.models import Document, DocumentChunk
 from app.modules.documents.states import READY
@@ -50,7 +51,14 @@ async def _noop(*_: object, **__: object) -> None:
 @pytest_asyncio.fixture
 async def ai() -> AsyncGenerator[TopicProvider, None]:
     provider = TopicProvider()
-    gateway = LLMGateway(provider, breaker=CircuitBreaker(), sleep=_noop, recorder=_noop)
+    # Same wiring as get_gateway(): the admin AI switch applies in tests too.
+    gateway = LLMGateway(
+        provider,
+        breaker=CircuitBreaker(),
+        sleep=_noop,
+        recorder=_noop,
+        enabled=runtime_config.ai_enabled,
+    )
     app.dependency_overrides[get_gateway] = lambda: gateway
     yield provider
 

@@ -1,7 +1,14 @@
 import { useRouter } from "expo-router";
 import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 
 import { Button } from "../../components/ui/Button";
 import { ChipGroup } from "../../components/ui/ChipGroup";
@@ -119,6 +126,14 @@ export function ProfileScreen() {
       </Section>
 
       <View style={styles.actions}>
+        {user?.role === "admin" && Platform.OS === "web" ? (
+          <Button
+            label={t("profile.adminConsole")}
+            variant="secondary"
+            onPress={() => router.push("/admin")}
+            testID="profile-admin"
+          />
+        ) : null}
         <Button
           label={t("profile.changePassword")}
           variant="secondary"

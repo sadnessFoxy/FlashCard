@@ -147,6 +147,9 @@ class Settings(BaseSettings):
         default=10,
         description="Maximum documents per user",
     )
+    AI_DAILY_TOKEN_BUDGET: int = Field(
+        default=0, description="Tokens per day shown as a budget in the admin overview; 0 = none"
+    )
     USER_DAILY_QUERY_LIMIT: int = Field(
         default=30,
         description="Maximum AI queries per user per day",

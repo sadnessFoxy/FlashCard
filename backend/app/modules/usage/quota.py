@@ -19,6 +19,7 @@ from app.core.config import settings
 from app.core.exceptions import AppError, UserQuotaExceededError
 from app.core.logging import get_logger
 from app.core.redis import get_redis
+from app.modules.admin.quota_limits import question_limit
 
 logger = get_logger(__name__)
 T = TypeVar("T")
@@ -45,10 +46,24 @@ def _today_and_reset(now: datetime | None = None) -> tuple[str, datetime]:
     return local.strftime("%Y%m%d"), midnight.astimezone(UTC)
 
 
+def today_started_at(now: datetime | None = None) -> datetime:
+    """Start of the current quota day (local midnight), in UTC."""
+    _, reset = _today_and_reset(now)
+    return reset - timedelta(days=1)
+
+
+LimitFor = Callable[[uuid.UUID], Awaitable[int]]
+
+
 class DailyQuota:
     def __init__(
-        self, kind: str, limit: int, redis: Redis | None = None, now: datetime | None = None
+        self,
+        kind: str,
+        limit: int | LimitFor,
+        redis: Redis | None = None,
+        now: datetime | None = None,
     ) -> None:
+        """`limit` is a fixed number, or a per-user lookup (admin overrides, runtime config)."""
         self._kind = kind
         self._limit = limit
         self._redis = redis
@@ -57,6 +72,9 @@ class DailyQuota:
     @property
     def redis(self) -> Redis:
         return self._redis or get_redis()
+
+    async def _limit_for(self, user_id: uuid.UUID) -> int:
+        return self._limit if isinstance(self._limit, int) else await self._limit(user_id)
 
     def _key(self, user_id: uuid.UUID) -> tuple[str, datetime]:
         day, reset = _today_and_reset(self._now)
@@ -69,17 +87,18 @@ class DailyQuota:
         except RedisError as exc:
             logger.warning("Quota read failed, allowing (%s)", type(exc).__name__)
             used = 0
-        return QuotaStatus(self._limit, used, reset)
+        return QuotaStatus(await self._limit_for(user_id), used, reset)
 
     async def reserve(self, user_id: uuid.UUID) -> bool:
         """Take one question atomically; False when the limit is already reached."""
         key, reset = self._key(user_id)
+        limit = await self._limit_for(user_id)
         try:
             async with self.redis.pipeline(transaction=True) as pipe:
                 pipe.incr(key)
                 pipe.expireat(key, reset + timedelta(hours=1))
                 used, _ = await pipe.execute()
-            if int(used) > self._limit:
+            if int(used) > limit:
                 await self.redis.decr(key)
                 return False
             return True
@@ -116,7 +135,7 @@ class QuestionQuota(DailyQuota):
     """Q&A questions (docs/specs/f7-qa.md)."""
 
     def __init__(self, redis: Redis | None = None, now: datetime | None = None) -> None:
-        super().__init__("questions", settings.USER_DAILY_QUERY_LIMIT, redis, now)
+        super().__init__("questions", question_limit, redis, now)
 
 
 class CardSuggestionQuota(DailyQuota):

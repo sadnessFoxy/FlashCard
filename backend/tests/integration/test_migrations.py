@@ -32,6 +32,9 @@ AUTH_TABLES = {
     "quiz_attempts",
     "document_sections",
     "document_summaries",
+    "admin_audit_logs",
+    "app_settings",
+    "user_quota_overrides",
 }
 
 

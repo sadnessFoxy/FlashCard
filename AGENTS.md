@@ -32,7 +32,7 @@ Trợ lý học tập từ tài liệu: người dùng tải giáo trình (PDF, 
 10. **R10.** Không ghi mật khẩu, token, khóa API hoặc nội dung tài liệu nhạy cảm vào log. Không đưa email, tên, ID người dùng vào prompt nếu không cần.
 11. **R11.** Không dùng database production để chạy test hoặc phát triển.
 12. **R12.** Token đăng nhập trên mobile lưu bằng secure store; trên web dùng cookie `httpOnly`. Không dùng AsyncStorage hay `localStorage` cho token.
-13. **R13.** `[đề xuất, chờ người dùng xác nhận]` Quản trị viên không xem nội dung tài liệu hay hội thoại của người dùng. API quản trị nằm dưới `/v1/admin/`, kiểm tra vai trò ở backend; mọi thao tác quản trị ghi nhật ký kiểm toán.
+13. **R13.** `[đã áp dụng ở F16 theo quyền tự quyết người dùng cấp, đổi được]` Quản trị viên không xem nội dung tài liệu hay hội thoại của người dùng. API quản trị nằm dưới `/v1/admin/`, kiểm tra vai trò ở backend; mọi thao tác quản trị ghi nhật ký kiểm toán.
 14. **R14.** Mọi chuỗi hiển thị cho người dùng đi qua i18n (tiếng Việt và tiếng Anh); không viết cứng chuỗi, kể cả thông báo lỗi hiển thị từ mã lỗi API.
 15. **R15.** ID token của Google phải được xác thực ở backend; không tin dữ liệu danh tính do app tự gửi. Token đặt lại mật khẩu và xác minh email chỉ dùng một lần, có hạn, chỉ lưu dạng băm.
 
@@ -78,6 +78,7 @@ Tất cả lệnh được định nghĩa trong `Makefile` tại gốc repo.
 | `make lint-fix` | Tự động sửa lỗi lint |
 | `make typecheck` | mypy (backend) + tsc --noEmit (frontend) |
 | `make migrate` | Chạy Alembic migrations: `alembic upgrade head` |
+| `make create-admin email=...` | Cấp quyền quản trị cho một tài khoản đã đăng ký (không có đăng ký quản trị công khai) |
 | `make migrate-create name="tên migration"` | Tạo migration mới từ model changes |
 | `make gen-api` | Sinh TypeScript API client từ `contract/openapi.yaml` |
 | `make infra-up` | Khởi động Docker services (Postgres, Redis, Mailpit, SeaweedFS) |

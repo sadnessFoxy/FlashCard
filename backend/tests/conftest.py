@@ -38,12 +38,16 @@ from app.db.session import engine  # noqa: E402
 from app.integrations.email import get_mailer  # noqa: E402
 from app.integrations.llm_gateway.gateway import LLMGateway  # noqa: E402
 from app.main import app  # noqa: E402
+from app.modules.admin.runtime_config import runtime_config  # noqa: E402
 from app.modules.ai.providers.fake import FakeProvider  # noqa: E402
 from tests.fixtures.fakes import RecordingMailer  # noqa: E402
 
 ALLOWED_ORIGIN = "http://localhost:8081"
 BACKEND_DIR = Path(__file__).resolve().parents[1]
 _TABLES = (
+    "admin_audit_logs",
+    "app_settings",
+    "user_quota_overrides",
     "document_summaries",
     "document_sections",
     "quiz_attempts",
@@ -85,6 +89,7 @@ async def clean_db(migrated_db: None) -> AsyncGenerator[None, None]:
     async with engine.begin() as conn:
         await conn.execute(text(f"TRUNCATE {', '.join(_TABLES)} RESTART IDENTITY CASCADE"))
     await get_redis().flushdb()
+    runtime_config.invalidate()  # admin settings are cached per process
     yield
 
 

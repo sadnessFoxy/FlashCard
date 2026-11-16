@@ -105,7 +105,8 @@
       "confirmationMismatch": "The email doesn't match."
     },
     "quizzesLeft": "{{remaining}}/{{limit}} quiz generations left today",
-    "summariesLeft": "{{remaining}}/{{limit}} summaries left today"
+    "summariesLeft": "{{remaining}}/{{limit}} summaries left today",
+    "adminConsole": "Admin console"
   },
   "spaces": {
     "title": "Spaces",
@@ -383,6 +384,114 @@
     "make": "Summarize",
     "errors": {
       "quota": "You've used all your summaries for today. Summaries already made can still be viewed."
+    }
+  },
+  "admin": {
+    "webOnly": "The admin console works in a web browser only.",
+    "notAdmin": "This account is not an admin.",
+    "loadError": "Couldn't load admin data.",
+    "reason": "Reason",
+    "nav": {
+      "overview": "Overview",
+      "users": "Users",
+      "documents": "Documents and jobs",
+      "settings": "Settings",
+      "audit": "Audit log",
+      "exit": "Back to the app"
+    },
+    "overview": {
+      "title": "Overview",
+      "users": "Users",
+      "activeToday": "Active today",
+      "questionsToday": "Questions today",
+      "aiCalls": "AI calls today",
+      "aiFailures": "Failed AI calls",
+      "tokens": "Tokens today",
+      "budget": "Token budget",
+      "ai": "AI",
+      "aiOn": "On",
+      "aiOff": "Off",
+      "breaker": "AI circuit breaker",
+      "breakerState": {
+        "closed": "Normal",
+        "open": "Open",
+        "half_open": "Retrying"
+      },
+      "queue": "Queued jobs",
+      "documents": "Documents by status",
+      "note": "The breaker state is the one of the API process answering. Response time metrics (p95) are not collected yet."
+    },
+    "users": {
+      "title": "Users",
+      "search": "Search by email",
+      "total_one": "{{count}} user",
+      "total_other": "{{count}} users",
+      "admin": "admin",
+      "status": {
+        "active": "Active",
+        "blocked": "Blocked"
+      },
+      "documents_one": "{{count}} document",
+      "documents_other": "{{count}} documents",
+      "questionsToday_one": "{{count}} question today",
+      "questionsToday_other": "{{count}} questions today",
+      "verified": "Email verified",
+      "unverified": "Email not verified",
+      "privacy": "Admins cannot see users' documents or conversations.",
+      "block": "Block account",
+      "unblock": "Unblock",
+      "signOut": "Sign out everywhere",
+      "delete": "Delete account",
+      "quotaTitle": "Custom question limit",
+      "quotaCurrent": "Set: {{limit}} questions a day, until {{until}}",
+      "noExpiry": "removed",
+      "quotaDefault": "Using the default limit.",
+      "quotaLimit": "Questions per day",
+      "quotaDays": "For how many days (empty: no end)",
+      "quotaClear": "Remove custom limit",
+      "confirm": {
+        "block": {
+          "title": "Block this account?",
+          "message": "The user is signed out now and cannot sign in until unblocked."
+        },
+        "signOut": {
+          "title": "Sign out everywhere?",
+          "message": "Every session of this user will be revoked."
+        },
+        "delete": {
+          "title": "Delete on the user's request?",
+          "message": "All of this user's data is permanently deleted. Only do this on request; record the reason or ticket."
+        }
+      }
+    },
+    "documents": {
+      "title": "Documents and jobs",
+      "all": "All",
+      "empty": "No documents.",
+      "attempts_one": "{{count}} attempt",
+      "attempts_other": "{{count}} attempts"
+    },
+    "settings": {
+      "title": "Settings",
+      "ai_enabled": "AI features",
+      "aiHint": "Emergency switch: Q&A falls back to passages only, new documents wait, cards and quizzes say AI is resting.",
+      "user_daily_query_limit": "Questions per user per day",
+      "max_file_size_mb": "Maximum file size (MB)",
+      "max_pages": "Maximum pages",
+      "max_documents_per_user": "Documents per user",
+      "ai_daily_token_budget": "Daily token budget (0: none)",
+      "default": "default {{value}}",
+      "review": "Review changes",
+      "save": "Save changes",
+      "invalid": "Some values are invalid.",
+      "applies": "Changes reach every process within about 15 seconds and are written to the audit log."
+    },
+    "audit": {
+      "title": "Audit log",
+      "empty": "No actions yet."
+    },
+    "errors": {
+      "self": "You can't do this to your own account."
     }
   }
 }

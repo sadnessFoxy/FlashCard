@@ -10,7 +10,8 @@ _gateway: LLMGateway | None = None
 def get_gateway() -> LLMGateway:
     global _gateway
     if _gateway is None:
+        from app.modules.admin.runtime_config import runtime_config
         from app.modules.ai.providers.gemini import GeminiProvider
 
-        _gateway = LLMGateway(GeminiProvider())
+        _gateway = LLMGateway(GeminiProvider(), enabled=runtime_config.ai_enabled)
     return _gateway

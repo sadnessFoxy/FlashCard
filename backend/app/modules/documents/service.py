@@ -24,6 +24,7 @@ from app.core.exceptions import (
 )
 from app.core.logging import get_logger
 from app.integrations.object_storage import ObjectStorage
+from app.modules.admin.runtime_config import runtime_config
 from app.modules.documents.filenames import sanitize_filename
 from app.modules.documents.formats import CONTENT_TYPES, UnsupportedFileError, inspect_file
 from app.modules.documents.models import Document, DocumentJob
@@ -69,21 +70,22 @@ class DocumentService:
             return self._replay(existing, digest), False
 
         await self._check_allowed(user)
-        if len(data) > settings.max_file_size_bytes:
-            raise FileTooLargeError(settings.MAX_FILE_SIZE_MB)
+        limits = await runtime_config.values()
+        if len(data) > limits["max_file_size_mb"] * 1024 * 1024:
+            raise FileTooLargeError(limits["max_file_size_mb"])
         try:
             info = inspect_file(data)
         except UnsupportedFileError:
             raise FileTypeNotSupportedError("not a PDF or .docx") from None
         if info.encrypted:
             raise PdfEncryptedError()
-        if info.page_count > settings.MAX_PAGES:
-            raise TooManyPagesError(settings.MAX_PAGES)
+        if info.page_count > limits["max_pages"]:
+            raise TooManyPagesError(limits["max_pages"])
 
         safe_name = sanitize_filename(filename)
         await self._repo.lock_owner(user.id)
-        if await self._repo.count_for_owner(user.id) >= settings.MAX_DOCUMENTS_PER_USER:
-            raise DocumentLimitReachedError(settings.MAX_DOCUMENTS_PER_USER)
+        if await self._repo.count_for_owner(user.id) >= limits["max_documents_per_user"]:
+            raise DocumentLimitReachedError(limits["max_documents_per_user"])
         space = await self._resolve_space(user.id, space_id, safe_name)
 
         document_id = uuid.uuid4()

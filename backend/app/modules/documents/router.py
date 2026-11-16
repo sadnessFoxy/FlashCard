@@ -19,10 +19,10 @@ from fastapi import (
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import settings
 from app.core.exceptions import FileTooLargeError
 from app.db.session import get_db
 from app.integrations.object_storage import ObjectStorage, get_storage
+from app.modules.admin.runtime_config import runtime_config
 from app.modules.auth.dependencies import get_current_user
 from app.modules.documents.pages import PageReader
 from app.modules.documents.queue import JobQueue, get_job_queue
@@ -59,10 +59,11 @@ async def upload_document(
     idempotency_key: Annotated[uuid.UUID, Header(alias="Idempotency-Key")],
     space_id: Annotated[uuid.UUID | None, Form()] = None,
 ) -> DocumentOut:
-    limit = settings.max_file_size_bytes
+    max_mb = int(await runtime_config.get("max_file_size_mb"))
+    limit = max_mb * 1024 * 1024
     data = await file.read(limit + 1)  # never buffer more than the limit
     if len(data) > limit:
-        raise FileTooLargeError(settings.MAX_FILE_SIZE_MB)
+        raise FileTooLargeError(max_mb)
     document, created = await DocumentService(db, storage, queue).upload(
         user=user,
         data=data,
@@ -88,7 +89,7 @@ async def list_documents(
     return DocumentListOut(
         items=[DocumentOut.model_validate(d) for d in documents],
         total_documents=await service.count_for_owner(user.id),
-        max_documents=settings.MAX_DOCUMENTS_PER_USER,
+        max_documents=int(await runtime_config.get("max_documents_per_user")),
     )
 
 

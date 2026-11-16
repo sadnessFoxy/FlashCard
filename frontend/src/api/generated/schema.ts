@@ -751,6 +751,225 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/admin/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Usage, documents, AI and queue at a glance (A2) */
+        get: operations["adminOverview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Users, newest first; `q` searches the email (A3) */
+        get: operations["adminListUsers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/users/{user_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        /** One user (metadata only) */
+        get: operations["adminGetUser"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/users/{user_id}/block": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Block a user and revoke every session; the reason is audited */
+        post: operations["adminBlockUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/users/{user_id}/unblock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Unblock a user */
+        post: operations["adminUnblockUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/users/{user_id}/sign-out": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revoke every session of a user */
+        post: operations["adminSignOutUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/users/{user_id}/quota": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        /** Set (or clear with null) a daily question limit for one user */
+        put: operations["adminSetUserQuota"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/users/{user_id}/deletion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Delete an account on the user's request (U9); the reason is audited */
+        post: operations["adminDeleteUser"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Documents and their latest job, optionally by status (A4) */
+        get: operations["adminListDocuments"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/documents/{document_id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Retry a FAILED or PAUSED_QUOTA document */
+        post: operations["adminRetryDocument"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admin/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Runtime settings and their environment defaults (A5) */
+        get: operations["adminGetSettings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Change runtime settings; applied by every process within 15 seconds */
+        patch: operations["adminUpdateSettings"];
+        trace?: never;
+    };
+    "/v1/admin/audit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Audit log, newest first (A7); read only */
+        get: operations["adminListAudit"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1231,6 +1450,121 @@ export interface components {
             filename: string;
             items: components["schemas"]["Section"][];
         };
+        AdminOverview: {
+            users_total: number;
+            users_active_today: number;
+            documents_by_status: {
+                [key: string]: number;
+            };
+            questions_today: number;
+            ai_calls_today: number;
+            ai_failures_today: number;
+            ai_tokens_today: number;
+            ai_daily_token_budget: number;
+            /** @description Null when no budget is set. */
+            ai_budget_used_percent: number | null;
+            ai_enabled: boolean;
+            /** @enum {string} */
+            circuit_state: "closed" | "open" | "half_open";
+            queue_length: number;
+        };
+        AdminUser: {
+            /** Format: uuid */
+            id: string;
+            email: string;
+            /** @enum {string} */
+            role: "user" | "admin";
+            /** @enum {string} */
+            status: "active" | "blocked";
+            sign_in_methods: ("email" | "google")[];
+            email_verified: boolean;
+            /** Format: date-time */
+            created_at: string;
+            document_count: number;
+            questions_today: number;
+            quota_override: {
+                daily_limit: number;
+                /** Format: date-time */
+                expires_at: string | null;
+            } | null;
+        };
+        AdminUserList: {
+            items: components["schemas"]["AdminUser"][];
+            total: number;
+        };
+        AdminReasonRequest: {
+            reason: string;
+        };
+        AdminQuotaRequest: {
+            /** @description Null removes the override (back to the default). */
+            daily_limit: number | null;
+            /** Format: date-time */
+            expires_at?: string | null;
+        };
+        AdminDocument: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            owner_id: string;
+            owner_email: string;
+            filename: string;
+            file_kind: string;
+            text_source: string | null;
+            page_count: number;
+            status: string;
+            error_code: string | null;
+            /** Format: date-time */
+            created_at: string;
+            /** Format: date-time */
+            updated_at: string;
+            last_job: {
+                status: string;
+                attempts: number;
+                last_error_code: string | null;
+            } | null;
+        };
+        AdminDocumentList: {
+            items: components["schemas"]["AdminDocument"][];
+        };
+        AdminSettings: {
+            /** @description Current values: user_daily_query_limit, max_file_size_mb, max_pages, max_documents_per_user, ai_enabled, ai_daily_token_budget. */
+            values: {
+                [key: string]: unknown;
+            };
+            /** @description The environment values used when a setting was never changed. */
+            defaults: {
+                [key: string]: unknown;
+            };
+        };
+        AdminSettingsPatch: {
+            values: {
+                [key: string]: unknown;
+            };
+        };
+        AdminAuditEntry: {
+            /** Format: uuid */
+            id: string;
+            actor_email: string;
+            /**
+             * @example user.block
+             * @example settings.update
+             */
+            action: string;
+            target_type: string;
+            target_id: string | null;
+            before: {
+                [key: string]: unknown;
+            } | null;
+            after: {
+                [key: string]: unknown;
+            } | null;
+            reason: string | null;
+            /** Format: date-time */
+            created_at: string;
+        };
+        AdminAuditList: {
+            items: components["schemas"]["AdminAuditEntry"][];
+        };
         /** @enum {string} */
         Locale: "vi" | "en";
         /** @enum {string} */
@@ -1421,6 +1755,15 @@ export interface components {
         };
         /** @description `INVALID_CODE`: wrong, expired, already used, or too many wrong tries */
         InvalidCode: {
+            headers: {
+                [name: string]: unknown;
+            };
+            content: {
+                "application/json": components["schemas"]["ErrorResponse"];
+            };
+        };
+        /** @description `FORBIDDEN` (not an admin) or `CSRF_REJECTED` */
+        AdminForbidden: {
             headers: {
                 [name: string]: unknown;
             };
@@ -3136,6 +3479,383 @@ export interface operations {
             401: components["responses"]["UnauthorizedError"];
             403: components["responses"]["CsrfRejected"];
             404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    adminOverview: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminOverview"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["AdminForbidden"];
+        };
+    };
+    adminListUsers: {
+        parameters: {
+            query?: {
+                q?: string;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUserList"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["AdminForbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    adminGetUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUser"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["AdminForbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    adminBlockUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminReasonRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUser"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["AdminForbidden"];
+            404: components["responses"]["NotFound"];
+            /** @description `CANNOT_TARGET_SELF`, or `DOCUMENT_NOT_RETRYABLE` for a retry */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    adminUnblockUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUser"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["AdminForbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    adminSignOutUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Done */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["AdminForbidden"];
+            404: components["responses"]["NotFound"];
+            /** @description `CANNOT_TARGET_SELF`, or `DOCUMENT_NOT_RETRYABLE` for a retry */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    adminSetUserQuota: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminQuotaRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminUser"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["AdminForbidden"];
+            404: components["responses"]["NotFound"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    adminDeleteUser: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminReasonRequest"];
+            };
+        };
+        responses: {
+            /** @description Done */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["AdminForbidden"];
+            404: components["responses"]["NotFound"];
+            /** @description `CANNOT_TARGET_SELF`, or `DOCUMENT_NOT_RETRYABLE` for a retry */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    adminListDocuments: {
+        parameters: {
+            query?: {
+                status?: components["schemas"]["DocumentStatus"];
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminDocumentList"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["AdminForbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    adminRetryDocument: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                document_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminDocument"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["AdminForbidden"];
+            404: components["responses"]["NotFound"];
+            /** @description `CANNOT_TARGET_SELF`, or `DOCUMENT_NOT_RETRYABLE` for a retry */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    adminGetSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSettings"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["AdminForbidden"];
+        };
+    };
+    adminUpdateSettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminSettingsPatch"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminSettings"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["AdminForbidden"];
+            422: components["responses"]["ValidationError"];
+        };
+    };
+    adminListAudit: {
+        parameters: {
+            query?: {
+                action?: string;
+                actor_id?: string;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminAuditList"];
+                };
+            };
+            401: components["responses"]["UnauthorizedError"];
+            403: components["responses"]["AdminForbidden"];
             422: components["responses"]["ValidationError"];
         };
     };
