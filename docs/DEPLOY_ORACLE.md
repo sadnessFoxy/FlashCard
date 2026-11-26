@@ -11,7 +11,7 @@ Code và cấu hình đã có sẵn trong repo (`infra/deploy/`) và đã đư�
 ## Bước 1. Tạo tài khoản Oracle Cloud (10 phút)
 1. Vào https://www.oracle.com/cloud/free/ → **Start for free**.
 2. Điền thông tin và xác minh thẻ. Oracle có thể tạm giữ khoảng 1 USD rồi hoàn lại.
-3. **Home Region:** chọn **Singapore** hoặc **Japan East (Tokyo)**, gần Việt Nam nên nhanh. Vùng này không đổi được về sau.
+3. **Home Region:** chọn **Singapore** (gần Việt Nam nhất, nhanh nhất, nhưng hay hết máy miễn phí). Muốn ít bị hết máy hơn thì chọn **Japan Central (Osaka)** hoặc **South Korea North (Chuncheon)**, chậm hơn một chút. Vùng này không đổi được về sau và máy ảo miễn phí chỉ tạo được trong vùng này.
 4. Giữ tài khoản ở gói **Free Tier**, chưa nâng cấp (xem "Câu hỏi thường gặp" ở cuối để quyết định có nâng lên Pay As You Go không).
 
 > Đôi khi Oracle từ chối đăng ký mà không nói lý do. Nếu bị, thử lại bằng trình duyệt khác, tắt VPN, hoặc dùng thẻ khác.
@@ -30,7 +30,7 @@ Trong trang quản lý Oracle: menu ☰ → **Compute** → **Instances** → **
 
 > **Không chọn quá 2 OCPU / 12 GB.** Từ tháng 8/2026, máy vượt mức miễn phí sẽ bị Oracle xóa.
 >
-> Nếu báo **Out of capacity**: vùng đang hết máy miễn phí. Đợi vài giờ rồi thử lại, hoặc đổi *Availability domain* (AD-1, AD-2...).
+> Nếu báo **Out of capacity**: vùng đang hết máy miễn phí. Đợi vài giờ rồi thử lại (sáng sớm hoặc đêm khuya hay còn máy hơn). Vùng có nhiều *Availability domain* thì thử đổi AD; Singapore và Tokyo chỉ có một.
 
 Bấm **Create**. Khi trạng thái thành **Running**, chép **Public IP address** (ví dụ `152.67.1.23`).
 
