@@ -5,9 +5,14 @@ Settings from environment variables (R3: no hard-coded secrets).
 from __future__ import annotations
 
 import json
+from typing import Annotated
 
 from pydantic import Field, field_validator
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
+
+# A list read from one env var: a JSON array or comma-separated (see parse_string_list).
+# NoDecode hands the raw string to the validator instead of requiring JSON.
+StringList = Annotated[list[str], NoDecode]
 
 
 class Settings(BaseSettings):
@@ -62,7 +67,7 @@ class Settings(BaseSettings):
     REGISTER_WINDOW_SECONDS: int = Field(default=60 * 60)
 
     # ------- Google sign-in (docs/specs/f3-google.md, docs/SETUP_GOOGLE.md) -------
-    GOOGLE_CLIENT_IDS: list[str] = Field(
+    GOOGLE_CLIENT_IDS: StringList = Field(
         default_factory=list,
         description="OAuth client IDs (web, Android, iOS) tokens may be for; empty = off",
     )
@@ -130,7 +135,7 @@ class Settings(BaseSettings):
         default="development",
         description="App environment: development | staging | production",
     )
-    CORS_ORIGINS: list[str] = Field(
+    CORS_ORIGINS: StringList = Field(
         default=["http://localhost:8081", "http://localhost:19006"],
         description="Allowed CORS origins as JSON array string",
     )

@@ -40,11 +40,12 @@ Khóa cần lấy **khi tới lát tương ứng** (agent sẽ nhắc, không l�
 - **Khóa Gemini API:** vào Google AI Studio tạo khóa, trước lát F5 (tải tài liệu, AI). Đừng dán khóa vào chat; chỉ đặt vào file `.env` của backend.
 - **Google OAuth client:** trong Google Cloud, trước lát F3 (đăng nhập Google). Làm theo **docs/SETUP_GOOGLE.md**.
 
-### Việc còn chờ bạn (cập nhật 2026-11-16, mọi lát F đã xong code)
-1. **Đăng nhập Google:** tạo OAuth client và điền ID theo docs/SETUP_GOOGLE.md (khoảng 15 phút). Chưa làm thì app vẫn chạy, chỉ ẩn nút Google.
-2. **Tài khoản quản trị:** đăng ký một tài khoản trong app, rồi chạy `make create-admin email=email-cua-ban`, mở http://localhost:8081/admin trên trình duyệt.
-3. **Thử bằng tài liệu thật (nên làm):** 3 đến 5 bản scan tiếng Việt thật (chất lượng kém càng tốt) và một file Word xuất từ Microsoft Word; báo lại chỗ đọc sai.
-4. **Trước khi đưa lên mạng (chưa cần bây giờ):** xác thực hai bước cho quản trị viên, cảnh báo tự động (A6) và OCR dự phòng chạy cục bộ đang hoãn (xem docs/DECISIONS.md).
+### Việc còn chờ bạn (cập nhật 2026-11-26)
+1. **Đưa lên mạng miễn phí:** tạo máy ảo Oracle và tài khoản Resend, rồi chạy một lệnh cài, theo **docs/DEPLOY_ORACLE.md** (khoảng 45 phút).
+2. **Tài khoản quản trị:** đăng ký trong app rồi chạy `sudo bash infra/deploy/admin.sh email-cua-ban` trên máy chủ (chạy trên máy bạn thì dùng `make create-admin email=...`).
+3. **Đăng nhập Google (tùy chọn):** tạo OAuth client theo docs/SETUP_GOOGLE.md. Chưa làm thì app vẫn chạy, chỉ ẩn nút Google.
+4. **Thử bằng tài liệu thật (nên làm):** 3 đến 5 bản scan tiếng Việt thật và một file Word xuất từ Microsoft Word; báo lại chỗ đọc sai.
+5. **Đang hoãn:** xác thực hai bước cho quản trị viên, cảnh báo tự động (A6), OCR dự phòng chạy cục bộ, CI/CD (xem docs/DECISIONS.md).
 
 Email và kho file khi chạy local dùng Mailpit và MinIO trong Docker nên **không cần** dịch vụ thật.
 

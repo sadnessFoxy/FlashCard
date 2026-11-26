@@ -1,4 +1,4 @@
-"""CORS_ORIGINS parsing for every accepted env format."""
+"""List settings (CORS_ORIGINS, GOOGLE_CLIENT_IDS) in every accepted env format."""
 
 from __future__ import annotations
 
@@ -24,3 +24,25 @@ def test_rejects_unknown_environment(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("ENVIRONMENT", "prod")
     with pytest.raises(ValueError, match="ENVIRONMENT"):
         Settings()  # type: ignore[call-arg]
+
+
+@pytest.mark.parametrize(
+    ("raw", "expected"),
+    [
+        ("", []),
+        ("https://app.example.com", ["https://app.example.com"]),
+        (
+            "a.apps.googleusercontent.com,b.apps.googleusercontent.com",
+            ["a.apps.googleusercontent.com", "b.apps.googleusercontent.com"],
+        ),
+        ('["https://app.example.com"]', ["https://app.example.com"]),
+    ],
+)
+def test_list_settings_from_env(
+    monkeypatch: pytest.MonkeyPatch, raw: str, expected: list[str]
+) -> None:
+    # Through the real env source: values are not required to be JSON.
+    monkeypatch.setenv("CORS_ORIGINS", raw)
+    monkeypatch.setenv("GOOGLE_CLIENT_IDS", raw)
+    loaded = Settings()  # type: ignore[call-arg]
+    assert loaded.CORS_ORIGINS == expected and loaded.GOOGLE_CLIENT_IDS == expected

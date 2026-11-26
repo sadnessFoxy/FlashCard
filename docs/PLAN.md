@@ -38,8 +38,8 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 - [x] Chọn backend tự dựng hay dùng BaaS (Firebase/Supabase): tự dựng, Python (FastAPI)
 - [x] Chọn kiến trúc backend: modular monolith (xem docs/ARCHITECTURE.md)
 - [x] Chọn monorepo hay nhiều repo: monorepo gồm `frontend/`, `backend/`, `contract/` (OpenAPI), FE và BE không import code của nhau
-- [x] Chọn nhà cung cấp hạ tầng: Railway
-- [ ] Chốt ngân sách hosting hằng tháng trên Railway (không có gói miễn phí vĩnh viễn, xem docs/OPERATIONS.md)
+- [x] Chọn nhà cung cấp hạ tầng: máy ảo Oracle Cloud Always Free (đổi từ Railway ngày 2026-11-26 vì cần miễn phí)
+- [x] Chốt ngân sách hosting hằng tháng: 0 đồng (Always Free)
 - [x] Chọn dịch vụ xác thực: tự xây, hỗ trợ email và mật khẩu, Google (không có Apple ở bản 1)
 - [x] Chọn cổng thanh toán nếu có: không có tính năng thu phí ở bản 1
 - [x] Định nghĩa chỉ số tải mục tiêu: 100 người dùng, 10 đồng thời, API p95 dưới 500 ms, chữ đầu tiên trong khoảng 3 giây
@@ -105,7 +105,7 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 - [ ] CI chạy unit và integration test của backend trên Postgres thử nghiệm (không dùng database production)
 - [ ] Branch protection: PR phải qua CI mới được merge
 - [ ] Pipeline backend: build Docker, deploy lên Railway (staging rồi production), duyệt trước khi lên production
-- [ ] Dựng môi trường Railway cho từng môi trường: dịch vụ API, worker ARQ, PostgreSQL có pgvector, Redis, kho file; biến môi trường theo môi trường (xem docs/OPERATIONS.md)
+- [x] Dựng môi trường chạy thật: `infra/deploy/` (Docker Compose: API, worker ARQ, PostgreSQL có pgvector, Redis, kho file SeaweedFS có khóa, Caddy HTTPS), script cài đặt, cập nhật, sao lưu hằng ngày; đã thử đủ trên Docker. Người dùng còn phải tạo máy ảo theo docs/DEPLOY_ORACLE.md
 - [ ] Chạy migration database tự động trong pipeline, luôn thử trên staging trước
 - [ ] Tích hợp Sentry cho cả app và backend
 - [ ] Quản lý secret bằng GitHub Secrets, không commit key vào repo
@@ -343,3 +343,4 @@ Trạng thái: `Chưa bắt đầu` · `Đang làm` · `Xong` · `Tạm hoãn`
 | 2026-11-15 | Lát F14 xong phần Gemini (docs/specs/f14-scans.md): PDF scan được Gemini đọc từng trang (gửi kèm file PDF một trang), văn bản lưu cạnh file gốc để xem trang và tìm chương, tài liệu ghi `text_source = ai_ocr`; giới hạn 50 trang scan (`SCAN_TOO_LONG`); AI ngừng thì `PAUSED_QUOTA` và tự chạy lại. Tesseract dự phòng hoãn (chưa có chương trình trong môi trường). Code: lớp provider nhận file đính kèm (`Attachment`); `documents/text.py` là nguồn văn bản duy nhất cho mọi tính năng. Phát hiện nhờ thử thật: lần đầu xem trang và tìm chương của tài liệu scan đọc lớp chữ rỗng, đã sửa bằng file văn bản kèm. Thử thật: scan tiếng Việt tự tạo đọc đúng dấu, tìm đúng chương, tóm tắt đúng trang; chưa thử scan thật. Test: backend 311, frontend 113 |
 | 2026-11-16 | Lát F16 xong (docs/specs/f16-admin.md): trang quản trị web `/admin` gồm tổng quan, người dùng (tìm, khóa có lý do, mở khóa, buộc đăng xuất, hạn mức riêng có thời hạn, xóa theo yêu cầu), tài liệu và job (lọc, thử lại), cấu hình chạy không cần triển khai lại (hạn mức, giới hạn tải lên, ngân sách token, công tắc khẩn cấp tắt AI), nhật ký kiểm toán chỉ thêm; quyền kiểm tra ở backend, không xem nội dung người dùng (R13); script `make create-admin`. Hoãn: xác thực hai bước, cảnh báo tự động (A6), chỉ số p95. Thử thật qua HTTP rồi dọn sạch. Test: backend 319, frontend 119 |
 | 2026-11-16 | Lát F3 xong về code (docs/specs/f3-google.md): `POST /v1/auth/google` xác thực ID token ở backend (chữ ký với khóa công khai của Google, đối tượng nhận, nơi phát hành, hạn dùng), tự tạo tài khoản lần đầu, chỉ liên kết với tài khoản email có sẵn khi Google xác minh email; nút Google chỉ hiện khi có client ID. Không thêm thư viện backend; frontend thêm `expo-auth-session`. Hướng dẫn tạo OAuth client cho người dùng: docs/SETUP_GOOGLE.md. Test: backend 332, frontend 122 |
+| 2026-11-26 | Bộ triển khai miễn phí lên máy ảo Oracle (docs/DEPLOY_ORACLE.md, `infra/deploy/`): một Docker Compose gồm API, worker, Postgres, Redis, kho file có khóa riêng, Caddy tự lấy HTTPS cho địa chỉ sslip.io và chuyển `/v1` vào API (cùng nguồn nên cookie an toàn); migration và tạo kho file chạy trước API; sao lưu hằng ngày giữ 7 ngày; script cài một lệnh. Thử thật trên Docker: web, đường dẫn sâu, HTTPS, cookie Secure, chặn nguồn lạ, tải tài liệu, worker nhận việc, sao lưu, cấp quyền quản trị; cổng nội bộ không lộ. Sửa hai lỗi lộ ra khi chạy thật: thiếu khai báo `cryptography` (kiểm tra token Google) và biến danh sách (`CORS_ORIGINS`, `GOOGLE_CLIENT_IDS`) không đọc được dạng chuỗi thường. Dự án chuyển sang `C:\Learning Documentspp projectlashcard`. Test: backend 336, frontend 122 |

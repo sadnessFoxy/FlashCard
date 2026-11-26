@@ -96,3 +96,7 @@ Thumbs.db
 
 # Personal Claude Code settings
 .claude/settings.local.json
+
+# Server secrets written by infra/deploy/setup.sh
+infra/deploy/.env
+infra/deploy/s3.json

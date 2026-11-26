@@ -43,4 +43,4 @@ Dịch vụ cần dựng cho mỗi môi trường: API, worker ARQ, PostgreSQL c
 
 **Chỉ số tải mục tiêu dùng khi định cỡ tài nguyên:** 100 người dùng, 10 đồng thời, API p95 dưới 500 ms, chữ đầu tiên của câu trả lời trong khoảng 3 giây.
 
-> **Phạm vi hiện tại:** dự án chỉ chạy thử trên máy cá nhân (web và mobile qua Expo). Phần Railway ở trên chỉ áp dụng khi sau này muốn đưa lên mạng.
+> **Đã đổi (2026-11-26):** không dùng Railway; bản mạng chạy miễn phí trên máy ảo Oracle Always Free, xem docs/DEPLOY_ORACLE.md và `infra/deploy/`. Phần Railway ở trên chỉ còn để tham khảo.

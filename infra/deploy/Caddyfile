@@ -1,0 +1,34 @@
+{
+	# Used for certificate notices; also lets Caddy fall back to ZeroSSL if Let's Encrypt refuses.
+	email {$ACME_EMAIL}
+}
+
+{$SITE_ADDRESS} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	@api path /v1/* /health
+	handle @api {
+		# Uploads are capped by the API too (runtime setting); this is the outer bound.
+		request_body {
+			max_size 60MB
+		}
+		# flush_interval -1: stream answers (SSE) token by token.
+		reverse_proxy api:8000 {
+			flush_interval -1
+		}
+	}
+
+	handle {
+		root * /srv
+		try_files {path} {path}.html /index.html
+		file_server
+	}
+}

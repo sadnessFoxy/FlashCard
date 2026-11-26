@@ -1,0 +1,117 @@
+# Production stack for one server (docs/DEPLOY_ORACLE.md).
+# Usage (on the server, from this folder): docker compose up -d --build
+# Secrets live in ./.env, written by setup.sh and never committed.
+
+name: flashcard
+
+x-backend: &backend
+  build:
+    context: ../../backend
+  image: flashcard-backend
+  restart: unless-stopped
+  env_file: .env
+  environment:
+    ENVIRONMENT: production
+    DATABASE_URL: postgresql+asyncpg://flashcard:${POSTGRES_PASSWORD}@postgres:5432/flashcard
+    REDIS_URL: redis://redis:6379
+    S3_ENDPOINT_URL: http://s3:8333
+    CORS_ORIGINS: https://${SITE_ADDRESS}
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: flashcard
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: flashcard
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres-init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flashcard -d flashcard"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # S3-compatible file storage; only reachable inside this network, keys in s3.json.
+  s3:
+    image: chrislusf/seaweedfs:latest
+    restart: unless-stopped
+    command: server -dir=/data -s3 -s3.port=8333 -s3.config=/etc/seaweedfs/s3.json -volume.max=100 -master.volumeSizeLimitMB=256
+    volumes:
+      - s3_data:/data
+      - ./s3.json:/etc/seaweedfs/s3.json:ro
+
+  # One-shot: database migrations and the storage bucket, before the API starts.
+  migrate:
+    <<: *backend
+    restart: "no"
+    command: sh -c "alembic upgrade head && python -m app.scripts.prepare_storage"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      s3:
+        condition: service_started
+
+  api:
+    <<: *backend
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  worker:
+    <<: *backend
+    command: arq app.workers.queue.WorkerSettings
+    healthcheck:
+      disable: true
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  # The website plus HTTPS: serves the web app and forwards /v1 to the API (same origin,
+  # so login cookies stay first-party). Certificates are obtained automatically.
+  web:
+    build:
+      context: ../../frontend
+      dockerfile: ../infra/deploy/web.Dockerfile
+      args:
+        API_URL: https://${SITE_ADDRESS}
+        GOOGLE_WEB_CLIENT_ID: ${GOOGLE_WEB_CLIENT_ID:-}
+    restart: unless-stopped
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS}
+      ACME_EMAIL: ${ACME_EMAIL}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
+  redis_data:
+  s3_data:
+  caddy_data:
+  caddy_config:
